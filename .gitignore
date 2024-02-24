@@ -13,3 +13,5 @@ temp.errors
 .d/
 .clangd/
 .cache/
+
+.gdb_history
