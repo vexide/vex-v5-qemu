@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 pub mod abs_encoder;
 pub mod imu;
 pub mod motor;

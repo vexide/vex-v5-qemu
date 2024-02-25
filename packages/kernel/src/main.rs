@@ -1,7 +1,6 @@
 #![no_std]
-#![feature(c_variadic)]
-#![allow(non_snake_case)]
 #![no_main]
+#![feature(c_variadic)]
 
 pub mod sdk;
 
@@ -17,7 +16,7 @@ extern "C" {
     static COLD_MEMORY_START: *const ();
 
     #[link_name = "_vex_startup"]
-    fn vex_startup() -> !;
+    fn vex_startup();
 }
 
 extern "C" fn main() -> ! {
