@@ -4,8 +4,8 @@ qemu-system-arm \
     -machine none \
     -cpu cortex-a7 \
     -m 256M \
-    -device loader,file=$1,force-raw=on,addr=0x03800000,cpu-num=0 \
-    -device loader,file=sdk-shim/shim.bin,force-raw=on,addr=0x037ec000 \
+    -device loader,file=target/armv7a-none-eabi/debug/kernel,cpu-num=0 \
+    -device loader,file=$1,force-raw=on,addr=0x03800000 \
     -S \
     -s \
     -nographic
