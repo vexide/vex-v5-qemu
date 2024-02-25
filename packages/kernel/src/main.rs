@@ -1,9 +1,11 @@
 #![no_std]
+#![feature(c_variadic)]
+#![allow(non_snake_case)]
 #![no_main]
 
 pub mod sdk;
 
-use core::{arch::global_asm, mem, panic::PanicInfo};
+use core::{arch::global_asm, panic::PanicInfo};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -20,7 +22,7 @@ extern "C" fn main() -> ! {
         vex_startup();
     }
 
-    panic!("VEX startup should not return!");
+    unreachable!("VEX startup should not return!");
 }
 
 global_asm!(
