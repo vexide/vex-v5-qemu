@@ -1,8 +1,10 @@
-pub mod types;
 pub mod motor;
+pub mod types;
+pub mod vision;
 
 use motor::*;
 use types::*;
+use vision::*;
 
 macro_rules! jump_table {
     ($table:ident, { $($offset:expr => $fun:ident,)* }) => {
@@ -88,7 +90,7 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x334 => vexDeviceMotorPositionSet,
         0x338 => vexDeviceMotorPositionGet,
         0x33c => vexDeviceMotorPositionRawGet,
-        0x340 =>  vexDeviceMotorPositionReset,
+        0x340 => vexDeviceMotorPositionReset,
         0x344 => vexDeviceMotorTargetGet,
         0x348 => vexDeviceMotorServoTargetSet,
         0x34c => vexDeviceMotorAbsoluteTargetSet,
@@ -105,6 +107,26 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x378 => vexDeviceMotorPositionPidSet,
         0x37c => vexDeviceMotorVelocityPidSet,
         0x380 => vexDeviceMotorExternalProfileSet,
+        0x398 => vexDeviceVisionModeSet,
+        0x39c => vexDeviceVisionModeGet,
+        0x3a0 => vexDeviceVisionObjectCountGet,
+        0x3a4 => vexDeviceVisionObjectGet,
+        0x3a8 => vexDeviceVisionSignatureSet,
+        0x3ac => vexDeviceVisionSignatureGet,
+        0x3b0 => vexDeviceVisionBrightnessSet,
+        0x3b4 => vexDeviceVisionBrightnessGet,
+        0x3b8 => vexDeviceVisionWhiteBalanceModeSet,
+        0x3bc => vexDeviceVisionWhiteBalanceModeGet,
+        0x3c0 => vexDeviceVisionWhiteBalanceSet,
+        0x3c4 => vexDeviceVisionWhiteBalanceGet,
+        0x3c8 => vexDeviceVisionLedModeSet,
+        0x3cc => vexDeviceVisionLedModeGet,
+        0x3d0 => vexDeviceVisionLedBrigntnessSet,
+        0x3d4 => vexDeviceVisionLedBrigntnessGet,
+        0x3d8 => vexDeviceVisionLedColorSet,
+        0x3dc => vexDeviceVisionLedColorGet,
+        0x3e0 => vexDeviceVisionWifiModeSet,
+        0x3e4 => vexDeviceVisionWifiModeGet,
         0x8c0 => vexSystemTimerStop,
     });
     table
