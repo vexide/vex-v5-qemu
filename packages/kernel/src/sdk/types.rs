@@ -362,3 +362,22 @@ pub enum VisionWifiMode {
     Off = 0,
     On = 1,
 }
+
+#[repr(C)]
+#[repr(packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct ImuQuaternion {
+    x: f64,
+    y: f64,
+    z: f64,
+    w: f64,
+}
+
+#[repr(C)]
+#[repr(packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct ImuAttitude {
+    pitch: f64,
+    roll: f64,
+    yaw: f64,
+}

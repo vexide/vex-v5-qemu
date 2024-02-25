@@ -1,7 +1,9 @@
+pub mod imu;
 pub mod motor;
 pub mod types;
 pub mod vision;
 
+use imu::*;
 use motor::*;
 use types::*;
 use vision::*;
@@ -127,6 +129,21 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x3dc => vexDeviceVisionLedColorGet,
         0x3e0 => vexDeviceVisionWifiModeSet,
         0x3e4 => vexDeviceVisionWifiModeGet,
+        0x410 => vexDeviceImuReset,
+        0x414 => vexDeviceImuHeadingGet,
+        0x418 => vexDeviceImuDegreesGet,
+        0x41c => vexDeviceImuQuaternionGet,
+        0x420 => vexDeviceImuAttitudeGet,
+        0x424 => vexDeviceImuRawGyroGet,
+        0x428 => vexDeviceImuRawAccelGet,
+        0x42c => vexDeviceImuStatusGet,
+        // 0x430 => vexDeviceImuTemperatureGet,
+        // 0x434 => vexDeviceImuDebugGet,
+        0x438 => vexDeviceImuModeSet,
+        0x43c => vexDeviceImuModeGet,
+        // Cannot infer args
+        // 0x440 => vexDeviceImuCollisionDataGet,
+        0x444 => vexDeviceImuDataRateSet,
         0x8c0 => vexSystemTimerStop,
     });
     table
