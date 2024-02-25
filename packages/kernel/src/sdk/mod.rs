@@ -1,10 +1,14 @@
+pub mod abs_encoder;
 pub mod imu;
 pub mod motor;
+pub mod optical;
 pub mod types;
 pub mod vision;
 
+use abs_encoder::*;
 use imu::*;
 use motor::*;
+use optical::*;
 use types::*;
 use vision::*;
 
@@ -141,10 +145,48 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         // 0x434 => vexDeviceImuDebugGet,
         0x438 => vexDeviceImuModeSet,
         0x43c => vexDeviceImuModeGet,
-        // Cannot infer args
         // 0x440 => vexDeviceImuCollisionDataGet,
         0x444 => vexDeviceImuDataRateSet,
+        0x4d8 => vexDeviceRangeValueGet,
+        // 0x460 => vexDeviceRadioUserDataReceive,
+        // 0x464 => vexDeviceRadioModeSet,
+        0x488 => vexDeviceAbsEncReset,
+        0x48c => vexDeviceAbsEncPositionSet,
+        0x490 => vexDeviceAbsEncPositionGet,
+        0x494 => vexDeviceAbsEncVelocityGet,
+        0x498 => vexDeviceAbsEncAngleGet,
+        0x49c => vexDeviceAbsEncReverseFlagSet,
+        0x4a0 => vexDeviceAbsEncReverseFlagGet,
+        0x4a4 => vexDeviceAbsEncStatusGet,
+        // 0x4a8 => vexDeviceAbsEncTemperatureGet,
+        // 0x4ac => vexDeviceAbsEncDebugGet,
+        // 0x4b0 => vexDeviceAbsEncModeSet,
+        // 0x4b4 => vexDeviceAbsEncModeGet,
+        // 0x4b8 => vexDeviceAbsEncOffsetSet,
+        // 0x4bc => vexDeviceAbsEncOffsetGet,
+        0x4c0 => vexDeviceAbsEncDataRateSet,
+        0x528 => vexDeviceOpticalHueGet,
+        0x52c => vexDeviceOpticalSatGet,
+        0x530 => vexDeviceOpticalBrightnessGet,
+        0x534 => vexDeviceOpticalProximityGet,
+        0x538 => vexDeviceOpticalRgbGet,
+        0x53c => vexDeviceOpticalLedPwmSet,
+        0x540 => vexDeviceOpticalLedPwmGet,
+        0x544 => vexDeviceOpticalStatusGet,
+        0x548 => vexDeviceOpticalRawGet,
+        // 0x54c => vexDeviceOpticalDebugGet,
+        0x550 => vexDeviceOpticalModeSet,
+        0x554 => vexDeviceOpticalModeGet,
+        0x558 => vexDeviceOpticalGestureGet,
+        0x55c => vexDeviceOpticalGestureEnable,
+        0x560 => vexDeviceOpticalGestureDisable,
+        0x564 => vexDeviceOpticalProximityThreshold,
+        // 0x568 => vexDeviceOpticalGainSet,
+        // 0x56c => vexDeviceOpticalMatrixSet,
+        // 0x570 => vexDeviceOpticalMatrixGet,
         0x8c0 => vexSystemTimerStop,
+        0xb40 => vexDeviceOpticalIntegrationTimeSet,
+        0xb44 => vexDeviceOpticalIntegrationTimeGet,
     });
     table
 };
@@ -314,6 +356,10 @@ pub unsafe extern "C" fn vexDeviceSonarValueGet(device: V5Device) -> i32 {
 
 pub unsafe extern "C" fn vexDeviceGenericValueGet(device: V5Device) -> f64 {
     0.0
+}
+
+pub unsafe extern "C" fn vexDeviceRangeValueGet(device: V5Device) -> i32 {
+    0
 }
 
 pub unsafe extern "C" fn vexSystemTimerStop() {}

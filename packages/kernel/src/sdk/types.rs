@@ -367,17 +367,48 @@ pub enum VisionWifiMode {
 #[repr(packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ImuQuaternion {
-    x: f64,
-    y: f64,
-    z: f64,
-    w: f64,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub w: f64,
 }
 
 #[repr(C)]
 #[repr(packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ImuAttitude {
-    pitch: f64,
-    roll: f64,
-    yaw: f64,
+    pub pitch: f64,
+    pub roll: f64,
+    pub yaw: f64,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OpticalRaw {
+    pub clear: u16,
+    pub red: u16,
+    pub green: u16,
+    pub blue: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OpticalRgb {
+    pub red: f64,
+    pub green: f64,
+    pub blue: f64,
+    pub brightness: f64,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OpticalGesture {
+    pub udata: u8,
+    pub ddata: u8,
+    pub ldata: u8,
+    pub rdata: u8,
+    pub gesture_type: u8,
+    pub padding: u8,
+    pub count: u16,
+    pub time: u32,
 }
