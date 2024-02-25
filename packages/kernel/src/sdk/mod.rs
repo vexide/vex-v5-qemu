@@ -105,7 +105,7 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x378 => vexDeviceMotorPositionPidSet,
         0x37c => vexDeviceMotorVelocityPidSet,
         0x380 => vexDeviceMotorExternalProfileSet,
-        // 0x8c0 => vexStemTimerStop,
+        0x8c0 => vexSystemTimerStop,
     });
     table
 };
@@ -277,4 +277,4 @@ pub unsafe extern "C" fn vexDeviceGenericValueGet(device: V5Device) -> f64 {
     0.0
 }
 
-// pub unsafe extern "C" fn vexStemTimerStop() {}
+pub unsafe extern "C" fn vexSystemTimerStop() {}
