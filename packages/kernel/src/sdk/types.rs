@@ -168,6 +168,8 @@ pub union DeviceData {
     pub adi_expander: AdiExpanderData,
 }
 
+#[repr(C)]
+#[derive(Copy, Clone)]
 pub struct V5Device {
     pub port: u8,
     pub exists: bool,

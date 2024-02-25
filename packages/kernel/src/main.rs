@@ -13,6 +13,9 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 
 extern "C" {
+    #[link_name = "_cold_memory_start"]
+    static COLD_MEMORY_START: *const ();
+
     #[link_name = "_vex_startup"]
     fn vex_startup() -> !;
 }

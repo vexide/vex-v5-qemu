@@ -1,5 +1,7 @@
 pub mod types;
+pub mod motor;
 
+use motor::*;
 use types::*;
 
 macro_rules! jump_table {
@@ -13,7 +15,7 @@ macro_rules! jump_table {
 #[link_section = ".jump_table"]
 #[no_mangle]
 pub static mut JUMP_TABLE: [*const (); 0x1000] = {
-    let mut table = [core::ptr::null(); 0x1000];
+    let mut table = [unshimmed_syscall as _; 0x1000];
 
     jump_table!(table, {
         0x10 => vexStdlibMismatchError,
@@ -54,9 +56,63 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         // Cant infer args
         // 0x230 => vexDeviceBumperGet,
         // 0x258 => vexDeviceGyroReset,
+        0x25c => vexDeviceGyroHeadingGet,
+        0x260 => vexDeviceGyroDegreesGet,
+        0x280 => vexDeviceSonarValueGet,
+        0x2a8 => vexDeviceGenericValueGet,
+        0x2d0 => vexDeviceMotorVelocitySet,
+        0x2d4 => vexDeviceMotorVelocityGet,
+        0x2d8 => vexDeviceMotorActualVelocityGet,
+        0x2dc => vexDeviceMotorDirectionGet,
+        0x2e0 => vexDeviceMotorModeSet,
+        0x2e4 => vexDeviceMotorModeGet,
+        0x2e8 => vexDeviceMotorPwmSet,
+        0x2ec => vexDeviceMotorPwmGet,
+        0x2f0 => vexDeviceMotorCurrentLimitSet,
+        0x2f4 => vexDeviceMotorCurrentLimitGet,
+        0x2f8 => vexDeviceMotorCurrentGet,
+        0x2fc => vexDeviceMotorPowerGet,
+        0x300 => vexDeviceMotorTorqueGet,
+        0x304 => vexDeviceMotorEfficiencyGet,
+        0x308 => vexDeviceMotorTemperatureGet,
+        0x30c => vexDeviceMotorOverTempFlagGet,
+        0x310 => vexDeviceMotorCurrentLimitFlagGet,
+        0x314 => vexDeviceMotorZeroVelocityFlagGet,
+        0x318 => vexDeviceMotorZeroPositionFlagGet,
+        0x31c => vexDeviceMotorReverseFlagSet,
+        0x320 => vexDeviceMotorReverseFlagGet,
+        0x324 => vexDeviceMotorEncoderUnitsSet,
+        0x328 => vexDeviceMotorEncoderUnitsGet,
+        0x32c => vexDeviceMotorBrakeModeSet,
+        0x330 => vexDeviceMotorBrakeModeGet,
+        0x334 => vexDeviceMotorPositionSet,
+        0x338 => vexDeviceMotorPositionGet,
+        0x33c => vexDeviceMotorPositionRawGet,
+        0x340 =>  vexDeviceMotorPositionReset,
+        0x344 => vexDeviceMotorTargetGet,
+        0x348 => vexDeviceMotorServoTargetSet,
+        0x34c => vexDeviceMotorAbsoluteTargetSet,
+        0x350 => vexDeviceMotorRelativeTargetSet,
+        0x354 => vexDeviceMotorFaultsGet,
+        0x358 => vexDeviceMotorFlagsGet,
+        0x35c => vexDeviceMotorVoltageSet,
+        0x360 => vexDeviceMotorVoltageGet,
+        0x364 => vexDeviceMotorGearingSet,
+        0x368 => vexDeviceMotorGearingGet,
+        0x36c => vexDeviceMotorVoltageLimitSet,
+        0x370 => vexDeviceMotorVoltageLimitGet,
+        0x374 => vexDeviceMotorVelocityUpdate,
+        0x378 => vexDeviceMotorPositionPidSet,
+        0x37c => vexDeviceMotorVelocityPidSet,
+        0x380 => vexDeviceMotorExternalProfileSet,
+        // 0x8c0 => vexStemTimerStop,
     });
     table
 };
+
+pub unsafe extern "C" fn unshimmed_syscall() -> ! {
+    loop {}
+}
 
 pub unsafe extern "C" fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
 
@@ -97,23 +153,20 @@ pub unsafe extern "C" fn vexSystemExitRequest() -> ! {
 pub unsafe extern "C" fn vexSystemHighResTimeGet() -> u64 {
     0
 }
-
 pub unsafe extern "C" fn vexSystemPowerupTimeGet() -> u64 {
     0
 }
 
 pub unsafe extern "C" fn vexSystemLinkAddrGet() -> u32 {
-    0x03800000
+    crate::COLD_MEMORY_START as _
 }
 
 pub unsafe extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {
     0
 }
-
 pub unsafe extern "C" fn vexSystemTimerEnable(param_1: u32) -> u32 {
     0
 }
-
 pub unsafe extern "C" fn vexSystemTimerDisable(param_1: u32) {}
 
 pub unsafe extern "C" fn vexSystemUsbStatus() -> u32 {
@@ -123,11 +176,9 @@ pub unsafe extern "C" fn vexSystemUsbStatus() -> u32 {
 pub unsafe extern "C" fn vexDevicesGetNumber() -> u32 {
     0
 }
-
 pub unsafe extern "C" fn vexDevicesGetNumberByType(device_type: V5DeviceType) -> u32 {
     0
 }
-
 pub unsafe extern "C" fn vexDevicesGet() -> V5Device {
     V5Device {
         port: 0,
@@ -137,7 +188,6 @@ pub unsafe extern "C" fn vexDevicesGet() -> V5Device {
         device_specific_data: DeviceData { vision: () },
     }
 }
-
 pub unsafe extern "C" fn vexDeviceGetByIndex(index: u32) -> V5Device {
     V5Device {
         port: 0,
@@ -155,11 +205,9 @@ pub unsafe extern "C" fn vexDeviceGetStatus(devices: *const V5DeviceType) -> i32
 pub unsafe extern "C" fn vexControllerGet(id: ControllerID, channel: ControllerChannel) -> i32 {
     0
 }
-
 pub unsafe extern "C" fn vexControllerConnectionStatusGet(id: ControllerID) -> i32 {
     1
 }
-
 pub unsafe extern "C" fn vexControllerTextSet(id: u32, line: u32, col: u32, buf: *const u8) -> u32 {
     1
 }
@@ -177,7 +225,6 @@ pub unsafe extern "C" fn vexDeviceLedSet(device: V5Device, color: u32) {}
 pub unsafe extern "C" fn vexDeviceLedGet(device: V5Device) -> u32 {
     0
 }
-
 pub unsafe extern "C" fn vexDeviceLedRgbGet(device: V5Device) -> u32 {
     0
 }
@@ -189,7 +236,6 @@ pub unsafe extern "C" fn vexDeviceAdiPortConfigSet(
 ) -> u32 {
     0
 }
-
 pub unsafe extern "C" fn vexDeviceAdiPortConfigGet(
     device: V5Device,
     port: u32,
@@ -198,11 +244,9 @@ pub unsafe extern "C" fn vexDeviceAdiPortConfigGet(
 }
 
 pub unsafe extern "C" fn vexDeviceAdiValueSet(device: V5Device, port: u32, value: i32) {}
-
 pub unsafe extern "C" fn vexDeviceAdiValueGet(device: V5Device, port: u32) -> i32 {
     0
 }
-
 pub unsafe extern "C" fn vexDeviceAdiVoltageGet(device: V5Device, port: u32) -> i32 {
     0
 }
@@ -217,3 +261,20 @@ pub unsafe extern "C" fn vexDeviceAdiAddrLedSet(
 ) -> i32 {
     0
 }
+
+pub unsafe extern "C" fn vexDeviceGyroHeadingGet(device: V5Device) -> f64 {
+    0.0
+}
+pub unsafe extern "C" fn vexDeviceGyroDegreesGet(device: V5Device) -> f64 {
+    0.0
+}
+
+pub unsafe extern "C" fn vexDeviceSonarValueGet(device: V5Device) -> i32 {
+    0
+}
+
+pub unsafe extern "C" fn vexDeviceGenericValueGet(device: V5Device) -> f64 {
+    0.0
+}
+
+// pub unsafe extern "C" fn vexStemTimerStop() {}
