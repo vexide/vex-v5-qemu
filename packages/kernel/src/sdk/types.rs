@@ -180,6 +180,8 @@ pub struct V5Device {
     pub device_specific_data: DeviceData,
 }
 
+pub type V5DeviceHandle = *mut V5Device;
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub enum V5DeviceType {

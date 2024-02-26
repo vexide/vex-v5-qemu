@@ -342,7 +342,7 @@ pub unsafe extern "C" fn vexControllerTextSet(id: u32, line: u32, col: u32, buf:
     1
 }
 
-pub unsafe extern "C" fn vexDeviceGetTimestamp(device: V5Device) -> u32 {
+pub unsafe extern "C" fn vexDeviceGetTimestamp(device: V5DeviceHandle) -> u32 {
     0
 }
 
@@ -350,39 +350,39 @@ pub unsafe extern "C" fn vexDeviceButtonStateGet() -> u32 {
     0
 }
 
-pub unsafe extern "C" fn vexDeviceLedSet(device: V5Device, color: u32) {}
+pub unsafe extern "C" fn vexDeviceLedSet(device: V5DeviceHandle, color: u32) {}
 
-pub unsafe extern "C" fn vexDeviceLedGet(device: V5Device) -> u32 {
+pub unsafe extern "C" fn vexDeviceLedGet(device: V5DeviceHandle) -> u32 {
     0
 }
-pub unsafe extern "C" fn vexDeviceLedRgbGet(device: V5Device) -> u32 {
+pub unsafe extern "C" fn vexDeviceLedRgbGet(device: V5DeviceHandle) -> u32 {
     0
 }
 
 pub unsafe extern "C" fn vexDeviceAdiPortConfigSet(
-    device: V5Device,
+    device: V5DeviceHandle,
     port: u32,
     config: AdiPortConfiguration,
 ) -> u32 {
     0
 }
 pub unsafe extern "C" fn vexDeviceAdiPortConfigGet(
-    device: V5Device,
+    device: V5DeviceHandle,
     port: u32,
 ) -> AdiPortConfiguration {
     AdiPortConfiguration::AnalogIn
 }
 
-pub unsafe extern "C" fn vexDeviceAdiValueSet(device: V5Device, port: u32, value: i32) {}
-pub unsafe extern "C" fn vexDeviceAdiValueGet(device: V5Device, port: u32) -> i32 {
+pub unsafe extern "C" fn vexDeviceAdiValueSet(device: V5DeviceHandle, port: u32, value: i32) {}
+pub unsafe extern "C" fn vexDeviceAdiValueGet(device: V5DeviceHandle, port: u32) -> i32 {
     0
 }
-pub unsafe extern "C" fn vexDeviceAdiVoltageGet(device: V5Device, port: u32) -> i32 {
+pub unsafe extern "C" fn vexDeviceAdiVoltageGet(device: V5DeviceHandle, port: u32) -> i32 {
     0
 }
 
 pub unsafe extern "C" fn vexDeviceAdiAddrLedSet(
-    device: V5Device,
+    device: V5DeviceHandle,
     port: u32,
     pixel_data: *const u32,
     offset: u32,
@@ -392,22 +392,22 @@ pub unsafe extern "C" fn vexDeviceAdiAddrLedSet(
     0
 }
 
-pub unsafe extern "C" fn vexDeviceGyroHeadingGet(device: V5Device) -> f64 {
+pub unsafe extern "C" fn vexDeviceGyroHeadingGet(device: V5DeviceHandle) -> f64 {
     0.0
 }
-pub unsafe extern "C" fn vexDeviceGyroDegreesGet(device: V5Device) -> f64 {
+pub unsafe extern "C" fn vexDeviceGyroDegreesGet(device: V5DeviceHandle) -> f64 {
     0.0
 }
 
-pub unsafe extern "C" fn vexDeviceSonarValueGet(device: V5Device) -> i32 {
+pub unsafe extern "C" fn vexDeviceSonarValueGet(device: V5DeviceHandle) -> i32 {
     0
 }
 
-pub unsafe extern "C" fn vexDeviceGenericValueGet(device: V5Device) -> f64 {
+pub unsafe extern "C" fn vexDeviceGenericValueGet(device: V5DeviceHandle) -> f64 {
     0.0
 }
 
-pub unsafe extern "C" fn vexDeviceRangeValueGet(device: V5Device) -> i32 {
+pub unsafe extern "C" fn vexDeviceRangeValueGet(device: V5DeviceHandle) -> i32 {
     0
 }
 
