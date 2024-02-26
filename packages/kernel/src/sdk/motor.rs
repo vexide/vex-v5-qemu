@@ -66,7 +66,10 @@ pub unsafe extern "C" fn vexDeviceMotorPositionSet(device: V5Device, position: f
 pub unsafe extern "C" fn vexDeviceMotorPositionGet(device: V5Device) -> f64 {
     0.0
 }
-pub unsafe extern "C" fn vexDeviceMotorPositionRawGet(device: V5Device, timestamp: *const u32) -> i32 {
+pub unsafe extern "C" fn vexDeviceMotorPositionRawGet(
+    device: V5Device,
+    timestamp: *const u32,
+) -> i32 {
     0
 }
 pub unsafe extern "C" fn vexDeviceMotorPositionReset(device: V5Device) {}
@@ -74,8 +77,18 @@ pub unsafe extern "C" fn vexDeviceMotorTargetGet(device: V5Device) -> f64 {
     0.0
 }
 pub unsafe extern "C" fn vexDeviceMotorServoTargetSet(device: V5Device, position: f64) {}
-pub unsafe extern "C" fn vexDeviceMotorAbsoluteTargetSet(device: V5Device, position: f64, veloctiy: i32) {}
-pub unsafe extern "C" fn vexDeviceMotorRelativeTargetSet(device: V5Device, position: f64, velocity: i32) {}
+pub unsafe extern "C" fn vexDeviceMotorAbsoluteTargetSet(
+    device: V5Device,
+    position: f64,
+    veloctiy: i32,
+) {
+}
+pub unsafe extern "C" fn vexDeviceMotorRelativeTargetSet(
+    device: V5Device,
+    position: f64,
+    velocity: i32,
+) {
+}
 pub unsafe extern "C" fn vexDeviceMotorFaultsGet(device: V5Device) -> u32 {
     0
 }
@@ -97,4 +110,9 @@ pub unsafe extern "C" fn vexDeviceMotorVoltageLimitGet(device: V5Device) -> i32 
 pub unsafe extern "C" fn vexDeviceMotorVelocityUpdate(device: V5Device, velocity: i32) {}
 pub unsafe extern "C" fn vexDeviceMotorPositionPidSet(device: V5Device, pid: *mut MotorPid) {}
 pub unsafe extern "C" fn vexDeviceMotorVelocityPidSet(device: V5Device, pid: *mut MotorPid) {}
-pub unsafe extern "C" fn vexDeviceMotorExternalProfileSet(device: V5Device, position: f64, velocity: i32) {}
+pub unsafe extern "C" fn vexDeviceMotorExternalProfileSet(
+    device: V5Device,
+    position: f64,
+    velocity: i32,
+) {
+}

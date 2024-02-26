@@ -1,14 +1,19 @@
 #![allow(non_snake_case)]
-
-pub mod abs_encoder;
-pub mod imu;
-pub mod motor;
-pub mod optical;
-pub mod types;
-pub mod vision;
+pub(crate) mod abs_encoder;
+pub(crate) mod distance;
+pub(crate) mod gps;
+pub(crate) mod imu;
+pub(crate) mod magnet;
+pub(crate) mod motor;
+pub(crate) mod optical;
+pub(crate) mod types;
+pub(crate) mod vision;
 
 use abs_encoder::*;
+pub use distance::*;
+use gps::*;
 use imu::*;
+use magnet::*;
 use motor::*;
 use optical::*;
 use types::*;
@@ -167,6 +172,14 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         // 0x4b8 => vexDeviceAbsEncOffsetSet,
         // 0x4bc => vexDeviceAbsEncOffsetGet,
         0x4c0 => vexDeviceAbsEncDataRateSet,
+        0x500 => vexDeviceDistanceDistanceGet,
+        0x504 => vexDeviceDistanceConfidenceGet,
+        0x508 => vexDeviceDistanceStatusGet,
+        // 0x50c => vexDeviceDistanceDebugGet,
+        // 0x510 => vexDeviceDistanceModeSet,
+        // 0x514 => vexDeviceDistanceModeGet,
+        0x518 => vexDeviceDistanceObjectSizeGet,
+        0x51c => vexDeviceDistanceObjectVelocityGet,
         0x528 => vexDeviceOpticalHueGet,
         0x52c => vexDeviceOpticalSatGet,
         0x530 => vexDeviceOpticalBrightnessGet,
@@ -186,6 +199,34 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         // 0x568 => vexDeviceOpticalGainSet,
         // 0x56c => vexDeviceOpticalMatrixSet,
         // 0x570 => vexDeviceOpticalMatrixGet,
+        0x57c => vexDeviceMagnetPowerGet,
+        0x580 => vexDeviceMagnetPickup,
+        0x584 => vexDeviceMagnetDrop,
+        0x588 => vexDeviceMagnetTemperatureGet,
+        0x58c => vexDeviceMagnetCurrentGet,
+        0x590 => vexDeviceMagnetStatusGet,
+        // 0x594 => vexDeviceMagnetDebugGet,
+        // 0x598 => vexDeviceMagnetModeSet,
+        // 0x59c => vexDeviceMagnetModeGet,
+        0x5c8 => vexDeviceGpsReset,
+        0x5cc => vexDeviceGpsHeadingGet,
+        0x5d0 => vexDeviceGpsDegreesGet,
+        0x5d4 => vexDeviceGpsQuaternionGet,
+        0x5d8 => vexDeviceGpsAttitudeGet,
+        0x5dc => vexDeviceGpsRawGyroGet,
+        0x5e0 => vexDeviceGpsRawAccelGet,
+        0x5e4 => vexDeviceGpsStatusGet,
+        // 0x5e8 => vexDeviceGpsTemperatureGet,
+        // 0x5ec => vexDeviceGpsDebugGet,
+        0x5f0 => vexDeviceGpsModeSet,
+        0x5f4 => vexDeviceGpsModeGet,
+        0x5f8 => vexDeviceGpsDataRateSet,
+        0x5fc => vexDeviceGpsOriginSet,
+        0x600 => vexDeviceGpsOriginGet,
+        0x604 => vexDeviceGpsRotationSet,
+        0x608 => vexDeviceGpsRotationGet,
+        0x60c => vexDeviceGpsInitialPositionSet,
+        0x610 => vexDeviceGpsErrorGet,
         0x8c0 => vexSystemTimerStop,
         0xb40 => vexDeviceOpticalIntegrationTimeSet,
         0xb44 => vexDeviceOpticalIntegrationTimeGet,

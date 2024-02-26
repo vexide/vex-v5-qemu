@@ -92,6 +92,7 @@ pub struct MotorData {
     pub flags: u8,
 }
 
+#[repr(C)]
 #[repr(packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ImuRaw {
@@ -411,4 +412,52 @@ pub struct OpticalGesture {
     pub padding: u8,
     pub count: u16,
     pub time: u32,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub enum MagnetDuration {
+    Short,
+    Medium,
+    Long,
+    ExtraLong,
+}
+
+#[repr(C)]
+#[repr(packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct GpsRaw {
+    x: f64,
+    y: f64,
+    z: f64,
+    w: f64,
+}
+
+#[repr(C)]
+#[repr(packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct GpsAttitude {
+    pitch: f64, // x
+    roll: f64,  // y
+    yaw: f64,   // z
+
+    // spacial position on the field
+    position_x: f64,
+    position_y: f64,
+    position_z: f64,
+
+    // alternative roll, pitch and yaw
+    az: f64,
+    el: f64,
+    rot: f64,
+}
+
+#[repr(C)]
+#[repr(packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct GpsQuaternion {
+    x: f64,
+    y: f64,
+    z: f64,
+    w: f64,
 }
