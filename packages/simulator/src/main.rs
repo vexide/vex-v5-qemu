@@ -1,4 +1,12 @@
-use std::{path::PathBuf, process::Command};
+use std::{
+    fs::{File, OpenOptions},
+    io::Write,
+    os::unix::net::UnixStream,
+    path::PathBuf,
+    process::{Command, Stdio},
+};
+
+use memmap2::{MmapOptions, MmapRaw};
 
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
@@ -24,9 +32,12 @@ fn main() {
     let opt = <Opt as clap::Parser>::parse();
 
     let mut qemu = Command::new("qemu-system-arm")
-        .args(&["-machine", "none"])
+        .args(&["-machine", "none,memory-backend=mem"])
         .args(&["-cpu", "cortex-a7"])
-        .args(&["-m", "256M"])
+        .args(&[
+            "-object",
+            "memory-backend-file,id=mem,size=256M,mem-path=/dev/shm/v5-simulator",
+        ])
         .args(&[
             "-device",
             &format!("loader,file={},cpu-num=0", opt.kernel.display()),
@@ -38,10 +49,30 @@ fn main() {
                 opt.binary.display()
             ),
         ])
+        // .args(&[
+        //     "-mon",
+        //     "simmonitor,mode=control,pretty=on",
+        //     "-chardev",
+        //     "stdio,id=simmonitor,signal=off",
+        // ])
+        // .stdin(Stdio::piped())
+        // .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
         .args(&["-nographic"])
-        .args(opt.gdb.then_some(["-S", "-s"]).unwrap_or_default())
         .spawn()
         .expect("Failed to start QEMU.");
 
+    let memory_file = MmapOptions::new()
+        .map_raw(
+            &OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open("/dev/shm/v5-simulator")
+                .expect("Failed to open memory file."),
+        )
+        .unwrap();
+
     qemu.wait().expect("QEMU exited unexpectedly.");
+
+    // TODO: clean up temp files
 }
