@@ -13,12 +13,14 @@ pub unsafe extern "C" fn vexDeviceOpticalProximityGet(device: V5Device) -> i32 {
     0
 }
 pub unsafe extern "C" fn vexDeviceOpticalRgbGet(device: V5Device, rgb: *mut OpticalRgb) {
-    *rgb = OpticalRgb {
-        red: 0.0,
-        green: 0.0,
-        blue: 0.0,
-        brightness: 0.0,
-    };
+    unsafe {
+        *rgb = OpticalRgb {
+            red: 0.0,
+            green: 0.0,
+            blue: 0.0,
+            brightness: 0.0,
+        };
+    }
 }
 pub unsafe extern "C" fn vexDeviceOpticalLedPwmSet(device: V5Device, value: i32) {}
 pub unsafe extern "C" fn vexDeviceOpticalLedPwmGet(device: V5Device) -> i32 {
@@ -28,11 +30,13 @@ pub unsafe extern "C" fn vexDeviceOpticalStatusGet(device: V5Device) -> u32 {
     0
 }
 pub unsafe extern "C" fn vexDeviceOpticalRawGet(device: V5Device, raw_data: *mut OpticalRaw) {
-    *raw_data = OpticalRaw {
-        clear: 0,
-        red: 0,
-        green: 0,
-        blue: 0,
+    unsafe {
+        *raw_data = OpticalRaw {
+            clear: 0,
+            red: 0,
+            green: 0,
+            blue: 0,
+        }
     }
 }
 // pub unsafe extern "C" fn vexDeviceOpticalDebugGet(device: V5Device) {}

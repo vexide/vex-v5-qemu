@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 pub(crate) mod abs_encoder;
 pub(crate) mod distance;
 pub(crate) mod gps;
@@ -252,20 +254,24 @@ pub unsafe extern "C" fn vexSystemTimeGet() -> u32 {
 }
 
 pub unsafe extern "C" fn vexGettime(time: *mut Time) {
-    *time = Time {
-        hour: 0,
-        minute: 0,
-        second: 0,
-        hundredths: 0,
-    };
+    unsafe {
+        *time = Time {
+            hour: 0,
+            minute: 0,
+            second: 0,
+            hundredths: 0,
+        };
+    }
 }
 
 pub unsafe extern "C" fn vexGetdate(date: *mut Date) {
-    *date = Date {
-        year: 0,
-        day: 0,
-        month: 0,
-    };
+    unsafe {
+        *date = Date {
+            year: 0,
+            day: 0,
+            month: 0,
+        };
+    }
 }
 
 pub unsafe extern "C" fn vexSystemMemoryDump() {}
@@ -282,7 +288,7 @@ pub unsafe extern "C" fn vexSystemPowerupTimeGet() -> u64 {
 }
 
 pub unsafe extern "C" fn vexSystemLinkAddrGet() -> u32 {
-    crate::COLD_MEMORY_START as _
+    unsafe { crate::COLD_MEMORY_START as _ }
 }
 
 pub unsafe extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {

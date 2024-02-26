@@ -24,20 +24,22 @@ pub unsafe extern "C" fn vexDeviceVisionSignatureGet(
     id: u32,
     signature: *mut VisionSignature,
 ) -> bool {
-    *signature = VisionSignature {
-        id: 0,
-        flags: 0,
-        pad: [0; 2],
-        range: 0.0,
-        u_min: 0,
-        u_max: 0,
-        u_mean: 0,
-        v_min: 0,
-        v_max: 0,
-        v_mean: 0,
-        m_rgb: 0,
-        m_type: 0,
-    };
+    unsafe {
+        *signature = VisionSignature {
+            id: 0,
+            flags: 0,
+            pad: [0; 2],
+            range: 0.0,
+            u_min: 0,
+            u_max: 0,
+            u_mean: 0,
+            v_min: 0,
+            v_max: 0,
+            v_mean: 0,
+            m_rgb: 0,
+            m_type: 0,
+        };
+    }
     false
 }
 pub unsafe extern "C" fn vexDeviceVisionBrightnessSet(device: V5Device, percent: u8) {}
