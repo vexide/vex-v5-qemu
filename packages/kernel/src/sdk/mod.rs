@@ -9,6 +9,7 @@ pub(crate) mod motor;
 pub(crate) mod optical;
 pub(crate) mod types;
 pub(crate) mod vision;
+pub(crate) mod display;
 
 use abs_encoder::*;
 pub use distance::*;
@@ -19,6 +20,7 @@ use motor::*;
 use optical::*;
 use types::*;
 use vision::*;
+use display::*;
 
 macro_rules! jump_table {
     ($table:ident, { $($offset:expr => $fun:ident,)* }) => {
@@ -228,6 +230,43 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x608 => gps_rotation,
         0x60c => set_gps_initial_position,
         0x610 => gps_error,
+        0x640 => set_display_foreground_color,
+        0x644 => set_display_background_color,
+        0x648 => display_erase,
+        0x64c => display_scroll,
+        0x650 => display_scroll_rect,
+        0x654 => display_copy_rect,
+        0x658 => display_set_pixel,
+        0x65c => display_clear_pixel,
+        0x660 => display_draw_line,
+        0x664 => display_clear_line,
+        0x668 => display_draw_rect,
+        0x66c => display_clear_rect,
+        0x670 => display_fill_rect,
+        0x674 => display_draw_circle,
+        0x678 => display_clear_circle,
+        0x67c => display_fill_circle,
+        0x680 => display_printf,
+        0x684 => display_string,
+        0x688 => display_string_at,
+        0x68c => display_big_string,
+        0x690 => display_big_string_at,
+        0x694 => display_centered_string,
+        0x698 => display_big_centered_string,
+        // 0x69c => display_text_smoothing,
+        // 0x6a0 => display_text_reference,
+        // 0x6a4 => display_screen_grab,
+        // 0x6a8 => display_text_size,
+        // 0x6ac => display_text_spacing,
+        0x6b0 => display_small_string_at,
+        // 0x6b4 => display_font_named_set,
+        0x6b8 => display_foreground_color,
+        0x6bc => display_background_color,
+        // 0x6c0 => display_string_width_get,
+        // 0x6c4 => display_string_height_get,
+        // 0x6c8 => set_display_pen_size,
+        // 0x6cc => display_pen_size,
+        // 0x6d0 => display_font_custom_set,
         0x8c0 => system_timer_stop,
         0xb40 => set_optical_integration_time,
         0xb44 => optical_integration_time,
