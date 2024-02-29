@@ -6,10 +6,7 @@
 //! This makes them unsuitable for direct use by the user,
 //! so they are wrapped in safe types in the parent module.
 
-use core::{
-    cell::UnsafeCell,
-    sync::atomic::{AtomicBool, AtomicU8},
-};
+use core::{cell::UnsafeCell, mem::MaybeUninit, sync::atomic::AtomicU8};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -21,11 +18,19 @@ pub struct CallTable {
 #[derive(Debug)]
 pub struct CallCell {
     pub status: AtomicU8,
-    pub content: UnsafeCell<Option<Call>>,
+    pub content: UnsafeCell<MaybeUninit<Call>>,
+}
+
+impl CallCell {
+    pub const STATUS_READY: u8 = 0;
+    pub const STATUS_PENDING: u8 = 1;
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub enum Call {
-    Write { data: *const [u8], written: u32 },
+    Write {
+        data: *const [u8],
+        written: *mut u32,
+    },
 }
