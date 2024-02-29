@@ -66,10 +66,7 @@ pub unsafe extern "C" fn set_motor_position(device: V5DeviceHandle, position: f6
 pub unsafe extern "C" fn motor_position(device: V5DeviceHandle) -> f64 {
     0.0
 }
-pub unsafe extern "C" fn motor_position_raw(
-    device: V5DeviceHandle,
-    timestamp: *const u32,
-) -> i32 {
+pub unsafe extern "C" fn motor_position_raw(device: V5DeviceHandle, timestamp: *const u32) -> i32 {
     0
 }
 pub unsafe extern "C" fn motor_position_reset(device: V5DeviceHandle) {}

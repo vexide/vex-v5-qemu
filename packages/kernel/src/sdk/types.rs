@@ -221,12 +221,12 @@ pub enum ControllerID {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub enum ControllerChannel {
-    AnaLeftX = 0,
-    AnaLeftY,
-    AnaRightX,
-    AnaRightY,
-    AnaSpare1,
-    AnaSpare2,
+    JoystickLeftX = 0,
+    JoystickLeftY,
+    JoystickRightX,
+    JoystickRightY,
+    AnalogSpare1,
+    AnalogSpare2,
 
     ButtonL1,
     ButtonL2,
@@ -462,4 +462,13 @@ pub struct GpsQuaternion {
     y: f64,
     z: f64,
     w: f64,
+}
+
+#[repr(C, packed)]
+#[derive(Debug, Copy, Clone)]
+pub struct Image {
+    width: u16,
+    height: u16,
+    data: *mut u32,
+    p: *mut u32,
 }
