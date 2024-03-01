@@ -1,26 +1,30 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 pub(crate) mod abs_encoder;
+pub(crate) mod display;
 pub(crate) mod distance;
 pub(crate) mod gps;
 pub(crate) mod imu;
 pub(crate) mod magnet;
 pub(crate) mod motor;
 pub(crate) mod optical;
+pub(crate) mod serial;
 pub(crate) mod types;
 pub(crate) mod vision;
-pub(crate) mod display;
+
+use core::ffi::c_void;
 
 use abs_encoder::*;
+use display::*;
 pub use distance::*;
 use gps::*;
 use imu::*;
 use magnet::*;
 use motor::*;
 use optical::*;
+use serial::*;
 use types::*;
 use vision::*;
-use display::*;
 
 macro_rules! jump_table {
     ($table:ident, { $($offset:expr => $fun:ident,)* }) => {
@@ -270,11 +274,19 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x7a0 => render_display,
         0x7a4 => disable_display_double_buffer,
         0x794 => display_set_clip_region,
-        0x8c0 => system_timer_stop,
         0xb40 => set_optical_integration_time,
         0xb44 => optical_integration_time,
+        0x898 => serial_write_char,
+        0x89c => serial_write_buffer,
+        0x8a0 => serial_read_char,
+        0x8a4 => serial_peek_char,
+        // 0x8a8 => serial_enable_remote_console,
+        0x8ac => serial_write_free,
+        0x8c0 => system_timer_stop,
+        0x8c4 => system_timer_clear_interrupt,
         0x990 => read_bmp_image,
         0x994 => read_png_image,
+        //TODO: usd functions
     });
     table
 };
@@ -455,3 +467,10 @@ pub unsafe extern "C" fn range_value(device: V5DeviceHandle) -> i32 {
 }
 
 pub unsafe extern "C" fn system_timer_stop() {}
+pub unsafe extern "C" fn system_timer_clear_interrupt() {}
+pub unsafe extern "C" fn reinit_system_timer_for_rtos(
+    priority: u32,
+    handler: unsafe extern "C" fn(*const c_void),
+) -> i32 {
+    0
+}
