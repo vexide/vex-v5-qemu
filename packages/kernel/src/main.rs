@@ -8,6 +8,7 @@ use core::{arch::global_asm, panic::PanicInfo};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    core::hint::black_box(_info);
     loop {}
 }
 
@@ -20,6 +21,20 @@ extern "C" {
 }
 
 extern "C" fn main() -> ! {
+    unsafe {
+        let mut call_cell_guest = host_call::Guest::new_on_guest();
+        let [call_cell, ..] = call_cell_guest.take_call_cells().unwrap();
+        
+        let mut written = 0;
+
+        let call_cell = call_cell.perform(host_call::Call::Write {
+            data: "Hello, World!".as_bytes(),
+            written: &mut written,
+        });
+
+        loop {}
+    }
+
     unsafe {
         vex_startup();
     }

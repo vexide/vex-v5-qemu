@@ -109,6 +109,9 @@ version = "0.1.0"
 [[package]]
 name = "kernel"
 version = "0.1.0"
+dependencies = [
+ "host_call",
+]
 
 [[package]]
 name = "libc"
@@ -148,6 +151,7 @@ name = "simulator"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "host_call",
  "memmap2",
 ]
 

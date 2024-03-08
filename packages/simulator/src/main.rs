@@ -1,9 +1,8 @@
 use std::{
     fs::{File, OpenOptions},
-    io::Write,
-    os::unix::net::UnixStream,
     path::PathBuf,
     process::{Command, Stdio},
+    thread,
 };
 
 use memmap2::{MmapOptions, MmapRaw};
@@ -58,10 +57,11 @@ fn main() {
         // .stdin(Stdio::piped())
         // .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .args(&["-nographic"])
+        .args(&["-nographic", "-S"])
         .spawn()
         .expect("Failed to start QEMU.");
 
+    thread::sleep(std::time::Duration::from_millis(100));
     let memory_file = MmapOptions::new()
         .map_raw(
             &OpenOptions::new()
@@ -71,6 +71,25 @@ fn main() {
                 .expect("Failed to open memory file."),
         )
         .unwrap();
+
+    let mut host_call_guest =
+        unsafe { host_call::Guest::new_on_host(memory_file.as_mut_ptr().cast()) };
+    let [mut call_cell, ..] = host_call_guest.take_call_cells().unwrap();
+
+    loop {
+        std::thread::sleep_ms(1000);
+        println!("Polling call cell...");
+        call_cell = match call_cell.poll_incoming() {
+            Ok(incoming) => match incoming.call {
+                host_call::Call::Write { data, written } => {
+                    dbg!(data);
+                    *written = 0xdeadbeef;
+                    incoming.cell.complete()
+                }
+            },
+            Err(call_cell) => call_cell,
+        }
+    }
 
     qemu.wait().expect("QEMU exited unexpectedly.");
 

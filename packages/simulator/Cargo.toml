@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
 memmap2 = "0.9.4"
+host_call = { path = "../host_call" }
