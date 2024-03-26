@@ -59,7 +59,7 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x190 => get_num_devices,
         0x194 => get_num_devices_by_type,
         0x198 => devices,
-        0x18c => device_by_index,
+        0x19c => device_by_index,
         0x1a0 => device_status,
         0x1a4 => controller_channel,
         0x1a8 => controller_connection_status,
@@ -284,6 +284,8 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x8ac => serial_write_free,
         0x8c0 => system_timer_stop,
         0x8c4 => system_timer_clear_interrupt,
+        0x8d0 => system_watchdog_reinit_rtos,
+        0x8d4 => system_watchdog_get,
         0x990 => read_bmp_image,
         0x994 => read_png_image,
         //TODO: usd functions
@@ -353,6 +355,14 @@ pub unsafe extern "C" fn enable_system_timer(param_1: u32) -> u32 {
     0
 }
 pub unsafe extern "C" fn disable_system_timer(param_1: u32) {}
+
+pub unsafe extern "C" fn system_watchdog_reinit_rtos() -> i32 { 
+    0
+}
+
+pub unsafe extern "C" fn system_watchdog_get() -> u32 {
+    0
+}
 
 pub unsafe extern "C" fn usb_status() -> u32 {
     1

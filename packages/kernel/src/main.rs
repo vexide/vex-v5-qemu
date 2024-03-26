@@ -18,6 +18,7 @@ extern "C" {
 
     #[link_name = "_vex_startup"]
     fn vex_startup();
+    
 }
 
 extern "C" fn main() -> ! {
@@ -31,8 +32,6 @@ extern "C" fn main() -> ! {
             data: "Hello, World!".as_bytes(),
             written: &mut written,
         });
-
-        loop {}
     }
 
     unsafe {
@@ -50,7 +49,13 @@ global_asm!(
 
     _start:
         ldr sp, =0x10000
-        bl {main}
+        mrc p15, 0x0, r1, c1, c0, 0x2
+        orr r1, r1, #0xf00000
+        mcr p15, 0x0, r1, c1, c0, 0x2
+        mrc p10, 0x7, r1, c8, c0, 0x0
+        orr r1, r1, #0x40000000
+        mcr p10, 0x7, r1, c8, c0, 0x0
+        b {main}
     "#,
     main = sym main
 );
