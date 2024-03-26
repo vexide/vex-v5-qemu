@@ -31,8 +31,8 @@ fn main() {
     let opt = <Opt as clap::Parser>::parse();
 
     let mut qemu = Command::new("qemu-system-arm")
-        .args(&["-machine", "none,memory-backend=mem"])
-        .args(&["-cpu", "cortex-a7"])
+        .args(&["-machine", "xilinx-zynq-a9,memory-backend=mem"])
+        .args(&["-cpu", "cortex-a9"])
         .args(&[
             "-object",
             "memory-backend-file,id=mem,size=256M,mem-path=/dev/shm/v5-simulator",
@@ -54,10 +54,11 @@ fn main() {
         //     "-chardev",
         //     "stdio,id=simmonitor,signal=off",
         // ])
-        // .stdin(Stdio::piped())
-        // .stdout(Stdio::piped())
+        //.stdin(Stdio::piped())
+        //.stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .args(&["-nographic", "-S"])
+        .args(&["-S"])
+        .args(&["-s"])
         .spawn()
         .expect("Failed to start QEMU.");
 
