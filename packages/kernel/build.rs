@@ -7,4 +7,7 @@ fn main() {
         "cargo:rerun-if-changed={}/kernel.ld",
         env!("CARGO_MANIFEST_DIR")
     );
+    println!("cargo:rustc-link-lib=static=xil");
+    println!("cargo:rustc-link-lib=static=xiltimer");
+    println!("cargo:rustc-link-lib=static=xilstandalone");
 }
