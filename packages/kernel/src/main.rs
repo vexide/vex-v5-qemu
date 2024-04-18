@@ -1,10 +1,11 @@
 #![no_std]
 #![no_main]
 #![feature(c_variadic)]
+#![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 
 pub mod sdk;
 
-use core::{arch::global_asm, panic::PanicInfo};
+use core::{arch::global_asm, ffi::{c_char, c_uint}, panic::PanicInfo};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -21,8 +22,22 @@ extern "C" {
     
 }
 
+pub struct XScuTimer_Config {
+    pub DeviceId: u16,
+    pub Name: *mut c_char,
+    pub BaseAddr: u32,
+    pub IntrId: u32,
+    pub IntrParent: *mut c_uint,
+}
+
+extern "C" {
+    pub fn XScuTimer_LookupConfig(DeviceId: u16) -> *const XScuTimer_Config;
+}
+
 extern "C" fn main() -> ! {
     unsafe {
+        let timer_config: *const XScuTimer_Config = XScuTimer_LookupConfig(0);
+
         let mut call_cell_guest = host_call::Guest::new_on_guest();
         let [call_cell, ..] = call_cell_guest.take_call_cells().unwrap();
         
