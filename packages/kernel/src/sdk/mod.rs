@@ -12,8 +12,6 @@ pub(crate) mod serial;
 pub(crate) mod types;
 pub(crate) mod vision;
 
-use core::ffi::c_void;
-
 use abs_encoder::*;
 use display::*;
 pub use distance::*;
@@ -25,6 +23,9 @@ use optical::*;
 use serial::*;
 use types::*;
 use vision::*;
+
+use crate::{hal::{self, gic::GenericInterruptController, timer::Timer, wdt::WatchdogTimer}, INTERRUPT_CONTROLLER, SYSTEM_TIME, WATCHDOG_TIMER};
+use core::{arch::asm, ffi::c_void, sync::atomic::{AtomicBool, AtomicU32, Ordering}};
 
 macro_rules! jump_table {
     ($table:ident, { $($offset:expr => $fun:ident,)* }) => {
@@ -55,6 +56,8 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x168 => system_timer,
         0x16c => enable_system_timer,
         0x170 => disable_system_timer,
+        0x8c8 => reinit_system_timer_for_rtos,
+        0x8cc => system_application_irq_handler,
         0x174 => usb_status,
         0x190 => get_num_devices,
         0x194 => get_num_devices_by_type,
@@ -305,9 +308,8 @@ pub unsafe extern "C" fn vexos_background_processing() {}
 
 pub unsafe extern "C" fn vexos_debug(fmt: *const u8, ...) {}
 
-//TODO: Find the right return types for all date/time functions
 pub unsafe extern "C" fn system_time() -> u32 {
-    0
+    SYSTEM_TIME.load(Ordering::Acquire)
 }
 
 pub unsafe extern "C" fn time(time: *mut Time) {
@@ -356,8 +358,51 @@ pub unsafe extern "C" fn enable_system_timer(param_1: u32) -> u32 {
 }
 pub unsafe extern "C" fn disable_system_timer(param_1: u32) {}
 
-pub unsafe extern "C" fn system_watchdog_reinit_rtos() -> i32 { 
+pub unsafe extern "C" fn system_watchdog_reinit_rtos() -> i32 {
+    let wdt = unsafe { WATCHDOG_TIMER.get_mut().unwrap() };
+
+    if wdt.is_started() {
+        return 1;
+    }
+    
+    let mut control_reg = wdt.control_register();
+    control_reg |= 0xff << 0x08;
+    wdt.set_control_register(control_reg);
+
+    wdt.load(core::ffi::c_uint::MAX);
+    wdt.set_timer_mode();
+    wdt.start();
+
     0
+}
+
+/// Handles an IRQ.
+pub unsafe extern "C" fn system_application_irq_handler(icciar: u32) -> u32 {
+    let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
+
+    // Re-enable interrupts.
+    unsafe {
+        asm!("cpsie i");
+    }
+
+    // The ID of the interrupt is obtained by bitwise anding the ICCIAR value
+    let interrupt_id = icciar & 0x3FF;
+
+    // Check for a valid interrupt ID.
+	if interrupt_id < GenericInterruptController::MAX_INTERRUPT_INPUTS {
+		// Call respective interrupt handler from the vector table.
+        let handler_entry = unsafe {
+            gic.handler_table[interrupt_id as usize].unwrap()
+        };
+
+        unsafe {
+            (handler_entry.handler)(handler_entry.callback_ref);
+        }
+
+        return 0;
+	}
+
+    1
 }
 
 pub unsafe extern "C" fn system_watchdog_get() -> u32 {
@@ -478,9 +523,16 @@ pub unsafe extern "C" fn range_value(device: V5DeviceHandle) -> i32 {
 
 pub unsafe extern "C" fn system_timer_stop() {}
 pub unsafe extern "C" fn system_timer_clear_interrupt() {}
+
+/// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
 pub unsafe extern "C" fn reinit_system_timer_for_rtos(
     priority: u32,
-    handler: unsafe extern "C" fn(*const c_void),
+    handler: unsafe extern "C" fn(*mut c_void),
 ) -> i32 {
+    let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
+    // Set tick interrupt priority
+	// PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
+    gic.set_priority_trigger_type(Timer::IRQ_INTERRUPT_ID, priority as u8, 3);
+    gic.connect(Timer::IRQ_INTERRUPT_ID, handler, core::ptr::null_mut());
     0
 }
