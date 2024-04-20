@@ -47,16 +47,20 @@ fn panic(_info: &PanicInfo) -> ! {
 pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     let timer = PRIVATE_TIMER.get_mut();
 
-    if XScuTimer_IsExpired(timer) {
-        XScuTimer_ClearInterruptStatus(timer);
+    if !XScuTimer_IsExpired(timer) {
+        return;
     }
-
+    XScuTimer_ClearInterruptStatus(timer);
+    
+    // Increment system timer.
     _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);
-
-    // TODO: Call registered user IRQ timer handler
+    
+    // NOTE: I think (?) vexos offers a way for users
+    // to register a callback here through some part
+    // of the SDK, but nobody really uses that.
 }
 
-pub fn setup_timers() {
+pub fn setup_timer() {
     unsafe {
         let timer = PRIVATE_TIMER.get_mut();
         let gic = INTERRUPT_CONTROLLER.get_mut();
@@ -66,11 +70,18 @@ pub fn setup_timers() {
 
         if status == 0 {
             XScuTimer_Stop(timer);
+            
+            // Ensure there is no prescaler.
+            XScuTimer_SetPrescaler(timer, 0);
 
             // Configure timer
-            XScuTimer_SetPrescaler(timer, 0);
-            XScuTimer_LoadTimer(timer, 333333);
+            // Enable auto-reload mode.
             XScuTimer_EnableAutoReload(timer);
+
+            // Load the timer counter register with the correct tick rate.
+            XScuTimer_LoadTimer(timer, 333333);
+            
+            // Clear interrupt status.
             XScuTimer_ClearInterruptStatus(timer);
 
             // Register timer handler with interrupt controller
@@ -129,7 +140,7 @@ extern "C" fn main() -> ! {
     // }
 
     setup_gic();
-    setup_timers();
+    setup_timer();
 
     unsafe {
         vexStartup();
