@@ -71,10 +71,18 @@ pub fn vexSystemTimerReinitForRtos(
     handler: extern "C" fn(data: *mut c_void),
 ) -> i32 {
     let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
+    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
     // Set tick interrupt priority
     // PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
     gic.set_priority_trigger_type(Timer::IRQ_INTERRUPT_ID, priority as u8, 3);
     gic.connect(Timer::IRQ_INTERRUPT_ID, handler, core::ptr::null_mut());
+
+    timer.start();
+    if timer.is_expired() {
+        timer.clear_interrupt_status();
+    }
+    timer.enable_interrupt();
+
     0
 }
 
