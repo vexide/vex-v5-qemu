@@ -1,3 +1,7 @@
+//! Xilinx embeddedsw bindings.
+//! 
+//! This module provides bindings to the Xilinx embeddedsw HAL library (libxil).
+
 #![allow(
     unused_variables,
     non_camel_case_types,
