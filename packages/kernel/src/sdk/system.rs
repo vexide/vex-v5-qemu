@@ -4,7 +4,24 @@ use core::{arch::asm, ffi::c_void, sync::atomic::Ordering};
 
 use vex_sdk::*;
 
-use crate::{timer_interrupt_handler, xil::{gic::{XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XSCUGIC_MAX_NUM_INTR_INPUTS}, timer::{XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR}, wdt::{XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig, XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start}}, INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER};
+use crate::{
+    timer_interrupt_handler,
+    xil::{
+        gic::{
+            XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
+            XSCUGIC_MAX_NUM_INTR_INPUTS,
+        },
+        timer::{
+            XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired,
+            XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
+        },
+        wdt::{
+            XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig,
+            XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start,
+        },
+    },
+    INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
+};
 
 pub fn vexPrivateApiDisable(sig: u32) {}
 pub fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
@@ -51,9 +68,7 @@ pub fn vexSystemTimerStop() {
     }
 }
 pub fn vexSystemTimerClearInterrupt() {
-    unsafe {
-        timer_interrupt_handler(core::mem::transmute(PRIVATE_TIMER.get_mut()))
-    }
+    unsafe { timer_interrupt_handler(core::mem::transmute(PRIVATE_TIMER.get_mut())) }
 }
 
 /// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
@@ -64,7 +79,7 @@ pub fn vexSystemTimerReinitForRtos(
     unsafe {
         let gic = INTERRUPT_CONTROLLER.get_mut();
         let timer = PRIVATE_TIMER.get_mut();
-    
+
         // Set tick interrupt priority
         // PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
         XScuGic_SetPriorityTriggerType(
@@ -75,14 +90,9 @@ pub fn vexSystemTimerReinitForRtos(
         );
 
         // Install tick handler
-        let status = XScuGic_Connect(
-            gic,
-            XPAR_SCUTIMER_INTR,
-            handler,
-            core::mem::transmute(gic),
-        );
-    
-    	// Restart the timer and enable the timer interrupt
+        let status = XScuGic_Connect(gic, XPAR_SCUTIMER_INTR, handler, core::mem::transmute(gic));
+
+        // Restart the timer and enable the timer interrupt
         if status == 0 {
             XScuTimer_Start(timer);
 
@@ -93,10 +103,12 @@ pub fn vexSystemTimerReinitForRtos(
 
             // Enable the timer interrupt.
             XScuTimer_EnableInterrupt(timer);
+
+            return 0;
         }
     }
 
-    0
+    1
 }
 
 /// Handles an IRQ using the interrupt controller's handler table.
@@ -105,21 +117,15 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
     let interrupt_id = ulICCIAR & 0x3FF;
 
     unsafe {
-        let gic = INTERRUPT_CONTROLLER.get_mut();
-
         // Re-enable interrupts.
         asm!("cpsie i");
-        
+
         // Check for a valid interrupt ID.
         if interrupt_id < (XSCUGIC_MAX_NUM_INTR_INPUTS as u32) {
-            let cfg = XScuGic_LookupConfig(0);
-
             // Call respective interrupt handler from the vector table.
+            let cfg = XScuGic_LookupConfig(0);
             let handler_entry = (*cfg).HandlerTable[interrupt_id as usize];
-    
-            unsafe {
-                (handler_entry.handler)(handler_entry.callback_ref);
-            }
+            (handler_entry.handler)(handler_entry.callback_ref);
         }
     }
 }
@@ -130,11 +136,7 @@ pub fn vexSystemWatchdogReinitRtos() -> i32 {
         let wdt = WATCHDOG_TIMER.get_mut();
 
         let config = XScuWdt_LookupConfig(0);
-        let status = XScuWdt_CfgInitialize(
-            wdt,
-            config,
-            *(*config).BaseAddr,
-        );
+        let status = XScuWdt_CfgInitialize(wdt, config, *(*config).BaseAddr);
 
         if status != 0 {
             // XScuWdt_CfgInitialize returned XST_DEVICE_IS_STARTED, meaning that the watchdog timer was already started.
@@ -143,10 +145,12 @@ pub fn vexSystemWatchdogReinitRtos() -> i32 {
             return 1;
         }
 
+        // Configure control register
         let mut control_reg = XScuWdt_GetControlReg(wdt);
         control_reg |= 0xff << 0x08;
         XScuWdt_SetControlReg(wdt, control_reg);
 
+        // Load timer and start.
         XScuWdt_LoadWdt(wdt, u32::MAX);
         XScuWdt_SetTimerMode(wdt);
         XScuWdt_Start(wdt);

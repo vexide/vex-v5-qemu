@@ -99,11 +99,10 @@ pub fn setup_timers() {
 
 pub fn setup_gic() {
     unsafe {
-        let gic = INTERRUPT_CONTROLLER.get_mut();
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_IRQ_INT,
             XScuGic_InterruptHandler,
-            core::mem::transmute(gic),
+            core::mem::transmute(INTERRUPT_CONTROLLER.get_mut()),
         );
     }
 }
