@@ -159,4 +159,18 @@ impl Timer {
             Self::CONTROL_REGISTER.write(control_register);
         }
     }
+
+    /// Enables the private timer IRQ.
+    pub fn disable_interrupt(&mut self) {
+        // Read the Timer control register.
+        let mut control_register = unsafe { Self::CONTROL_REGISTER.read() };
+
+        // Apply the irq enable mask.
+        control_register &= !Self::CONTROL_IRQ_ENABLE_MASK;
+
+        // Write the register with the new values.
+        unsafe {
+            Self::CONTROL_REGISTER.write(control_register);
+        }
+    }
 }

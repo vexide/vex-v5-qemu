@@ -1,8 +1,7 @@
 //! VEXos System Functions
 
 use crate::{
-    hal::{gic::GenericInterruptController, timer::Timer},
-    INTERRUPT_CONTROLLER, SYSTEM_TIME, WATCHDOG_TIMER,
+    hal::{gic::GenericInterruptController, timer::Timer}, timer_interrupt_handler, INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER
 };
 use core::{arch::asm, ffi::c_void, sync::atomic::Ordering};
 
@@ -45,14 +44,26 @@ pub fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()
 }
 pub fn vexSystemTimerEnable(param_1: u32) -> u32 {
-    Default::default()
+    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
+    timer.enable_interrupt();
+    0
 }
-pub fn vexSystemTimerDisable(param_1: u32) {}
+pub fn vexSystemTimerDisable(param_1: u32) {
+    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
+    timer.disable_interrupt();
+}
 pub fn vexSystemUsbStatus() -> u32 {
     Default::default()
 }
-pub fn vexSystemTimerStop() {}
-pub fn vexSystemTimerClearInterrupt() {}
+pub fn vexSystemTimerStop() {
+    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
+    timer.stop();
+}
+pub fn vexSystemTimerClearInterrupt() {
+    unsafe {
+        timer_interrupt_handler(core::ptr::null_mut());
+    }
+}
 
 /// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
 pub fn vexSystemTimerReinitForRtos(
@@ -89,6 +100,8 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
         }
     }
 }
+
+/// Initializes the CPU1 watchdog timer.
 pub fn vexSystemWatchdogReinitRtos() -> i32 {
     let wdt = unsafe { WATCHDOG_TIMER.get_mut().unwrap() };
 
