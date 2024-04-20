@@ -26,6 +26,19 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
+pub struct XScuTimer_Config {
+    pub DeviceId: u16,
+    pub Name: *mut c_char,
+    pub BaseAddr: u32,
+    pub IntrId: u32,
+    pub IntrParent: *mut c_uint,
+}
+
+extern "C" {
+    pub fn XScuTimer_LookupConfig(DeviceId: u16) -> *const XScuTimer_Config;
+}
+
+
 pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     let timer = PRIVATE_TIMER.get_mut().unwrap();
 
@@ -39,6 +52,10 @@ pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
 pub fn setup_timers() {
     let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
     let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
+
+    unsafe {
+        let timer_config: *const XScuTimer_Config = XScuTimer_LookupConfig(0);
+    }
 
     timer.stop();
 
