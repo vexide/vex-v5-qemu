@@ -1,34 +1,39 @@
-ENTRY(_start)
+_low_memory_start = 0x100000;
+_cold_memory_start = 0x03800000;
+_jump_table_start = _cold_memory_start - 0x4000;
+
+
+MEMORY {
+  low_mem : ORIGIN = _low_memory_start, LENGTH = _jump_table_start - _low_memory_start
+  jump_table_mem (rx) : ORIGIN = _jump_table_start, LENGTH = _cold_memory_start - _jump_table_start
+}
 
 SECTIONS {
-    _cold_memory_start = 0x03800000;
     _host_call_table_start = 0x03700000;
-    _jump_table_start = _cold_memory_start - 0x4000;
     _vex_startup = _cold_memory_start + 0x20;
 
-    . = 0x100000;
-    .text : {
+    .text ALIGN(4096) : {
         *(.text*)
-    }
-    . = ALIGN(4096);
+    } > low_mem
 
-    .rodata : {
+    .rodata ALIGN(4096) : {
         *(.rodata*)
-    }
-    . = ALIGN(4096);
+    } > low_mem
     
-    .data : {
+    .data ALIGN(4096) : {
         *(.data*)
-    }
-    . = ALIGN(4096);
+    } > low_mem
+    
+    .bss ALIGN(4096) : {
+        *(.bss*)
+    } > low_mem
 
-    . = _host_call_table_start;
     .host_call_table : {
+        . = _host_call_table_start;
         KEEP(*(.host_call_table))
-    }
+    } > low_mem
 
-    . = _jump_table_start;
     .jump_table : {
         KEEP(*(.jump_table))
-    }
+    } > jump_table_mem
 }
