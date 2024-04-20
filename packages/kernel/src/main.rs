@@ -2,21 +2,39 @@
 #![no_main]
 #![feature(c_variadic)]
 
-pub mod hal;
 pub mod sdk;
+pub mod xil;
 
 use core::{
     arch::global_asm,
+    cell::UnsafeCell,
     ffi::c_void,
     panic::PanicInfo,
     sync::atomic::{AtomicU32, Ordering},
 };
-use hal::{gic::GenericInterruptController, timer::Timer, wdt::WatchdogTimer, UnsafePeripheral};
 
-pub static mut INTERRUPT_CONTROLLER: UnsafePeripheral<GenericInterruptController> =
-    unsafe { UnsafePeripheral::new() };
-pub static mut PRIVATE_TIMER: UnsafePeripheral<Timer> = unsafe { UnsafePeripheral::new() };
-pub static mut WATCHDOG_TIMER: UnsafePeripheral<WatchdogTimer> = unsafe { UnsafePeripheral::new() };
+use xil::{
+    gic::{XScuGic, XScuGic_Connect, XScuGic_Enable, XScuGic_SetPriorityTriggerType},
+    timer::{
+        XScuTimer, XScuTimer_CfgInitialize, XScuTimer_ClearInterruptStatus,
+        XScuTimer_EnableAutoReload, XScuTimer_EnableInterrupt, XScuTimer_IsExpired,
+        XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start,
+        XScuTimer_Stop, XPAR_SCUTIMER_INTR,
+    },
+    wdt::XScuWdt,
+};
+
+use crate::xil::{
+    exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
+    gic::XScuGic_InterruptHandler,
+};
+
+pub static mut INTERRUPT_CONTROLLER: UnsafeCell<XScuGic> =
+    UnsafeCell::new(unsafe { core::mem::zeroed() });
+pub static mut PRIVATE_TIMER: UnsafeCell<XScuTimer> =
+    UnsafeCell::new(unsafe { core::mem::zeroed() });
+pub static mut WATCHDOG_TIMER: UnsafeCell<XScuWdt> =
+    UnsafeCell::new(unsafe { core::mem::zeroed() });
 
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
@@ -26,61 +44,68 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-pub struct XScuTimer_Config {
-    pub DeviceId: u16,
-    pub Name: *mut c_char,
-    pub BaseAddr: u32,
-    pub IntrId: u32,
-    pub IntrParent: *mut c_uint,
-}
-
-extern "C" {
-    pub fn XScuTimer_LookupConfig(DeviceId: u16) -> *const XScuTimer_Config;
-}
-
-
 pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
-    let timer = PRIVATE_TIMER.get_mut().unwrap();
+    let timer = PRIVATE_TIMER.get_mut();
 
-    if timer.is_expired() {
-        timer.clear_interrupt_status();
+    if XScuTimer_IsExpired(timer) {
+        XScuTimer_ClearInterruptStatus(timer);
     }
 
     _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);
+
+    // TODO: Call registered user IRQ timer handler
 }
 
 pub fn setup_timers() {
-    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
-    let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
-
     unsafe {
-        let timer_config: *const XScuTimer_Config = XScuTimer_LookupConfig(0);
+        let timer = PRIVATE_TIMER.get_mut();
+        let gic = INTERRUPT_CONTROLLER.get_mut();
+
+        let timer_config = XScuTimer_LookupConfig(0);
+        let status = XScuTimer_CfgInitialize(timer, timer_config, *(*timer_config).BaseAddr);
+
+        if status == 0 {
+            XScuTimer_Stop(timer);
+
+            // Configure timer
+            XScuTimer_SetPrescaler(timer, 0);
+            XScuTimer_LoadTimer(timer, 333333);
+            XScuTimer_EnableAutoReload(timer);
+            XScuTimer_ClearInterruptStatus(timer);
+
+            // Register timer handler with interrupt controller
+            let status = XScuGic_Connect(
+                gic,
+                29,
+                timer_interrupt_handler,
+                core::mem::transmute(timer as *mut XScuTimer),
+            );
+
+            // Start timer and enable timer IRQs on this CPU.
+            if status == 0 {
+                XScuGic_SetPriorityTriggerType(
+                    gic,
+                    XPAR_SCUTIMER_INTR,
+                    0,
+                    3, // Rising-edge trigger
+                );
+                XScuTimer_Start(timer);
+                XScuGic_Enable(gic, 29);
+                XScuTimer_EnableInterrupt(timer);
+            }
+        }
     }
+}
 
-    timer.stop();
-
-    // Configure timer
-    timer.set_prescaler(0);
-    timer.load(Timer::TICK_RATE_HZ);
-    timer.enable_auto_reload();
-    timer.clear_interrupt_status();
-
-    // Register timer handler with interrupt controller
-    gic.connect(
-        Timer::IRQ_INTERRUPT_ID,
-        timer_interrupt_handler,
-        // This is normally a pointer to a valid XScuTimer, but we don't have that here
-        //
-        // None of our interrupt handlers (and really hopefully none registered by users) should
-        // have this parameter.
-        core::ptr::null_mut(),
-    );
-    gic.set_priority_trigger_type(Timer::IRQ_INTERRUPT_ID, 0, 3);
-
-    // Start timer and enable timer IRQs on this CPU.
-    timer.start();
-    gic.enable(Timer::IRQ_INTERRUPT_ID);
-    timer.enable_interrupt();
+pub fn setup_gic() {
+    unsafe {
+        let gic = INTERRUPT_CONTROLLER.get_mut();
+        Xil_ExceptionRegisterHandler(
+            XIL_EXCEPTION_ID_IRQ_INT,
+            XScuGic_InterruptHandler,
+            core::mem::transmute(gic),
+        );
+    }
 }
 
 extern "C" {
@@ -104,23 +129,17 @@ extern "C" fn main() -> ! {
     //     });
     // }
 
-    unsafe {
-        INTERRUPT_CONTROLLER
-            .set(GenericInterruptController::new())
-            .unwrap();
-        WATCHDOG_TIMER.set(WatchdogTimer::initialize()).unwrap();
-        PRIVATE_TIMER.set(Timer::new()).unwrap();
-    }
+    setup_gic();
+    setup_timers();
 
     unsafe {
-        setup_timers();
         vexStartup();
     }
 
     unreachable!("vexStartup should not return!");
 }
 
-// Enable floating point unit for the current CPU
+// Load the stack, setup entrypoint, enable FPU.
 global_asm!(
     r#"
         .section .text

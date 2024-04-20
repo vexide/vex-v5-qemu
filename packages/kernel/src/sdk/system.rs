@@ -1,11 +1,10 @@
 //! VEXos System Functions
 
-use crate::{
-    hal::{gic::GenericInterruptController, timer::Timer}, timer_interrupt_handler, INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER
-};
 use core::{arch::asm, ffi::c_void, sync::atomic::Ordering};
 
 use vex_sdk::*;
+
+use crate::{timer_interrupt_handler, xil::{gic::{XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XSCUGIC_MAX_NUM_INTR_INPUTS}, timer::{XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR}, wdt::{XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig, XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start}}, INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER};
 
 pub fn vexPrivateApiDisable(sig: u32) {}
 pub fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
@@ -43,25 +42,17 @@ pub fn vexSystemLinkAddrGet() -> u32 {
 pub fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()
 }
-pub fn vexSystemTimerEnable(param_1: u32) -> u32 {
-    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
-    timer.enable_interrupt();
-    0
-}
-pub fn vexSystemTimerDisable(param_1: u32) {
-    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
-    timer.disable_interrupt();
-}
 pub fn vexSystemUsbStatus() -> u32 {
     Default::default()
 }
 pub fn vexSystemTimerStop() {
-    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
-    timer.stop();
+    unsafe {
+        XScuTimer_Stop(PRIVATE_TIMER.get_mut());
+    }
 }
 pub fn vexSystemTimerClearInterrupt() {
     unsafe {
-        timer_interrupt_handler(core::ptr::null_mut());
+        timer_interrupt_handler(core::mem::transmute(PRIVATE_TIMER.get_mut()))
     }
 }
 
@@ -70,60 +61,96 @@ pub fn vexSystemTimerReinitForRtos(
     priority: u32,
     handler: extern "C" fn(data: *mut c_void),
 ) -> i32 {
-    let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
-    let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
-    // Set tick interrupt priority
-    // PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
-    gic.set_priority_trigger_type(Timer::IRQ_INTERRUPT_ID, priority as u8, 3);
-    gic.connect(Timer::IRQ_INTERRUPT_ID, handler, core::ptr::null_mut());
+    unsafe {
+        let gic = INTERRUPT_CONTROLLER.get_mut();
+        let timer = PRIVATE_TIMER.get_mut();
+    
+        // Set tick interrupt priority
+        // PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
+        XScuGic_SetPriorityTriggerType(
+            gic,
+            XPAR_SCUTIMER_INTR,
+            priority as u8,
+            3, // Rising-edge trigger
+        );
 
-    timer.start();
-    if timer.is_expired() {
-        timer.clear_interrupt_status();
+        // Install tick handler
+        let status = XScuGic_Connect(
+            gic,
+            XPAR_SCUTIMER_INTR,
+            handler,
+            core::mem::transmute(gic),
+        );
+    
+    	// Restart the timer and enable the timer interrupt
+        if status == 0 {
+            XScuTimer_Start(timer);
+
+            // Clear interrupt status if the timer expired.
+            if XScuTimer_IsExpired(timer) {
+                XScuTimer_ClearInterruptStatus(timer);
+            }
+
+            // Enable the timer interrupt.
+            XScuTimer_EnableInterrupt(timer);
+        }
     }
-    timer.enable_interrupt();
 
     0
 }
 
 /// Handles an IRQ using the interrupt controller's handler table.
 pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
-    let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
-
-    // Re-enable interrupts.
-    unsafe {
-        asm!("cpsie i");
-    }
-
     // The ID of the interrupt is obtained by bitwise anding the ICCIAR value
     let interrupt_id = ulICCIAR & 0x3FF;
 
-    // Check for a valid interrupt ID.
-    if interrupt_id < GenericInterruptController::MAX_INTERRUPT_INPUTS {
-        // Call respective interrupt handler from the vector table.
-        let handler_entry = gic.handler_table[interrupt_id as usize].unwrap();
+    unsafe {
+        let gic = INTERRUPT_CONTROLLER.get_mut();
 
-        unsafe {
-            (handler_entry.handler)(handler_entry.callback_ref);
+        // Re-enable interrupts.
+        asm!("cpsie i");
+        
+        // Check for a valid interrupt ID.
+        if interrupt_id < (XSCUGIC_MAX_NUM_INTR_INPUTS as u32) {
+            let cfg = XScuGic_LookupConfig(0);
+
+            // Call respective interrupt handler from the vector table.
+            let handler_entry = (*cfg).HandlerTable[interrupt_id as usize];
+    
+            unsafe {
+                (handler_entry.handler)(handler_entry.callback_ref);
+            }
         }
     }
 }
 
 /// Initializes the CPU1 watchdog timer.
 pub fn vexSystemWatchdogReinitRtos() -> i32 {
-    let wdt = unsafe { WATCHDOG_TIMER.get_mut().unwrap() };
+    unsafe {
+        let wdt = WATCHDOG_TIMER.get_mut();
 
-    if wdt.is_started() {
-        return 1;
+        let config = XScuWdt_LookupConfig(0);
+        let status = XScuWdt_CfgInitialize(
+            wdt,
+            config,
+            *(*config).BaseAddr,
+        );
+
+        if status != 0 {
+            // XScuWdt_CfgInitialize returned XST_DEVICE_IS_STARTED, meaning that the watchdog timer was already started.
+            // If the watchdog was already initialized previously, there's no need to go further, so we'll indicate to the
+            // caller that this happened by returning 1.
+            return 1;
+        }
+
+        let mut control_reg = XScuWdt_GetControlReg(wdt);
+        control_reg |= 0xff << 0x08;
+        XScuWdt_SetControlReg(wdt, control_reg);
+
+        XScuWdt_LoadWdt(wdt, u32::MAX);
+        XScuWdt_SetTimerMode(wdt);
+        XScuWdt_Start(wdt);
     }
-
-    let mut control_reg = wdt.control_register();
-    control_reg |= 0xff << 0x08;
-    wdt.set_control_register(control_reg);
-
-    wdt.load(core::ffi::c_uint::MAX);
-    wdt.set_timer_mode();
-    wdt.start();
 
     0
 }
