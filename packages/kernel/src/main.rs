@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(c_variadic)]
+#![feature(c_variadic, lazy_cell)]
 
 pub mod sdk;
 pub mod xil;
@@ -77,7 +77,7 @@ pub fn setup_timers() {
             let status = XScuGic_Connect(
                 gic,
                 29,
-                timer_interrupt_handler,
+                Some(timer_interrupt_handler),
                 core::mem::transmute(timer as *mut XScuTimer),
             );
 
@@ -101,7 +101,7 @@ pub fn setup_gic() {
     unsafe {
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_IRQ_INT,
-            XScuGic_InterruptHandler,
+            Some(XScuGic_InterruptHandler),
             core::mem::transmute(INTERRUPT_CONTROLLER.get_mut()),
         );
     }

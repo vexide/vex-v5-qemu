@@ -6,7 +6,7 @@ use core::ffi::c_void;
 
 pub const XSCUGIC_MAX_NUM_INTR_INPUTS: usize = 95;
 
-pub type Xil_InterruptHandler = unsafe extern "C" fn(data: *mut c_void);
+pub type Xil_InterruptHandler = Option<unsafe extern "C" fn(data: *mut c_void)>;
 
 /// Defines an entry in an interrupt vector table.
 ///
