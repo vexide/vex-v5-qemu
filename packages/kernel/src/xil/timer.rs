@@ -1,7 +1,5 @@
 //! Cortex-A9 Private Timer
 
-#![allow(const_item_mutation)]
-
 use core::ffi::c_uint;
 
 pub const BASE_ADDR: u32 = 0xF8F00600;
