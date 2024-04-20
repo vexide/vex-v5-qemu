@@ -13,8 +13,7 @@ use crate::{
         },
         time::{XTime, XTime_GetTime},
         timer::{
-            XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired,
-            XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
+            XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR
         },
         wdt::{
             XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig,
@@ -101,7 +100,7 @@ pub fn vexSystemTimerReinitForRtos(
             gic,
             XPAR_SCUTIMER_INTR,
             Some(handler),
-            core::mem::transmute(timer),
+            core::mem::transmute(timer as *mut XScuTimer),
         );
 
         // Restart the timer and enable the timer interrupt
