@@ -90,7 +90,12 @@ pub fn vexSystemTimerReinitForRtos(
         );
 
         // Install tick handler
-        let status = XScuGic_Connect(gic, XPAR_SCUTIMER_INTR, handler, core::mem::transmute(gic));
+        let status = XScuGic_Connect(
+            gic,
+            XPAR_SCUTIMER_INTR,
+            Some(handler),
+            core::mem::transmute(gic)
+        );
 
         // Restart the timer and enable the timer interrupt
         if status == 0 {
@@ -125,7 +130,7 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
             // Call respective interrupt handler from the vector table.
             let cfg = XScuGic_LookupConfig(0);
             let handler_entry = (*cfg).HandlerTable[interrupt_id as usize];
-            (handler_entry.handler)(handler_entry.callback_ref);
+            (handler_entry.handler).unwrap()(handler_entry.callback_ref);
         }
     }
 }
