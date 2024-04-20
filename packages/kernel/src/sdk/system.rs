@@ -8,6 +8,7 @@ use core::{arch::asm, ffi::c_void, sync::atomic::Ordering};
 
 use vex_sdk::*;
 
+pub fn vexPrivateApiDisable(sig: u32) {}
 pub fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
 pub fn vexScratchMemoryPtr(ptr: *mut *mut core::ffi::c_void) -> i32 {
     Default::default()

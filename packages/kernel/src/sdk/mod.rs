@@ -406,6 +406,7 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
 
         // System
         0x10 => vexStdlibMismatchError,
+        0x20 => vexPrivateApiDisable,
         0x01c => vexScratchMemoryPtr,
         0x998 => vexScratchMemoryLock,
         0x99c => vexScratchMemoryUnock,
