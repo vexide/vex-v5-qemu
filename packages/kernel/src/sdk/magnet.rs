@@ -1,20 +1,21 @@
-use super::types::*;
+//! V5 Workcell Electromagnet
 
-pub unsafe extern "C" fn set_magnet_power(device: V5DeviceHandle, value: i32, time: i32) {}
-pub unsafe extern "C" fn magnet_power(device: V5DeviceHandle) -> i32 {
-    0
+use core::ffi::c_double;
+
+use vex_sdk::*;
+
+pub fn vexDeviceMagnetPowerSet(device: V5_DeviceT, value: i32, time: i32) {}
+pub fn vexDeviceMagnetPowerGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn magnet_pickup(device: V5DeviceHandle, duration: MagnetDuration) {}
-pub unsafe extern "C" fn magnet_drop(device: V5DeviceHandle, duration: MagnetDuration) {}
-pub unsafe extern "C" fn magnet_temperature(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMagnetPickup(device: V5_DeviceT, duration: V5_DeviceMagnetDuration) {}
+pub fn vexDeviceMagnetDrop(device: V5_DeviceT, duration: V5_DeviceMagnetDuration) {}
+pub fn vexDeviceMagnetTemperatureGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn magnet_current(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMagnetCurrentGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn magnet_status(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceMagnetStatusGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-// pub unsafe extern "C" fn vexDeviceMagnetDebugGet(device: V5DeviceHandle) {}
-// pub unsafe extern "C" fn vexDeviceMagnetModeSet(device: V5DeviceHandle, mode: MagnetMode) {}
-// pub unsafe extern "C" fn vexDeviceMagnetModeGet(device: V5DeviceHandle) -> MagnetMode {

@@ -1,44 +1,43 @@
-use super::types::*;
+//! V5 GPS
 
-pub unsafe extern "C" fn gps_reset(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn gps_heading(device: V5DeviceHandle) -> f64 {
-    0.0
+use core::ffi::c_double;
+use vex_sdk::*;
+
+pub fn vexDeviceGpsReset(device: V5_DeviceT) {}
+pub fn vexDeviceGpsHeadingGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn gps_degrees(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceGpsDegreesGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn gps_quaternion(device: V5DeviceHandle, quat: *mut GpsQuaternion) {}
-pub unsafe extern "C" fn gps_attitude(
-    device: V5DeviceHandle,
-    attitude: *mut GpsAttitude,
-    is_raw: bool,
+pub fn vexDeviceGpsQuaternionGet(device: V5_DeviceT, data: *mut V5_DeviceGpsQuaternion) {}
+pub fn vexDeviceGpsAttitudeGet(device: V5_DeviceT, data: *mut V5_DeviceGpsAttitude, bRaw: bool) {}
+pub fn vexDeviceGpsRawGyroGet(device: V5_DeviceT, data: *mut V5_DeviceGpsRaw) {}
+pub fn vexDeviceGpsRawAccelGet(device: V5_DeviceT, data: *mut V5_DeviceGpsRaw) {}
+pub fn vexDeviceGpsStatusGet(device: V5_DeviceT) -> u32 {
+    Default::default()
+}
+pub fn vexDeviceGpsTemperatureGet(device: V5_DeviceT) -> c_double {
+    Default::default()
+}
+pub fn vexDeviceGpsModeSet(device: V5_DeviceT, mode: u32) {}
+pub fn vexDeviceGpsModeGet(device: V5_DeviceT) -> u32 {
+    Default::default()
+}
+pub fn vexDeviceGpsDataRateSet(device: V5_DeviceT, rate: u32) {}
+pub fn vexDeviceGpsOriginSet(device: V5_DeviceT, ox: c_double, oy: c_double) {}
+pub fn vexDeviceGpsOriginGet(device: V5_DeviceT, ox: *mut c_double, oy: *mut c_double) {}
+pub fn vexDeviceGpsRotationSet(device: V5_DeviceT, value: c_double) {}
+pub fn vexDeviceGpsRotationGet(device: V5_DeviceT) -> c_double {
+    Default::default()
+}
+pub fn vexDeviceGpsInitialPositionSet(
+    device: V5_DeviceT,
+    initial_x: c_double,
+    initial_y: c_double,
+    initial_rotation: c_double,
 ) {
 }
-pub unsafe extern "C" fn gps_raw_gyro(device: V5DeviceHandle, raw_data: *mut GpsRaw) {}
-pub unsafe extern "C" fn gps_raw_accel(device: V5DeviceHandle, raw_data: *mut GpsRaw) {}
-pub unsafe extern "C" fn gps_status(device: V5DeviceHandle) -> u32 {
-    0
-}
-// pub unsafe extern "C" fn vexDeviceGpsTemperatureGet(device: V5DeviceHandle) -> f64 {}
-// pub unsafe extern "C" fn vexDeviceGpsDebugGet(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn set_gps_mode(device: V5DeviceHandle, mode: u32) {}
-pub unsafe extern "C" fn gps_mode(device: V5DeviceHandle) -> u32 {
-    0
-}
-pub unsafe extern "C" fn set_gps_data_rate(device: V5DeviceHandle, rate: u32) {}
-pub unsafe extern "C" fn set_gps_origin(device: V5DeviceHandle, x: f64, y: f64) {}
-pub unsafe extern "C" fn gps_origin(device: V5DeviceHandle, x: *mut f64, y: *mut f64) {}
-pub unsafe extern "C" fn set_gps_rotation(device: V5DeviceHandle, rotation: f64) {}
-pub unsafe extern "C" fn gps_rotation(device: V5DeviceHandle) -> f64 {
-    0.0
-}
-pub unsafe extern "C" fn set_gps_initial_position(
-    device: V5DeviceHandle,
-    initial_x: f64,
-    initial_y: f64,
-    initial_rotation: f64,
-) {
-}
-pub unsafe extern "C" fn gps_error(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceGpsErrorGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }

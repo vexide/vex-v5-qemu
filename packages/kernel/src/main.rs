@@ -2,40 +2,21 @@
 #![no_main]
 #![feature(c_variadic)]
 
-pub mod sdk;
 pub mod hal;
+pub mod sdk;
 
-use core::{arch::global_asm, cell::{OnceCell, UnsafeCell}, ffi::c_void, panic::PanicInfo, sync::atomic::{AtomicU32, Ordering}};
+use core::{
+    arch::global_asm,
+    ffi::c_void,
+    panic::PanicInfo,
+    sync::atomic::{AtomicU32, Ordering},
+};
+use hal::{gic::GenericInterruptController, timer::Timer, wdt::WatchdogTimer, UnsafePeripheral};
 
-use hal::{gic::GenericInterruptController, timer::Timer, wdt::WatchdogTimer};
-
-pub static mut INTERRUPT_CONTROLLER: UnsafePeripheral<GenericInterruptController> = unsafe { UnsafePeripheral::new() };
+pub static mut INTERRUPT_CONTROLLER: UnsafePeripheral<GenericInterruptController> =
+    unsafe { UnsafePeripheral::new() };
 pub static mut PRIVATE_TIMER: UnsafePeripheral<Timer> = unsafe { UnsafePeripheral::new() };
 pub static mut WATCHDOG_TIMER: UnsafePeripheral<WatchdogTimer> = unsafe { UnsafePeripheral::new() };
-
-pub struct UnsafePeripheral<T>(OnceCell<T>);
-
-impl<T> UnsafePeripheral<T> {
-    pub const unsafe fn new() -> Self {
-        Self(OnceCell::new())
-    }
-
-    pub fn set(&mut self, value: T) -> Result<(), T> {
-        self.0.set(value)
-    }
-
-    pub fn get(&self) -> Option<&T> {
-        self.0.get()
-    }
-
-    pub fn get_mut(&mut self) -> Option<&mut T> {
-        self.0.get_mut()
-    }
-}
-
-// lol
-unsafe impl<T> Send for UnsafePeripheral<T> {}
-unsafe impl<T> Sync for UnsafePeripheral<T> {}
 
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
@@ -45,21 +26,17 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-pub unsafe extern "C" fn system_timer_interrupt_handler(_: *mut c_void) {
+pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     let timer = PRIVATE_TIMER.get_mut().unwrap();
 
-    unsafe {
-        if timer.is_expired() {
-            timer.clear_interrupt_status();
-        }
+    if timer.is_expired() {
+        timer.clear_interrupt_status();
     }
-    
-    _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);
 
-    // TODO: Call user-registered timer callback
+    _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);
 }
 
-pub fn setup_system_timer() {
+pub fn setup_timers() {
     let timer = unsafe { PRIVATE_TIMER.get_mut().unwrap() };
     let gic = unsafe { INTERRUPT_CONTROLLER.get_mut().unwrap() };
 
@@ -74,7 +51,7 @@ pub fn setup_system_timer() {
     // Register timer handler with interrupt controller
     gic.connect(
         Timer::IRQ_INTERRUPT_ID,
-        system_timer_interrupt_handler,
+        timer_interrupt_handler,
         // This is normally a pointer to a valid XScuTimer, but we don't have that here
         //
         // None of our interrupt handlers (and really hopefully none registered by users) should
@@ -94,14 +71,14 @@ extern "C" {
     static COLD_MEMORY_START: *const ();
 
     #[link_name = "_vex_startup"]
-    fn vex_startup();
+    fn vexStartup();
 }
 
 extern "C" fn main() -> ! {
     unsafe {
         let mut call_cell_guest = host_call::Guest::new_on_guest();
         let [call_cell, ..] = call_cell_guest.take_call_cells().unwrap();
-        
+
         let mut written = 0;
 
         let call_cell = call_cell.perform(host_call::Call::Write {
@@ -111,19 +88,22 @@ extern "C" fn main() -> ! {
     }
 
     unsafe {
-        INTERRUPT_CONTROLLER.set(GenericInterruptController::new()).unwrap();
+        INTERRUPT_CONTROLLER
+            .set(GenericInterruptController::new())
+            .unwrap();
         WATCHDOG_TIMER.set(WatchdogTimer::initialize()).unwrap();
         PRIVATE_TIMER.set(Timer::new()).unwrap();
     }
 
     unsafe {
-        vex_startup();
-        setup_system_timer();
+        setup_timers();
+        vexStartup();
     }
 
-    unreachable!("VEX startup should not return!");
+    unreachable!("vexStartup should not return!");
 }
 
+// Enable floating point unit for the current CPU
 global_asm!(
     r#"
         .section .text

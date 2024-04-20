@@ -118,6 +118,7 @@ version = "0.1.0"
 dependencies = [
  "critical-section",
  "host_call",
+ "vex-sdk",
 ]
 
 [[package]]
@@ -190,6 +191,12 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "vex-sdk"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b975ac9f3d592c4869e6096ef7d0f1bdc26f389fc66beafa0dfbc8a2f499d4a"
 
 [[package]]
 name = "windows-sys"

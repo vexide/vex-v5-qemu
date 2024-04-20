@@ -13,3 +13,4 @@ debug = true
 [dependencies]
 host_call = { path = "../host_call" }
 critical-section = { version = "1.1.2", features = ["restore-state-bool"] }
+vex-sdk = "0.12.3"
