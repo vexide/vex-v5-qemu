@@ -11,6 +11,7 @@ use crate::{
             XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
             XSCUGIC_MAX_NUM_INTR_INPUTS,
         },
+        time::{XTime, XTime_GetTime},
         timer::{
             XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired,
             XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
@@ -48,7 +49,13 @@ pub fn vexSystemStartupOptions() -> u32 {
 }
 pub fn vexSystemExitRequest() {}
 pub fn vexSystemHighResTimeGet() -> u64 {
-    Default::default()
+    // Read the global timer register
+    let time: &mut XTime = &mut Default::default();
+    unsafe {
+        XTime_GetTime(time);
+    }
+
+    *time
 }
 pub fn vexSystemPowerupTimeGet() -> u64 {
     Default::default()
@@ -94,7 +101,7 @@ pub fn vexSystemTimerReinitForRtos(
             gic,
             XPAR_SCUTIMER_INTR,
             Some(handler),
-            core::mem::transmute(gic)
+            core::mem::transmute(timer),
         );
 
         // Restart the timer and enable the timer interrupt

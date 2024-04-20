@@ -47,14 +47,14 @@ fn panic(_info: &PanicInfo) -> ! {
 pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     let timer = PRIVATE_TIMER.get_mut();
 
-    if !XScuTimer_IsExpired(timer) {
-        return;
+    if XScuTimer_IsExpired(timer) {
+        // Clear interrupt
+        XScuTimer_ClearInterruptStatus(timer);
+
+        // Increment system timer
+        _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);
     }
-    XScuTimer_ClearInterruptStatus(timer);
-    
-    // Increment system timer.
-    _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);
-    
+
     // NOTE: I think (?) vexos offers a way for users
     // to register a callback here through some part
     // of the SDK, but nobody really uses that.
@@ -70,7 +70,7 @@ pub fn setup_timer() {
 
         if status == 0 {
             XScuTimer_Stop(timer);
-            
+
             // Ensure there is no prescaler.
             XScuTimer_SetPrescaler(timer, 0);
 
@@ -80,7 +80,7 @@ pub fn setup_timer() {
 
             // Load the timer counter register with the correct tick rate.
             XScuTimer_LoadTimer(timer, 333333);
-            
+
             // Clear interrupt status.
             XScuTimer_ClearInterruptStatus(timer);
 

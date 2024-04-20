@@ -33,7 +33,11 @@ pub struct XScuTimer {
 
 extern "C" {
     pub fn XScuTimer_LookupConfig(DeviceId: u16) -> *mut XScuTimer_Config;
-    pub fn XScuTimer_CfgInitialize(InstancePtr: *mut XScuTimer, ConfigPtr: *mut XScuTimer_Config, EffectiveAddress: u32) -> i32;
+    pub fn XScuTimer_CfgInitialize(
+        InstancePtr: *mut XScuTimer,
+        ConfigPtr: *mut XScuTimer_Config,
+        EffectiveAddress: u32,
+    ) -> i32;
     pub fn XScuTimer_Stop(InstancePtr: *mut XScuTimer);
     pub fn XScuTimer_Start(InstancePtr: *mut XScuTimer);
     pub fn XScuTimer_SetPrescaler(InstancePtr: *mut XScuTimer, PrescalerValue: u8);
