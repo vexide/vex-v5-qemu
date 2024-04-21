@@ -2,7 +2,7 @@
 
 use core::ffi::{c_char, c_uint};
 
-pub const BASE_ADDR: u32 = 0xF8F00600;
+pub const XPAR_XSCUTIMER_0_BASEADDR: u32 = 0xF8F00600;
 
 pub const XSCUTIMER_LOAD_OFFSET: u32 = 0x00;
 pub const XSCUTIMER_CONTROL_OFFSET: u32 = 0x08;
@@ -44,42 +44,49 @@ extern "C" {
 }
 
 pub unsafe extern "C" fn XScuTimer_LoadTimer(InstancePtr: *mut XScuTimer, Value: u32) {
-    core::ptr::write_volatile((BASE_ADDR + XSCUTIMER_LOAD_OFFSET) as *mut u32, Value);
+    core::ptr::write_volatile(
+        ((*InstancePtr).Config.BaseAddr + XSCUTIMER_LOAD_OFFSET) as *mut u32,
+        Value,
+    );
 }
 
 pub unsafe extern "C" fn XScuTimer_IsExpired(InstancePtr: *mut XScuTimer) -> bool {
-    (core::ptr::read_volatile((BASE_ADDR + XSCUTIMER_ISR_OFFSET) as *const u32)
-        & XSCUTIMER_ISR_EVENT_FLAG_MASK)
+    (core::ptr::read_volatile(
+        ((*InstancePtr).Config.BaseAddr + XSCUTIMER_ISR_OFFSET) as *const u32,
+    ) & XSCUTIMER_ISR_EVENT_FLAG_MASK)
         == XSCUTIMER_ISR_EVENT_FLAG_MASK
 }
 
 pub unsafe extern "C" fn XScuTimer_EnableAutoReload(InstancePtr: *mut XScuTimer) {
     core::ptr::write_volatile(
-        (BASE_ADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
-        core::ptr::read_volatile((BASE_ADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32)
-            | XSCUTIMER_CONTROL_AUTO_RELOAD_MASK,
+        ((*InstancePtr).Config.BaseAddr + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
+        core::ptr::read_volatile(
+            ((*InstancePtr).Config.BaseAddr + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
+        ) | XSCUTIMER_CONTROL_AUTO_RELOAD_MASK,
     );
 }
 
 pub unsafe extern "C" fn XScuTimer_ClearInterruptStatus(InstancePtr: *mut XScuTimer) {
     core::ptr::write_volatile(
-        (BASE_ADDR + XSCUTIMER_ISR_OFFSET) as *mut u32,
+        ((*InstancePtr).Config.BaseAddr + XSCUTIMER_ISR_OFFSET) as *mut u32,
         XSCUTIMER_ISR_EVENT_FLAG_MASK,
     );
 }
 
 pub unsafe extern "C" fn XScuTimer_EnableInterrupt(InstancePtr: *mut XScuTimer) {
     core::ptr::write_volatile(
-        (BASE_ADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
-        core::ptr::read_volatile((BASE_ADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32)
-            | XSCUTIMER_CONTROL_IRQ_ENABLE_MASK,
+        (XPAR_XSCUTIMER_0_BASEADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
+        core::ptr::read_volatile(
+            ((*InstancePtr).Config.BaseAddr + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
+        ) | XSCUTIMER_CONTROL_IRQ_ENABLE_MASK,
     );
 }
 
 pub unsafe extern "C" fn XScuTimer_DisableInterrupt(InstancePtr: *mut XScuTimer) {
     core::ptr::write_volatile(
-        (BASE_ADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
-        core::ptr::read_volatile((BASE_ADDR + XSCUTIMER_CONTROL_OFFSET) as *mut u32)
-            & !XSCUTIMER_CONTROL_IRQ_ENABLE_MASK,
+        ((*InstancePtr).Config.BaseAddr + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
+        core::ptr::read_volatile(
+            ((*InstancePtr).Config.BaseAddr + XSCUTIMER_CONTROL_OFFSET) as *mut u32,
+        ) & !XSCUTIMER_CONTROL_IRQ_ENABLE_MASK,
     );
 }

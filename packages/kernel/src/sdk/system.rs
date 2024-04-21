@@ -8,7 +8,7 @@ use crate::{
     timer_interrupt_handler,
     xil::{
         gic::{
-            self, XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XSCUGIC_MAX_NUM_INTR_INPUTS
+            self, XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS
         },
         time::{XTime, XTime_GetTime},
         timer::{
@@ -16,7 +16,7 @@ use crate::{
         },
         wdt::{
             XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig,
-            XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start,
+            XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start, XPAR_XSCUWDT_0_BASEADDR,
         },
     },
     INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
@@ -133,7 +133,7 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
         // Check for a valid interrupt ID.
         if interrupt_id < (XSCUGIC_MAX_NUM_INTR_INPUTS as u32) {
             // Call respective interrupt handler from the vector table.
-            let cfg = XScuGic_LookupConfig(0 as *mut u32);
+            let cfg = XScuGic_LookupConfig(XPAR_SCUGIC_0_DIST_BASEADDR as *mut u32);
             let handler_entry = (*cfg).HandlerTable[interrupt_id as usize];
             (handler_entry.handler).unwrap()(handler_entry.callback_ref);
         }
@@ -145,7 +145,7 @@ pub fn vexSystemWatchdogReinitRtos() -> i32 {
     unsafe {
         let wdt = WATCHDOG_TIMER.get_mut();
 
-        let config = XScuWdt_LookupConfig(0 as *mut u32);
+        let config = XScuWdt_LookupConfig(XPAR_XSCUWDT_0_BASEADDR as *mut u32);
         let status = XScuWdt_CfgInitialize(wdt, config, *(*config).BaseAddr);
 
         if status != 0 {

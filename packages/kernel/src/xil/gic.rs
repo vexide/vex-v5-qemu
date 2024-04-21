@@ -4,6 +4,8 @@
 
 use core::ffi::{c_char, c_uint, c_void};
 
+pub const XPAR_SCUGIC_0_DIST_BASEADDR: u32 = 0xF8F01000;
+
 pub const XSCUGIC_MAX_NUM_INTR_INPUTS: usize = 95;
 
 pub type Xil_InterruptHandler = Option<unsafe extern "C" fn(data: *mut c_void)>;
