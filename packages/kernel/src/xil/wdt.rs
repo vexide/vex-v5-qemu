@@ -17,6 +17,9 @@ pub const XSCUWDT_DISABLE_VALUE_2: u32 = 0x87654321;
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XScuWdt_Config {
     pub Name: *const c_char,
+    // NOTE: libxil for some reason marks this as UINTPTR, but its not
+    // treated as such, and marking this as *mut c_uint here causes trouble
+    // on the rust end of things, so we'll just treat it as u32.
     pub BaseAddr: u32,
     pub IntrId: u32,
     pub IntrParent: *mut c_uint,
