@@ -2,7 +2,7 @@
 
 #![allow(non_camel_case_types)]
 
-use core::ffi::c_void;
+use core::ffi::{c_char, c_uint, c_void};
 
 pub const XSCUGIC_MAX_NUM_INTR_INPUTS: usize = 95;
 
@@ -27,9 +27,9 @@ pub struct XScuGic_VectorTableEntry {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XScuGic_Config {
-    pub DeviceId: u16,
-    pub CpuBaseAddress: u32,
+    pub Name: *const c_char,
     pub DistBaseAddress: u32,
+    pub CpuBaseAddress: u32,
     pub HandlerTable: [XScuGic_VectorTableEntry; XSCUGIC_MAX_NUM_INTR_INPUTS],
 }
 
@@ -47,7 +47,7 @@ extern "C" {
         ConfigPtr: *mut XScuGic_Config,
         EffectiveAddr: u32,
     ) -> i32;
-    pub fn XScuGic_LookupConfig(DeviceId: u16) -> *mut XScuGic_Config;
+    pub fn XScuGic_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuGic_Config;
     // This should be `InstancePtr: *mut XScuGic`, but rust can't transmute function pointers making this difficult
     // to cast to a Xil_ExceptionHandler.
     pub fn XScuGic_InterruptHandler(InstancePtr: *mut c_void);

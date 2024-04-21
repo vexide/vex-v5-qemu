@@ -1,6 +1,6 @@
 //! Cortex-A9 Watchdog Timer
 
-use core::ffi::c_uint;
+use core::ffi::{c_char, c_uint};
 
 pub const BASE_ADDR: u32 = 0xF8F00620;
 
@@ -16,7 +16,7 @@ pub const XSCUWDT_DISABLE_VALUE_2: u32 = 0x87654321;
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XScuWdt_Config {
-    pub DeviceId: u16,
+    pub Name: *const c_char,
     pub BaseAddr: *mut c_uint,
     pub IntrId: u32,
     pub IntrParent: *mut c_uint,
@@ -31,7 +31,7 @@ pub struct XScuWdt {
 }
 
 extern "C" {
-    pub fn XScuWdt_LookupConfig(DeviceId: u16) -> *mut XScuWdt_Config;
+    pub fn XScuWdt_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuWdt_Config;
     pub fn XScuWdt_CfgInitialize(
         InstancePtr: *mut XScuWdt,
         ConfigPtr: *mut XScuWdt_Config,

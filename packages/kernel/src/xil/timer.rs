@@ -1,6 +1,6 @@
 //! Cortex-A9 Private Timer
 
-use core::ffi::c_uint;
+use core::ffi::{c_char, c_uint};
 
 pub const BASE_ADDR: u32 = 0xF8F00600;
 
@@ -17,8 +17,8 @@ pub const XPAR_SCUTIMER_INTR: u32 = 29;
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XScuTimer_Config {
-    pub DeviceId: u16,
-    pub BaseAddr: *mut c_uint,
+    pub Name: *const c_char,
+    pub BaseAddr: u32,
     pub IntrId: u32,
     pub IntrParent: *mut c_uint,
 }
@@ -32,7 +32,7 @@ pub struct XScuTimer {
 }
 
 extern "C" {
-    pub fn XScuTimer_LookupConfig(DeviceId: u16) -> *mut XScuTimer_Config;
+    pub fn XScuTimer_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuTimer_Config;
     pub fn XScuTimer_CfgInitialize(
         InstancePtr: *mut XScuTimer,
         ConfigPtr: *mut XScuTimer_Config,

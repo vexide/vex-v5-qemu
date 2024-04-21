@@ -16,10 +16,7 @@ use core::{
 use xil::{
     gic::{XScuGic, XScuGic_Connect, XScuGic_Enable, XScuGic_SetPriorityTriggerType},
     timer::{
-        XScuTimer, XScuTimer_CfgInitialize, XScuTimer_ClearInterruptStatus,
-        XScuTimer_EnableAutoReload, XScuTimer_EnableInterrupt, XScuTimer_IsExpired,
-        XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start,
-        XScuTimer_Stop, XPAR_SCUTIMER_INTR,
+        self, XScuTimer, XScuTimer_CfgInitialize, XScuTimer_ClearInterruptStatus, XScuTimer_EnableAutoReload, XScuTimer_EnableInterrupt, XScuTimer_IsExpired, XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR
     },
     wdt::XScuWdt,
 };
@@ -65,8 +62,8 @@ pub fn setup_timer() {
         let timer = PRIVATE_TIMER.get_mut();
         let gic = INTERRUPT_CONTROLLER.get_mut();
 
-        let timer_config = XScuTimer_LookupConfig(0);
-        let status = XScuTimer_CfgInitialize(timer, timer_config, *(*timer_config).BaseAddr);
+        let timer_config = XScuTimer_LookupConfig(timer::BASE_ADDR as *mut u32);
+        let status = XScuTimer_CfgInitialize(timer, timer_config, (*timer_config).BaseAddr);
 
         if status == 0 {
             XScuTimer_Stop(timer);
