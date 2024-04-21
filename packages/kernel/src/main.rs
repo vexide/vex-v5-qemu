@@ -110,11 +110,15 @@ pub fn setup_gic() {
         let gic = INTERRUPT_CONTROLLER.get_mut();
 
         let config = XScuGic_LookupConfig(XPAR_SCUGIC_0_DIST_BASEADDR as *mut u32);
-        XScuGic_CfgInitialize(
+        let status = XScuGic_CfgInitialize(
             gic,
             config,
             (*config).DistBaseAddress,
         );
+
+        if status != 0 {
+            panic!("Failed to initialize GIC config");
+        }
 
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_IRQ_INT,
