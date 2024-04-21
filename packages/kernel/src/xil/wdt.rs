@@ -18,8 +18,6 @@ pub const XSCUWDT_DISABLE_VALUE_2: u32 = 0x87654321;
 pub struct XScuWdt_Config {
     pub DeviceId: u16,
     pub BaseAddr: *mut c_uint,
-    pub IntrId: u32,
-    pub IntrParent: *mut c_uint,
 }
 
 #[repr(C)]
