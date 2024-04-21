@@ -19,6 +19,8 @@ pub const XPAR_SCUTIMER_INTR: u32 = 29;
 pub struct XScuTimer_Config {
     pub DeviceId: u16,
     pub BaseAddr: *mut c_uint,
+    pub IntrId: u32,
+    pub IntrParent: *mut c_uint,
 }
 
 #[repr(C)]
