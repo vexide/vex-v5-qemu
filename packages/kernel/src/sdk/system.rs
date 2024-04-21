@@ -146,7 +146,7 @@ pub fn vexSystemWatchdogReinitRtos() -> i32 {
         let wdt = WATCHDOG_TIMER.get_mut();
 
         let config = XScuWdt_LookupConfig(XPAR_XSCUWDT_0_BASEADDR as *mut u32);
-        let status = XScuWdt_CfgInitialize(wdt, config, *(*config).BaseAddr);
+        let status = XScuWdt_CfgInitialize(wdt, config, (*config).BaseAddr);
 
         if status != 0 {
             // XScuWdt_CfgInitialize returned XST_DEVICE_IS_STARTED, meaning that the watchdog timer was already started.
