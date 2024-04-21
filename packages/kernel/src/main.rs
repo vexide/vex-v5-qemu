@@ -14,7 +14,7 @@ use core::{
 };
 
 use xil::{
-    gic::{XScuGic, XScuGic_Connect, XScuGic_Enable, XScuGic_SetPriorityTriggerType},
+    gic::{XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR},
     timer::{
         XScuTimer, XScuTimer_CfgInitialize, XScuTimer_ClearInterruptStatus, XScuTimer_EnableAutoReload, XScuTimer_EnableInterrupt, XScuTimer_IsExpired, XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR, XPAR_XSCUTIMER_0_BASEADDR
     },
@@ -107,6 +107,15 @@ pub fn setup_timer() {
 
 pub fn setup_gic() {
     unsafe {
+        let gic = INTERRUPT_CONTROLLER.get_mut();
+
+        let config = XScuGic_LookupConfig(XPAR_SCUGIC_0_DIST_BASEADDR as *mut u32);
+        XScuGic_CfgInitialize(
+            gic,
+            config,
+            (*config).DistBaseAddress,
+        );
+
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_IRQ_INT,
             Some(XScuGic_InterruptHandler),
