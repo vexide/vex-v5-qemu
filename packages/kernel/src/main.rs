@@ -113,7 +113,7 @@ pub fn setup_gic() {
         let status = XScuGic_CfgInitialize(
             gic,
             config,
-            (*config).DistBaseAddress,
+            (*config).CpuBaseAddress,
         );
 
         if status != 0 {

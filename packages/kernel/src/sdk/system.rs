@@ -8,7 +8,7 @@ use crate::{
     timer_interrupt_handler,
     xil::{
         gic::{
-            self, XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS
+            XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS
         },
         time::{XTime, XTime_GetTime},
         timer::{
