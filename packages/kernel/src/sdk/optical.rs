@@ -1,67 +1,41 @@
-use super::types::*;
+//! V5 Optical Sensor
 
-pub unsafe extern "C" fn optical_hue(device: V5DeviceHandle) -> f64 {
-    0.0
+use core::ffi::c_double;
+
+use vex_sdk::*;
+
+pub fn vexDeviceOpticalHueGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn optical_sat(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceOpticalSatGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn optical_brightness(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceOpticalBrightnessGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn optical_proximity(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceOpticalProximityGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn optical_rgb(device: V5DeviceHandle, rgb: *mut OpticalRgb) {
-    unsafe {
-        *rgb = OpticalRgb {
-            red: 0.0,
-            green: 0.0,
-            blue: 0.0,
-            brightness: 0.0,
-        };
-    }
+pub fn vexDeviceOpticalRgbGet(device: V5_DeviceT, data: *mut V5_DeviceOpticalRgb) {}
+pub fn vexDeviceOpticalLedPwmSet(device: V5_DeviceT, value: i32) {}
+pub fn vexDeviceOpticalLedPwmGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_optical_led_pwm(device: V5DeviceHandle, value: i32) {}
-pub unsafe extern "C" fn optical_led_pwm(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceOpticalStatusGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn optical_status(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceOpticalRawGet(device: V5_DeviceT, data: *mut V5_DeviceOpticalRaw) {}
+pub fn vexDeviceOpticalModeSet(device: V5_DeviceT, mode: u32) {}
+pub fn vexDeviceOpticalModeGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn optical_raw(device: V5DeviceHandle, raw_data: *mut OpticalRaw) {
-    unsafe {
-        *raw_data = OpticalRaw {
-            clear: 0,
-            red: 0,
-            green: 0,
-            blue: 0,
-        }
-    }
+pub fn vexDeviceOpticalGestureGet(device: V5_DeviceT, pData: *mut V5_DeviceOpticalGesture) -> u32 {
+    Default::default()
 }
-// pub unsafe extern "C" fn vexDeviceOpticalDebugGet(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn set_optical_mode(device: V5DeviceHandle, mode: u32) {}
-pub unsafe extern "C" fn optical_mode(device: V5DeviceHandle) -> u32 {
-    0
-}
-pub unsafe extern "C" fn optical_gesture(
-    device: V5DeviceHandle,
-    gesture: *mut OpticalGesture,
-) -> u32 {
-    0
-}
-pub unsafe extern "C" fn optical_gesture_enable(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn optical_gesture_disable(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn optical_proximity_threshold(
-    device: V5DeviceHandle,
-    threshold: i32,
-) -> i32 {
-    0
-}
-// pub unsafe extern "C" fn vexDeviceOpticalGainSet(device: V5DeviceHandle, gain: f64) {}
-// pub unsafe extern "C" fn vexDeviceOpticalMatrixSet(device: V5DeviceHandle, matrix: *mut OpticalMatrix) {}
-// pub unsafe extern "C" fn vexDeviceOpticalMatrixGet(device: V5DeviceHandle, matrix: *mut OpticalMatrix) {}
-pub unsafe extern "C" fn set_optical_integration_time(device: V5DeviceHandle, millis: f64) {}
-pub unsafe extern "C" fn optical_integration_time(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceOpticalGestureEnable(device: V5_DeviceT) {}
+pub fn vexDeviceOpticalGestureDisable(device: V5_DeviceT) {}
+pub fn vexDeviceOpticalProximityThreshold(device: V5_DeviceT, value: i32) {}
+pub fn vexDeviceOpticalIntegrationTimeSet(device: V5_DeviceT, timeMs: c_double) {}
+pub fn vexDeviceOpticalIntegrationTimeGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }

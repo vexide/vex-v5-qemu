@@ -1,15 +1,28 @@
-pub unsafe extern "C" fn serial_write_char(channel: u32, c: u8) -> i32 {
-    0
+//! USB Serial Communication
+
+use core::ffi::{c_char, VaList};
+
+pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn serial_write_buffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
-    0
+pub fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn serial_read_char(channel: u32) -> i32 {
-    0
+pub fn vexSerialReadChar(channel: u32) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn serial_peek_char(channel: u32) -> i32 {
-    0
+pub fn vexSerialPeekChar(channel: u32) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn serial_write_free(channel: u32) -> i32 {
-    0
+pub fn vexSerialWriteFree(channel: u32) -> i32 {
+    Default::default()
+}
+pub fn vex_vprintf(format: *const c_char, args: VaList) -> i32 {
+    Default::default()
+}
+pub fn vex_vsprintf(out: *mut c_char, format: *const c_char, args: VaList) -> i32 {
+    Default::default()
+}
+pub fn vex_vsnprintf(out: *mut c_char, max_len: u32, format: *const c_char, args: VaList) -> i32 {
+    Default::default()
 }

@@ -1,115 +1,102 @@
-use super::types::*;
+//! V5 Smart Motor
 
-pub unsafe extern "C" fn set_motor_velocity(device: V5DeviceHandle, velocity: i32) {}
-pub unsafe extern "C" fn motor_velocity(device: V5DeviceHandle) -> i32 {
-    0
+use core::ffi::c_double;
+use vex_sdk::*;
+
+pub fn vexDeviceMotorVelocitySet(device: V5_DeviceT, velocity: i32) {}
+pub fn vexDeviceMotorVelocityGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_actual_velocity(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorActualVelocityGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_direction(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceMotorDirectionGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_mode(device: V5DeviceHandle, mode: MotorControlMode) {}
-pub unsafe extern "C" fn motor_mode(device: V5DeviceHandle) -> MotorControlMode {
-    MotorControlMode::Undefined
+pub fn vexDeviceMotorModeSet(device: V5_DeviceT, mode: V5MotorControlMode) {}
+pub fn vexDeviceMotorModeGet(device: V5_DeviceT) -> V5MotorControlMode {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_pwm(device: V5DeviceHandle, pwm: i32) {}
-pub unsafe extern "C" fn motor_pwm(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceMotorPwmSet(device: V5_DeviceT, pwm: i32) {}
+pub fn vexDeviceMotorPwmGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_current_limit(device: V5DeviceHandle, limit: i32) {}
-pub unsafe extern "C" fn motor_current_limit(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceMotorCurrentLimitSet(device: V5_DeviceT, limit: i32) {}
+pub fn vexDeviceMotorCurrentLimitGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_current(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceMotorCurrentGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_power(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorPowerGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_torque(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorTorqueGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_efficiency(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorEfficiencyGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_temperature(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorTemperatureGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_over_temp_flag(device: V5DeviceHandle) -> bool {
-    false
+pub fn vexDeviceMotorOverTempFlagGet(device: V5_DeviceT) -> bool {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_current_limit_flag(device: V5DeviceHandle) -> bool {
-    false
+pub fn vexDeviceMotorCurrentLimitFlagGet(device: V5_DeviceT) -> bool {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_zero_velocity_flag(device: V5DeviceHandle) -> bool {
-    false
+pub fn vexDeviceMotorZeroVelocityFlagGet(device: V5_DeviceT) -> bool {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_zero_position_flag(device: V5DeviceHandle) -> bool {
-    false
+pub fn vexDeviceMotorZeroPositionFlagGet(device: V5_DeviceT) -> bool {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_reverse_flag(device: V5DeviceHandle, reverse: bool) {}
-pub unsafe extern "C" fn motor_reverse_flag(device: V5DeviceHandle) -> bool {
-    false
+pub fn vexDeviceMotorReverseFlagSet(device: V5_DeviceT, reverse: bool) {}
+pub fn vexDeviceMotorReverseFlagGet(device: V5_DeviceT) -> bool {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_encoder_units(device: V5DeviceHandle, units: MotorEncoderUnits) {
+pub fn vexDeviceMotorEncoderUnitsSet(device: V5_DeviceT, units: V5MotorEncoderUnits) {}
+pub fn vexDeviceMotorEncoderUnitsGet(device: V5_DeviceT) -> V5MotorEncoderUnits {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_encoder_units(device: V5DeviceHandle) -> MotorEncoderUnits {
-    MotorEncoderUnits::Degrees
+pub fn vexDeviceMotorBrakeModeSet(device: V5_DeviceT, mode: V5MotorBrakeMode) {}
+pub fn vexDeviceMotorBrakeModeGet(device: V5_DeviceT) -> V5MotorBrakeMode {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_brake_mode(device: V5DeviceHandle, mode: MotorBrakeMode) {}
-pub unsafe extern "C" fn motor_brake_mode(device: V5DeviceHandle) -> MotorBrakeMode {
-    MotorBrakeMode::Coast
+pub fn vexDeviceMotorPositionSet(device: V5_DeviceT, position: c_double) {}
+pub fn vexDeviceMotorPositionGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_position(device: V5DeviceHandle, position: f64) {}
-pub unsafe extern "C" fn motor_position(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorPositionRawGet(device: V5_DeviceT, timestamp: *mut u32) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_position_raw(device: V5DeviceHandle, timestamp: *const u32) -> i32 {
-    0
+pub fn vexDeviceMotorPositionReset(device: V5_DeviceT) {}
+pub fn vexDeviceMotorTargetGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_position_reset(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn motor_target(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceMotorServoTargetSet(device: V5_DeviceT, position: c_double) {}
+pub fn vexDeviceMotorAbsoluteTargetSet(device: V5_DeviceT, position: c_double, veloctiy: i32) {}
+pub fn vexDeviceMotorRelativeTargetSet(device: V5_DeviceT, position: c_double, velocity: i32) {}
+pub fn vexDeviceMotorFaultsGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_servo_target(device: V5DeviceHandle, position: f64) {}
-pub unsafe extern "C" fn set_motor_absolute_target(
-    device: V5DeviceHandle,
-    position: f64,
-    veloctiy: i32,
-) {
+pub fn vexDeviceMotorFlagsGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_relative_target(
-    device: V5DeviceHandle,
-    position: f64,
-    velocity: i32,
-) {
+pub fn vexDeviceMotorVoltageSet(device: V5_DeviceT, voltage: i32) {}
+pub fn vexDeviceMotorVoltageGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_faults(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceMotorGearingSet(device: V5_DeviceT, gearset: V5MotorGearset) {}
+pub fn vexDeviceMotorGearingGet(device: V5_DeviceT) -> V5MotorGearset {
+    Default::default()
 }
-pub unsafe extern "C" fn motor_flags(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceMotorVoltageLimitSet(device: V5_DeviceT, limit: i32) {}
+pub fn vexDeviceMotorVoltageLimitGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_motor_voltage(device: V5DeviceHandle, voltage: i32) {}
-pub unsafe extern "C" fn motor_voltage(device: V5DeviceHandle) -> i32 {
-    0
-}
-pub unsafe extern "C" fn set_motor_gearing(device: V5DeviceHandle, gearset: MotorGearset) {}
-pub unsafe extern "C" fn motor_gearing(device: V5DeviceHandle) -> MotorGearset {
-    MotorGearset::Gearing36
-}
-pub unsafe extern "C" fn set_motor_voltage_limit(device: V5DeviceHandle, limit: i32) {}
-pub unsafe extern "C" fn motor_voltage_limit(device: V5DeviceHandle) -> i32 {
-    0
-}
-pub unsafe extern "C" fn motor_velocity_update(device: V5DeviceHandle, velocity: i32) {}
-pub unsafe extern "C" fn set_motor_position_pid(device: V5DeviceHandle, pid: *mut MotorPid) {}
-pub unsafe extern "C" fn set_motor_velocity_pid(device: V5DeviceHandle, pid: *mut MotorPid) {}
-pub unsafe extern "C" fn set_motor_external_profile(
-    device: V5DeviceHandle,
-    position: f64,
-    velocity: i32,
-) {
-}
+pub fn vexDeviceMotorVelocityUpdate(device: V5_DeviceT, velocity: i32) {}
+pub fn vexDeviceMotorPositionPidSet(device: V5_DeviceT, pid: *mut V5_DeviceMotorPid) {}
+pub fn vexDeviceMotorVelocityPidSet(device: V5_DeviceT, pid: *mut V5_DeviceMotorPid) {}
+pub fn vexDeviceMotorExternalProfileSet(device: V5_DeviceT, position: c_double, velocity: i32) {}

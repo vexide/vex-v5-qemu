@@ -1,20 +1,20 @@
-use super::types::*;
+//! V5 Distance Sensor
 
-pub unsafe extern "C" fn distance_distance(device: V5DeviceHandle) -> u32 {
-    0
+use core::ffi::c_double;
+use vex_sdk::*;
+
+pub fn vexDeviceDistanceDistanceGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn distance_confidence(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceDistanceConfidenceGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn distance_object_size(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceDistanceStatusGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-pub unsafe extern "C" fn distance_object_velocity(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceDistanceObjectSizeGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn distance_status(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceDistanceObjectVelocityGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-// pub unsafe extern "C" fn vexDeviceDistanceDebugGet(device: V5DeviceHandle) {}
-// pub unsafe extern "C" fn vexDeviceDistanceModeSet(device: V5DeviceHandle, mode: DistanceMode) {}
-// pub unsafe extern "C" fn vexDeviceDistanceModeGet(device: V5DeviceHandle) -> DistanceMode {

@@ -1,26 +1,27 @@
-use super::types::*;
+//! V5 Inertial Sensor
 
-pub unsafe extern "C" fn imu_reset(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn imu_heading(device: V5DeviceHandle) -> f64 {
-    0.0
+use core::ffi::c_double;
+use vex_sdk::*;
+
+pub fn vexDeviceImuReset(device: V5_DeviceT) {}
+pub fn vexDeviceImuHeadingGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn imu_degrees(device: V5DeviceHandle) -> f64 {
-    0.0
+pub fn vexDeviceImuDegreesGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-pub unsafe extern "C" fn imu_quaternion(device: V5DeviceHandle, data: *mut ImuQuaternion) {}
-pub unsafe extern "C" fn imu_attitude(device: V5DeviceHandle, data: *mut ImuAttitude) {}
-pub unsafe extern "C" fn imu_raw_gyro(device: V5DeviceHandle, data: *mut ImuRaw) {}
-pub unsafe extern "C" fn imu_raw_accel(device: V5DeviceHandle, data: *mut ImuRaw) {}
-pub unsafe extern "C" fn imu_status(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceImuQuaternionGet(device: V5_DeviceT, data: *mut V5_DeviceImuQuaternion) {}
+pub fn vexDeviceImuAttitudeGet(device: V5_DeviceT, data: *mut V5_DeviceImuAttitude) {}
+pub fn vexDeviceImuRawGyroGet(device: V5_DeviceT, data: *mut V5_DeviceImuRaw) {}
+pub fn vexDeviceImuRawAccelGet(device: V5_DeviceT, data: *mut V5_DeviceImuRaw) {}
+pub fn vexDeviceImuStatusGet(device: V5_DeviceT) -> u32 {
+    Default::default()
 }
-// pub unsafe extern "C" fn vexDeviceImuTemperatureGet(device: V5DeviceHandle) -> f64 {
-//     0.0
-// }
-// pub unsafe extern "C" fn vexDeviceImuDebugGet(device: V5DeviceHandle) {}
-pub unsafe extern "C" fn set_imu_mode(device: V5DeviceHandle, mode: u32) {}
-pub unsafe extern "C" fn imu_mode(device: V5DeviceHandle) -> u32 {
-    0
+pub fn vexDeviceImuTemperatureGet(device: V5_DeviceT) -> c_double {
+    Default::default()
 }
-// pub unsafe extern "C" fn vexDeviceImuCollisionDataGet(device: V5DeviceHandle) -> ImuCollisionData {}
-pub unsafe extern "C" fn set_imu_data_rate(device: V5DeviceHandle, rate: u32) {}
+pub fn vexDeviceImuModeSet(device: V5_DeviceT, mode: u32) {}
+pub fn vexDeviceImuModeGet(device: V5_DeviceT) -> u32 {
+    Default::default()
+}
+pub fn vexDeviceImuDataRateSet(device: V5_DeviceT, rate: u32) {}

@@ -1,88 +1,54 @@
-use super::types::*;
+//! V5 Vision Sensor
 
-pub unsafe extern "C" fn set_vision_mode(device: V5DeviceHandle, mode: VisionMode) {}
-pub unsafe extern "C" fn vision_mode(device: V5DeviceHandle) -> VisionMode {
-    VisionMode::Normal
+use vex_sdk::*;
+
+pub fn vexDeviceVisionModeSet(device: V5_DeviceT, mode: V5VisionMode) {}
+pub fn vexDeviceVisionModeGet(device: V5_DeviceT) -> V5VisionMode {
+    Default::default()
 }
-pub unsafe extern "C" fn vision_object_count(device: V5DeviceHandle) -> i32 {
-    0
+pub fn vexDeviceVisionObjectCountGet(device: V5_DeviceT) -> i32 {
+    Default::default()
 }
-pub unsafe extern "C" fn vision_object(
-    device: V5DeviceHandle,
+pub fn vexDeviceVisionObjectGet(
+    device: V5_DeviceT,
     index: u32,
-    object: *mut VisionObject,
+    object: *mut V5_DeviceVisionObject,
 ) -> i32 {
-    0
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_signature(
-    device: V5DeviceHandle,
-    signature: *mut VisionSignature,
-) {
-}
-pub unsafe extern "C" fn vision_signature(
-    device: V5DeviceHandle,
+pub fn vexDeviceVisionSignatureSet(device: V5_DeviceT, signature: *mut V5_DeviceVisionSignature) {}
+pub fn vexDeviceVisionSignatureGet(
+    device: V5_DeviceT,
     id: u32,
-    signature: *mut VisionSignature,
+    signature: *mut V5_DeviceVisionSignature,
 ) -> bool {
-    unsafe {
-        *signature = VisionSignature {
-            id: 0,
-            flags: 0,
-            pad: [0; 2],
-            range: 0.0,
-            u_min: 0,
-            u_max: 0,
-            u_mean: 0,
-            v_min: 0,
-            v_max: 0,
-            v_mean: 0,
-            m_rgb: 0,
-            m_type: 0,
-        };
-    }
-    false
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_brightness(device: V5DeviceHandle, percent: u8) {}
-pub unsafe extern "C" fn vision_brightness(device: V5DeviceHandle) -> u8 {
-    0
+pub fn vexDeviceVisionBrightnessSet(device: V5_DeviceT, percent: u8) {}
+pub fn vexDeviceVisionBrightnessGet(device: V5_DeviceT) -> u8 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_white_balance_mode(
-    device: V5DeviceHandle,
-    mode: VisionWhiteBalanceMode,
-) {
+pub fn vexDeviceVisionWhiteBalanceModeSet(device: V5_DeviceT, mode: V5VisionWBMode) {}
+pub fn vexDeviceVisionWhiteBalanceModeGet(device: V5_DeviceT) -> V5VisionWBMode {
+    Default::default()
 }
-pub unsafe extern "C" fn vision_white_balance_mode(
-    device: V5DeviceHandle,
-) -> VisionWhiteBalanceMode {
-    VisionWhiteBalanceMode::Normal
+pub fn vexDeviceVisionWhiteBalanceSet(device: V5_DeviceT, color: V5_DeviceVisionRgb) {}
+pub fn vexDeviceVisionWhiteBalanceGet(device: V5_DeviceT) -> V5_DeviceVisionRgb {
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_white_balance(device: V5DeviceHandle, color: VisionRgb) {}
-pub unsafe extern "C" fn vision_white_balance(device: V5DeviceHandle) -> VisionRgb {
-    VisionRgb {
-        red: 0,
-        green: 0,
-        blue: 0,
-        brightness: 0,
-    }
+pub fn vexDeviceVisionLedModeSet(device: V5_DeviceT, mode: V5VisionLedMode) {}
+pub fn vexDeviceVisionLedModeGet(device: V5_DeviceT) -> V5VisionLedMode {
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_led_mod(device: V5DeviceHandle, mode: VisionLedMode) {}
-pub unsafe extern "C" fn vision_led_mode(device: V5DeviceHandle) -> VisionLedMode {
-    VisionLedMode::Auto
+pub fn vexDeviceVisionLedBrigntnessSet(device: V5_DeviceT, percent: u8) {}
+pub fn vexDeviceVisionLedBrigntnessGet(device: V5_DeviceT) -> u8 {
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_led_brigntness(device: V5DeviceHandle, percent: u8) {}
-pub unsafe extern "C" fn vision_led_brigntness(device: V5DeviceHandle) -> u8 {
-    0
+pub fn vexDeviceVisionLedColorSet(device: V5_DeviceT, color: V5_DeviceVisionRgb) {}
+pub fn vexDeviceVisionLedColorGet(device: V5_DeviceT) -> V5_DeviceVisionRgb {
+    Default::default()
 }
-pub unsafe extern "C" fn set_vision_led_color(device: V5DeviceHandle, color: VisionRgb) {}
-pub unsafe extern "C" fn vision_led_color(device: V5DeviceHandle) -> VisionRgb {
-    VisionRgb {
-        red: 0,
-        green: 0,
-        blue: 0,
-        brightness: 0,
-    }
-}
-pub unsafe extern "C" fn set_vision_wifi_mode(device: V5DeviceHandle, mode: VisionWifiMode) {}
-pub unsafe extern "C" fn vision_wifi_mode(device: V5DeviceHandle) -> VisionWifiMode {
-    VisionWifiMode::Off
+pub fn vexDeviceVisionWifiModeSet(device: V5_DeviceT, mode: V5VisionWifiMode) {}
+pub fn vexDeviceVisionWifiModeGet(device: V5_DeviceT) -> V5VisionWifiMode {
+    Default::default()
 }
