@@ -166,5 +166,5 @@ extern "C" {
         CallBackFunc: *mut c_void,
         CallBackRef: *mut c_void,
     );
-    pub fn XUsb_LookupConfig(BaseAddress: u32) -> *mut Config;
+    pub fn XUsb_LookupConfig(BaseAddress: u32) -> *mut XUsb_Config;
 }
