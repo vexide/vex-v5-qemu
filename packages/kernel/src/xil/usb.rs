@@ -7,6 +7,7 @@ pub const XUSB_MAX_ENDPOINTS: usize = 8;
 pub type XUsb_EpHandlerFunc = Option<unsafe extern "C" fn(*mut c_void, u8, u32)>;
 pub type XUsb_IntrHandlerFunc = Option<unsafe extern "C" fn(*mut c_void, u32)>;
 
+#[repr(C)]
 struct XUsb_Config {
     /**< Unique ID of device. */
     DeviceId: u16,
@@ -23,6 +24,7 @@ struct XUsb_Config {
     IntrParent: *mut core::ffi::c_uint,
 }
 
+#[repr(C)]
 struct XUsb_EpConfig {
     /**< The end point direction */
     OutIn: c_int,
@@ -56,6 +58,7 @@ struct XUsb_EpConfig {
     HandlerRef: *mut c_void,
 }
 
+#[repr(C)]
 struct XUsb_DeviceConfig {
     /**< Number of Endpoints */
     NumEndpoints: u8,
