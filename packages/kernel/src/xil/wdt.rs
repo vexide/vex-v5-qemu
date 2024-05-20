@@ -44,15 +44,23 @@ extern "C" {
 }
 
 pub unsafe extern "C" fn XScuWdt_GetControlReg(InstancePtr: *const XScuWdt) -> u32 {
-    core::ptr::read_volatile(((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_CONTROL_OFFSET) as *const u32)
+    core::ptr::read_volatile(
+        ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_CONTROL_OFFSET) as *const u32,
+    )
 }
 
 pub unsafe extern "C" fn XScuWdt_SetControlReg(InstancePtr: *mut XScuWdt, ControlReg: u32) {
-    core::ptr::write_volatile(((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_CONTROL_OFFSET) as *mut u32, ControlReg);
+    core::ptr::write_volatile(
+        ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_CONTROL_OFFSET) as *mut u32,
+        ControlReg,
+    );
 }
 
 pub unsafe extern "C" fn XScuWdt_LoadWdt(InstancePtr: *mut XScuWdt, Value: u32) {
-    core::ptr::write_volatile(((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_LOAD_OFFSET) as *mut u32, Value);
+    core::ptr::write_volatile(
+        ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_LOAD_OFFSET) as *mut u32,
+        Value,
+    );
 }
 
 pub unsafe extern "C" fn XScuWdt_SetTimerMode(InstancePtr: *mut XScuWdt) {

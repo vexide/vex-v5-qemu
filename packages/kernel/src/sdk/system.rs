@@ -8,11 +8,13 @@ use crate::{
     timer_interrupt_handler,
     xil::{
         gic::{
-            XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS
+            XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
+            XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS,
         },
         time::{XTime, XTime_GetTime},
         timer::{
-            XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt, XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR
+            XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt,
+            XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
         },
         wdt::{
             XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig,
