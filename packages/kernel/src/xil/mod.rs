@@ -15,3 +15,13 @@ pub mod time;
 pub mod timer;
 pub mod usbps;
 pub mod wdt;
+
+#[inline(always)]
+pub unsafe fn Xil_In32(addr: u32) -> u32 {
+    core::ptr::read_volatile(addr as *const u32)
+}
+
+#[inline(always)]
+pub unsafe fn Xil_Out32(addr: u32, value: u32) {
+    core::ptr::write_volatile(addr as *mut u32, value)
+}
