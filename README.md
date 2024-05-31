@@ -40,6 +40,10 @@ cargo run -p simulator --binary=<PATH_TO_USER_PROGRAM>
 
 The simulator also supports attaching a GDB instance for debugging purposes. You can do that by passing `--gdb` as an argument to the simulator CLI, which will cause QEMU to listen for a gdbstub connection.
 
+## A note on program output.
+
+In its current state, the sim does NOT support reading serial data that the user program writes. This means you cannot directly access the data written to stdout through `printf` in PROS or `println!` in vexide. The only way to monitor program status is through a GDB instance, but this will change as soon as we find a sane way to implement the simulator protocol.
+
 ## What about VEXCode programs?
 
 Support for VEXCode programs isn't planned. This isn't out of spite or anything, but rather because VEXCode heavily relies on undocumented parts of the proprietary SDK for its cooperative task scheduler that we neither have the knowledge to reimplement nor the desire to document to the public.
