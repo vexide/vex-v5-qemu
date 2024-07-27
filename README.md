@@ -35,12 +35,37 @@ cargo build -p kernel --target armv7a-none-eabi
 and then run the simulator as a CLI using
 
 ```
-cargo run -p simulator --binary=<PATH_TO_USER_PROGRAM>
+cargo run -p simulator -- <PATH_TO_USER_PROGRAM>
 ```
 
-The simulator also supports attaching a GDB instance for debugging purposes. You can do that by passing `--gdb` as an argument to the simulator CLI, which will cause QEMU to listen for a gdbstub connection.
+### Debugging
 
-## A note on program output.
+The simulator supports attaching a GDB instance for debugging purposes.
+
+<!-- You can do that by passing `--gdb` as an argument to the simulator CLI, which will cause QEMU to listen for a gdbstub connection. -->
+
+In GDB, start by connecting to the simulator on port 1234:
+
+```
+target remote localhost:1234
+```
+
+Then, add debug symbols from the simulator kernel and user code:
+
+```
+add-symbol-file target/armv7a-none-eabi/debug/kernel
+add-symbol-file ../vexide-template/target/armv7a-vex-v5/debug/vexide-template
+```
+
+Finally, finish setting up GDB by enabling the source code TUI:
+
+```
+layout src
+```
+
+You can now step through the simulated Rust code line-by-line with the `step` (jump into) and `next` (jump over) commands.
+
+## A note on program output
 
 In its current state, the sim does NOT support reading serial data that the user program writes. This means you cannot directly access the data written to stdout through `printf` in PROS or `println!` in vexide. The only way to monitor program status is through a GDB instance, but this will change as soon as we find a sane way to implement the simulator protocol.
 
