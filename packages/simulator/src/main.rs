@@ -1,12 +1,9 @@
 use std::{
-    fs::{File, OpenOptions},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::{Command, Stdio},
-    thread,
 };
 
 use anyhow::Context;
-use memmap2::{MmapOptions, MmapRaw};
 
 mod ramfs;
 
@@ -33,19 +30,13 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
 
-    let ramfs = ramfs::RamFS::new().context("Failed to create in-memory filesystem.")?;
-    let memory_file_path = dbg!(ramfs.path().join("v5-simulator"));
+    // let ramfs = ramfs::RamFS::new().context("Failed to create in-memory filesystem.")?;
+    // let memory_file_path = ramfs.path().join("v5-simulator");
 
     let mut qemu = Command::new("qemu-system-arm")
         .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
         .args(["-cpu", "cortex-a9"])
-        .args([
-            "-object",
-            &format!(
-                "memory-backend-file,id=mem,size=256M,mem-path={}",
-                memory_file_path.display()
-            ),
-        ])
+        .args(["-object", "memory-backend-ram,id=mem,size=256M"])
         .args([
             "-device",
             &format!("loader,file={},cpu-num=0", opt.kernel.display()),
@@ -76,38 +67,38 @@ fn main() -> anyhow::Result<()> {
         .spawn()
         .context("Failed to start QEMU.")?;
 
-    thread::sleep(std::time::Duration::from_millis(100));
-    let memory_file = MmapOptions::new()
-        .map_raw(
-            &OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(memory_file_path)
-                .context("Failed to open memory file.")?,
-        )
-        .unwrap();
+    // thread::sleep(std::time::Duration::from_millis(100));
+    // let memory_file = MmapOptions::new()
+    //     .map_raw(
+    //         &OpenOptions::new()
+    //             .read(true)
+    //             .write(true)
+    //             .open(memory_file_path)
+    //             .context("Failed to open memory file.")?,
+    //     )
+    //     .unwrap();
 
-    let mut host_call_guest =
-        unsafe { host_call::Guest::new_on_host(memory_file.as_mut_ptr().cast()) };
-    let [mut call_cell, ..] = host_call_guest.take_call_cells().unwrap();
+    // let mut host_call_guest =
+    //     unsafe { host_call::Guest::new_on_host(memory_file.as_mut_ptr().cast()) };
+    // let [mut call_cell, ..] = host_call_guest.take_call_cells().unwrap();
 
-    loop {
-        std::thread::sleep_ms(1000);
-        // println!("Polling call cell...");
-        call_cell = match call_cell.poll_incoming() {
-            Ok(incoming) => match incoming.call {
-                host_call::Call::Write { data, written } => {
-                    dbg!(data);
-                    *written = 0xdeadbeef;
-                    incoming.cell.complete()
-                }
-            },
-            Err(call_cell) => call_cell,
-        }
-    }
+    // loop {
+    //     std::thread::sleep_ms(1000);
+    //     // println!("Polling call cell...");
+    //     call_cell = match call_cell.poll_incoming() {
+    //         Ok(incoming) => match incoming.call {
+    //             host_call::Call::Write { data, written } => {
+    //                 dbg!(data);
+    //                 *written = 0xdeadbeef;
+    //                 incoming.cell.complete()
+    //             }
+    //         },
+    //         Err(call_cell) => call_cell,
+    //     }
+    // }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
-    drop(ramfs);
+    // drop(ramfs);
 
     // TODO: clean up temp files
 
