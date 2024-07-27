@@ -1,11 +1,14 @@
 use std::{
     fs::{File, OpenOptions},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Command, Stdio},
     thread,
 };
 
+use anyhow::Context;
 use memmap2::{MmapOptions, MmapRaw};
+
+mod ramfs;
 
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
@@ -27,21 +30,27 @@ struct Opt {
     binary: PathBuf,
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
 
+    let ramfs = ramfs::RamFS::new().context("Failed to create in-memory filesystem.")?;
+    let memory_file_path = dbg!(ramfs.path().join("v5-simulator"));
+
     let mut qemu = Command::new("qemu-system-arm")
-        .args(&["-machine", "xilinx-zynq-a9,memory-backend=mem"])
-        .args(&["-cpu", "cortex-a9"])
-        .args(&[
+        .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
+        .args(["-cpu", "cortex-a9"])
+        .args([
             "-object",
-            "memory-backend-file,id=mem,size=256M,mem-path=/dev/shm/v5-simulator",
+            &format!(
+                "memory-backend-file,id=mem,size=256M,mem-path={}",
+                memory_file_path.display()
+            ),
         ])
-        .args(&[
+        .args([
             "-device",
             &format!("loader,file={},cpu-num=0", opt.kernel.display()),
         ])
-        .args(&[
+        .args([
             "-device",
             &format!(
                 "loader,file={},force-raw=on,addr=0x03800000",
@@ -57,10 +66,10 @@ fn main() {
         //.stdin(Stdio::piped())
         //.stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .args(&["-S"])
-        .args(&["-s"])
+        .args(["-S"])
+        .args(["-s"])
         .spawn()
-        .expect("Failed to start QEMU.");
+        .context("Failed to start QEMU.")?;
 
     thread::sleep(std::time::Duration::from_millis(100));
     let memory_file = MmapOptions::new()
@@ -68,8 +77,8 @@ fn main() {
             &OpenOptions::new()
                 .read(true)
                 .write(true)
-                .open("/dev/shm/v5-simulator")
-                .expect("Failed to open memory file."),
+                .open(memory_file_path)
+                .context("Failed to open memory file.")?,
         )
         .unwrap();
 
@@ -92,7 +101,9 @@ fn main() {
         }
     }
 
-    qemu.wait().expect("QEMU exited unexpectedly.");
+    qemu.wait().context("QEMU exited unexpectedly.")?;
 
     // TODO: clean up temp files
+
+    Ok(())
 }
