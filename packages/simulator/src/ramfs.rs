@@ -30,7 +30,7 @@ impl RamFS {
 impl Drop for RamFS {
     fn drop(&mut self) {
         #[cfg(target_os = "macos")]
-        self.inner.take().unwrap().cleanup().unwrap();
+        self.inner.take().unwrap().cleanup().ok();
     }
 }
 
@@ -64,32 +64,49 @@ mod linux {
     }
 }
 
+/// Technically you can use `mount_tmpfs` to make a in-memory filesystem on macOS, but it needs
+/// root privileges and there isn't one that is mounted by default. Luckily you don't need
+/// them to make in-memory CD drives so we can do that instead!
+///
 /// https://gist.github.com/htr3n/344f06ba2bb20b1056d7d5570fe7f596
 mod macos {
+    use snafu::{ResultExt, Snafu};
     use std::{
         path::{Path, PathBuf},
         process::Command,
         string::FromUtf8Error,
     };
 
-    use snafu::{ResultExt, Snafu};
-
     pub struct MacOSMemFS {
-        disk: PathBuf,
+        /// The underlying character device representing the in-memory disk, which we need to detach later
+        disk: Option<PathBuf>,
+        /// The path to its mount point
         volume_path: PathBuf,
     }
 
     impl MacOSMemFS {
-        /// Create an in-memory filesystem on macOS with a size specified in blocks.
+        /// Create an in-memory CD drive filesystem on macOS with a size specified in blocks.
+        ///
+        /// If one already exists, it will be reused regardless of size.
         ///
         /// # Arguments
         ///
         /// * `blocks` - The number of 512-byte blocks to allocate for the volume. 2048 blocks is roughly 1MiB.
         pub fn new(blocks: u32) -> Result<Self, AttachMemFSError> {
+            let volume_name = "VEX V5 Memory";
+            let volume_path = PathBuf::from("/Volumes").join(volume_name);
+
+            if volume_path.exists() {
+                return Ok(Self {
+                    disk: None,
+                    volume_path,
+                });
+            }
+
             // Allocate a new RAM disk with the specified number of blocks
             let ram_url = format!("ram://{blocks}");
             let disk = Command::new("hdiutil")
-                .args(["attach", "-nomount", &ram_url])
+                .args(["attach", "-nomount", "-nobrowse", &ram_url])
                 .output()
                 .context(SubprocessExecutionFailedSnafu)?;
             if !disk.status.success() {
@@ -103,21 +120,20 @@ mod macos {
             }
 
             // Format it as an APFS volume so we can place files on it
-            // TODO: Handle duplicate volume paths
-            let volume_name = "VEX V5 Memory";
             let volume = Command::new("diskutil")
                 .args(["eraseVolume", "APFS", volume_name])
                 .arg(&disk)
                 .output()
                 .context(SubprocessExecutionFailedSnafu)?;
             if !volume.status.success() {
+                detach_disk(&disk).ok();
                 let stderr = String::from_utf8(volume.stderr).ok();
                 SubprocessFailedSnafu { stderr }.fail()?;
             }
 
             Ok(Self {
-                disk,
-                volume_path: PathBuf::from("/Volumes").join(volume_name),
+                disk: Some(disk),
+                volume_path,
             })
         }
 
@@ -126,17 +142,21 @@ mod macos {
         }
 
         pub fn cleanup(self) -> Result<(), AttachMemFSError> {
-            let detach = Command::new("hdiutil")
-                .arg("detach")
-                .arg(&self.disk)
-                .output()
-                .context(SubprocessExecutionFailedSnafu)?;
-            if !detach.status.success() {
-                let stderr = String::from_utf8(detach.stderr).ok();
-                SubprocessFailedSnafu { stderr }.fail()?;
-            }
-            Ok(())
+            detach_disk(self.disk.as_ref().unwrap_or(&self.volume_path))
         }
+    }
+
+    fn detach_disk(disk: &Path) -> Result<(), AttachMemFSError> {
+        let detach = Command::new("hdiutil")
+            .arg("detach")
+            .arg(disk)
+            .output()
+            .context(SubprocessExecutionFailedSnafu)?;
+        if !detach.status.success() {
+            let stderr = String::from_utf8(detach.stderr).ok();
+            SubprocessFailedSnafu { stderr }.fail()?;
+        }
+        Ok(())
     }
 
     #[derive(Debug, Snafu)]

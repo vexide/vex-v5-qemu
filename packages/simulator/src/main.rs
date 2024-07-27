@@ -102,6 +102,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
+    drop(ramfs);
 
     // TODO: clean up temp files
 
