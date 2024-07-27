@@ -57,14 +57,19 @@ fn main() -> anyhow::Result<()> {
                 opt.binary.display()
             ),
         ])
+        .args([
+            "-semihosting",
+            "-semihosting-config",
+            "enable=on,target=native",
+        ])
         // .args(&[
         //     "-mon",
         //     "simmonitor,mode=control,pretty=on",
         //     "-chardev",
         //     "stdio,id=simmonitor,signal=off",
         // ])
-        //.stdin(Stdio::piped())
-        //.stdout(Stdio::piped())
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .args(["-S"])
         .args(["-s"])
@@ -88,7 +93,7 @@ fn main() -> anyhow::Result<()> {
 
     loop {
         std::thread::sleep_ms(1000);
-        println!("Polling call cell...");
+        // println!("Polling call cell...");
         call_cell = match call_cell.poll_incoming() {
             Ok(incoming) => match incoming.call {
                 host_call::Call::Write { data, written } => {

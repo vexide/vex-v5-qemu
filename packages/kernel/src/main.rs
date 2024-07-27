@@ -154,6 +154,8 @@ extern "C" fn main() -> ! {
     setup_gic();
     setup_timer();
 
+    semihosting::println!("Hello, World!");
+
     unsafe {
         vexStartup();
     }

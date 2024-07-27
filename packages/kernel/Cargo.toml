@@ -12,4 +12,5 @@ debug = true
 
 [dependencies]
 host_call = { path = "../host_call" }
+semihosting = { version = "0.1.13", features = ["stdio"] }
 vex-sdk = "0.12.3"
