@@ -86,7 +86,7 @@ pub fn setup_timer() {
                 gic,
                 29,
                 Some(timer_interrupt_handler),
-                core::mem::transmute(timer as *mut XScuTimer),
+                timer as *mut XScuTimer as *mut c_void,
             );
 
             // Start timer and enable timer IRQs on this CPU.
@@ -119,7 +119,7 @@ pub fn setup_gic() {
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_IRQ_INT,
             Some(XScuGic_InterruptHandler),
-            core::mem::transmute(INTERRUPT_CONTROLLER.get_mut()),
+            INTERRUPT_CONTROLLER.get_mut() as *mut XScuGic as *mut c_void,
         );
     }
 }
