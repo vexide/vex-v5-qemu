@@ -8,8 +8,13 @@ MEMORY {
   jump_table_mem (rx) : ORIGIN = _jump_table_start, LENGTH = _cold_memory_start - _jump_table_start
 }
 
+/*
+This arbitrary subtraction was pulled from vexide's linker script. The heap is big enough that it
+probably won't be noticeable so I played it safe by keeping the same value.
+*/
+__heap_end = _jump_table_start - 0x100;
+
 SECTIONS {
-    _host_call_table_start = 0x03700000;
     _vex_startup = _cold_memory_start + 0x20;
 
     .text ALIGN(4096) : {
@@ -19,18 +24,18 @@ SECTIONS {
     .rodata ALIGN(4096) : {
         *(.rodata*)
     } > low_mem
-    
+
     .data ALIGN(4096) : {
         *(.data*)
     } > low_mem
-    
+
     .bss ALIGN(4096) : {
         *(.bss*)
     } > low_mem
 
-    .host_call_table : {
-        . = _host_call_table_start;
-        KEEP(*(.host_call_table))
+    .heap (NOLOAD) : ALIGN(4) {
+        __heap_start = .;
+        . = __heap_end;
     } > low_mem
 
     .jump_table : {

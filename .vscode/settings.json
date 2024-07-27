@@ -1,0 +1,23 @@
+{
+    "cSpell.words": [
+        "baudrate",
+        "bitfield",
+        "centidegrees",
+        "errno",
+        "feedforward",
+        "gearset",
+        "loopspeed",
+        "opcontrol",
+        "vexlink"
+    ],
+    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.linkedProjects": [
+        "./kernel/Cargo.toml",
+        "./simulator/Cargo.toml"
+    ],
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+    "files.insertFinalNewline": true,
+    "files.eol": "\n",
+}

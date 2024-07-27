@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
-#![feature(c_variadic, lazy_cell)]
+#![feature(c_variadic)]
+
+extern crate alloc;
 
 pub mod sdk;
 pub mod xil;
@@ -10,9 +12,11 @@ use core::{
     cell::UnsafeCell,
     ffi::c_void,
     panic::PanicInfo,
+    ptr::addr_of,
     sync::atomic::{AtomicU32, Ordering},
 };
 
+use alloc::boxed::Box;
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
@@ -31,6 +35,8 @@ use crate::xil::{
     exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
     gic::XScuGic_InterruptHandler,
 };
+
+pub type Mutex<T> = lock_api::Mutex<vexide_core::sync::RawMutex, T>;
 
 pub static mut INTERRUPT_CONTROLLER: UnsafeCell<XScuGic> =
     UnsafeCell::new(unsafe { core::mem::zeroed() });
@@ -147,6 +153,14 @@ extern "C" fn main() -> ! {
 
     setup_gic();
     setup_timer();
+    // SAFETY: This is the first time this function is called and __heap_start
+    // and __heap_end are correctly set by the linker script.
+    unsafe {
+        vexide_core::allocator::vexos::init_heap();
+    }
+
+    let boxed = Box::new(42);
+    semihosting::println!("boxed: {:?}", boxed);
 
     semihosting::println!("Starting robot code");
 

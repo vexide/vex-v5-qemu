@@ -18,9 +18,9 @@ fn flush_stdout_buffer(buffer: &[u8]) -> Result<usize, FlushError> {
     let mut stdout = semihosting::io::stdout()
         .ok()
         .context(StdioNotSupportedSnafu)?;
-    Ok(stdout
+    stdout
         .write(buffer)
-        .map_err(|inner| WriteSnafu { inner }.build())?)
+        .map_err(|inner| WriteSnafu { inner }.build())
 }
 
 pub const INTERNAL_STDOUT_BUFFER_SIZE: usize = 2048;
@@ -36,7 +36,10 @@ pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
     }
 }
 
-pub fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
+/// # Safety
+///
+/// - `data` must be a valid pointer to a buffer of length `data_len`.
+pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
     let data = unsafe { core::slice::from_raw_parts(data, data_len as usize) };
     if channel == 1 {
         match flush_stdout_buffer(data) {
