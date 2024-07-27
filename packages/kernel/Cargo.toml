@@ -12,6 +12,9 @@ debug = true
 
 [dependencies]
 host_call = { path = "../host_call" }
-semihosting = { version = "0.1.13", features = ["stdio"] }
-snafu = { version = "0.8.4", default-features = false, features = ["unstable-core-error", "rust_1_61"] }
+semihosting = { version = "0.1.13", features = ["stdio", "panic-handler"] }
+snafu = { version = "0.8.4", default-features = false, features = [
+    "unstable-core-error",
+    "rust_1_61",
+] }
 vex-sdk = "0.12.3"

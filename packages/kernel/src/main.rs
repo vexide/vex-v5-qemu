@@ -41,12 +41,6 @@ pub static mut WATCHDOG_TIMER: UnsafeCell<XScuWdt> =
 
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    semihosting::eprintln!("Kernel panic: {info:?}");
-    semihosting::process::exit(1);
-}
-
 pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     let timer = PRIVATE_TIMER.get_mut();
 
