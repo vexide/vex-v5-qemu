@@ -159,9 +159,6 @@ extern "C" fn main() -> ! {
         vexide_core::allocator::vexos::init_heap();
     }
 
-    let boxed = Box::new(42);
-    semihosting::println!("boxed: {:?}", boxed);
-
     semihosting::println!("Starting robot code");
 
     unsafe {
