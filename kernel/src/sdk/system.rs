@@ -51,13 +51,30 @@ pub fn vexSystemExitRequest() {
     semihosting::process::exit(0);
 }
 pub fn vexSystemHighResTimeGet() -> u64 {
-    // Read the global timer register
-    let time: &mut XTime = &mut Default::default();
-    unsafe {
-        XTime_GetTime(time);
+    const PERIPH_BASE_ADDR: u32 = 0xF8F00000;
+
+    const GLOBAL_TIMER_BASE_ADDRESS: u32 = PERIPH_BASE_ADDR + 0x0200;
+
+    const GLOBAL_TIMER_COUNTER_REGISTER_LOW: u32 = GLOBAL_TIMER_BASE_ADDRESS + 0x00;
+    const GLOBAL_TIMER_COUNTER_REGISTER_HIGH: u32 = GLOBAL_TIMER_BASE_ADDRESS + 0x04;
+
+    const CLOCKS_PER_USEC: u64 = (666666687 / (2 * 1000000));
+
+    let mut low: u32;
+    let mut high: u32;
+
+    loop {
+        unsafe {
+            high = core::ptr::read_volatile(GLOBAL_TIMER_COUNTER_REGISTER_HIGH as *const u32);
+            low = core::ptr::read_volatile(GLOBAL_TIMER_COUNTER_REGISTER_LOW as *const u32);
+
+            if core::ptr::read_volatile(GLOBAL_TIMER_COUNTER_REGISTER_HIGH as *const u32) == high {
+                break;
+            }
+        }
     }
 
-    *time
+    (((high as u64) << 32_u32) | (low as u64)) / CLOCKS_PER_USEC
 }
 pub fn vexSystemPowerupTimeGet() -> u64 {
     // powerup time is the same as execution time in our case
