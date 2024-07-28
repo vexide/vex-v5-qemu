@@ -59,7 +59,8 @@ pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
 
     // NOTE: I think (?) vexos offers a way for users
     // to register a callback here through some part
-    // of the SDK, but nobody really uses that.
+    // of the SDK, but nobody really uses that and its
+    // not public API.
 }
 
 pub fn setup_timer() {
@@ -138,18 +139,6 @@ extern "C" {
 }
 
 extern "C" fn main() -> ! {
-    // unsafe {
-    //     let mut call_cell_guest = host_call::Guest::new_on_guest();
-    //     let [call_cell, ..] = call_cell_guest.take_call_cells().unwrap();
-
-    //     let mut written = 0;
-
-    //     let call_cell = call_cell.perform(host_call::Call::Write {
-    //         data: "Hello, World!".as_bytes(),
-    //         written: &mut written,
-    //     });
-    // }
-
     setup_gic();
     setup_timer();
     // SAFETY: This is the first time this function is called and __heap_start
