@@ -61,6 +61,7 @@ fn main() -> anyhow::Result<()> {
                 opt.binary.display()
             ),
         ])
+        .args(["-nographic"])
         .args([
             // Semihosting interface allows host <-> guest communication
             "-semihosting",
