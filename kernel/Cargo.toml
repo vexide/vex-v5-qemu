@@ -19,7 +19,6 @@ snafu = { version = "0.8.4", default-features = false, features = [
     "unstable-core-error",
     "rust_1_61",
 ] }
-kernel-trace = { version = "0.1.0", path = "trace" }
 vex-sdk = "0.12.3"
 # vexide core also provides us with an allocator using the symbols from the linker script
 vexide-core = { git = "https://github.com/vexide/vexide", branch = "feat/dep-of-sim-kernel", version = "0.3.0", features = [

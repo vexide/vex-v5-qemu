@@ -80,20 +80,11 @@ version = "0.1.0"
 dependencies = [
  "critical-section",
  "heapless",
- "kernel-trace",
  "lock_api",
  "semihosting",
  "snafu",
  "vex-sdk 0.12.3",
  "vexide-core",
-]
-
-[[package]]
-name = "kernel-trace"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn",
 ]
 
 [[package]]
