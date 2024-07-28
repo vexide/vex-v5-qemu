@@ -24,7 +24,7 @@ We reimplement these RTOS hooks through the jumptable in [system.rs](https://git
 
 ## Running the Thing
 
-To run the sim, you'll first need [`qemu-system-arm`](https://www.qemu.org/docs/master/system/target-arm.html) installed on your machine. From there, you can build the kernel for its appropriate ARM target.
+To run the sim, you'll first need [`qemu-system-arm`](https://www.qemu.org/docs/master/system/target-arm.html) v8.x.x installed on your machine. You will likely have to compile it yourself. From there, you can build the kernel for its appropriate ARM target.
 
 ```sh
 cargo build # Run in ./kernel
