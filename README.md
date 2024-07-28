@@ -24,18 +24,16 @@ We reimplement these RTOS hooks through the jumptable in [system.rs](https://git
 
 ## Running the Thing
 
-Currently, this can only be ran on Linux due to QEMU's shared memory device not having Windows or Mac support. This will hopefully change, as we plan to eventually pipe the sim protocol over a serial device rather than shared memory (either through a `chardev` or `XUsbPs`).
-
 To run the sim, you'll first need [`qemu-system-arm`](https://www.qemu.org/docs/master/system/target-arm.html) installed on your machine. From there, you can build the kernel for its appropriate ARM target.
 
-```rs
-cargo build -p kernel --target armv7a-none-eabi
+```sh
+cargo build # Run in ./kernel
 ```
 
 and then run the simulator as a CLI using
 
-```
-cargo run -p simulator -- <PATH_TO_USER_PROGRAM>
+```sh
+cargo run -p simulator -- <PATH_TO_USER_PROGRAM> # Run in ./simulator
 ```
 
 ### Debugging

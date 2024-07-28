@@ -3,11 +3,11 @@ set confirm off
 set history size 1024
 set history remove-duplicates 128
 
-layout asm
+layout src
 set print asm-demangle on
 
-directory $cdir/packages/kernel/src
+target remote host.orb.internal:1234
 
-target remote localhost:1234
-
-add-symbol-file target/armv7a-none-eabi/debug/kernel
+add-symbol-file kernel/target/armv7a-none-eabi/debug/kernel
+add-symbol-file ../vexide/target/armv7a-vex-v5/debug/examples/basic
+break vexide_devices::peripherals::Peripherals::take
