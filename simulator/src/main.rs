@@ -46,8 +46,8 @@ fn main() -> anyhow::Result<()> {
     // let ramfs = ramfs::RamFS::new().context("Failed to create in-memory filesystem.")?;
     // let memory_file_path = ramfs.path().join("v5-simulator");
 
-    let mut qemu = Command::new(opt.qemu)
-        .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
+    let mut qemu = Command::new(opt.qemu);
+    qemu.args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
         .args(["-cpu", "cortex-a9"])
         .args(["-object", "memory-backend-ram,id=mem,size=256M"])
         .args([
@@ -74,7 +74,7 @@ fn main() -> anyhow::Result<()> {
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
-    qemu.spawn().context("Failed to start QEMU.")?;
+    let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
 
     // thread::sleep(std::time::Duration::from_millis(100));
     // let memory_file = MmapOptions::new()
