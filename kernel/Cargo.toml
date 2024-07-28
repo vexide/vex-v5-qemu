@@ -3,6 +3,16 @@ name = "kernel"
 version = "0.1.0"
 edition = "2021"
 
+[workspace.lints.rust]
+rust_2018_idioms = { level = "warn", priority = -1 }
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+missing_const_for_fn = "warn"
+
+[lints]
+workspace = true
+
 [profile.dev]
 panic = "abort"
 
@@ -25,3 +35,4 @@ vexide-core = { git = "https://github.com/vexide/vexide", branch = "feat/dep-of-
     "force_rust_libm", # don't want to have to deal with adding in the external libm - we dont even use math functions currently
 ] }
 critical-section = "1.1.2"
+printf-compat = { version = "0.1.1", default-features = false }

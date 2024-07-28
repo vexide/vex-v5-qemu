@@ -11,12 +11,9 @@ use core::{
     arch::global_asm,
     cell::UnsafeCell,
     ffi::c_void,
-    panic::PanicInfo,
-    ptr::addr_of,
     sync::atomic::{AtomicU32, Ordering},
 };
 
-use alloc::boxed::Box;
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
@@ -48,11 +45,13 @@ pub static mut WATCHDOG_TIMER: UnsafeCell<XScuWdt> =
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
 pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
-    let timer = PRIVATE_TIMER.get_mut();
+    let timer = unsafe { PRIVATE_TIMER.get_mut() };
 
-    if XScuTimer_IsExpired(timer) {
-        // Clear interrupt
-        XScuTimer_ClearInterruptStatus(timer);
+    if unsafe { XScuTimer_IsExpired(timer) } {
+        unsafe {
+            // Clear interrupt
+            XScuTimer_ClearInterruptStatus(timer);
+        }
 
         // Increment system timer
         _ = SYSTEM_TIME.fetch_add(1, Ordering::Relaxed);

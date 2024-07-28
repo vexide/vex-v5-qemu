@@ -620,70 +620,89 @@ pub const fn XUSBPS_EPCRn_OFFSET(n: u32) -> u32 {
 }
 
 pub unsafe fn XUsbPs_WriteReg(InstancePtr: *mut XUsbPs, RegOffset: u32, Data: u32) {
-    Xil_Out32((*InstancePtr).Config.BaseAddress + RegOffset, Data);
+    unsafe {
+        Xil_Out32((*InstancePtr).Config.BaseAddress + RegOffset, Data);
+    }
 }
 pub unsafe fn XUsbPs_ReadReg(InstancePtr: *mut XUsbPs, RegOffset: u32) -> u32 {
-    let base = (*InstancePtr).Config.BaseAddress;
-    Xil_In32(base + RegOffset)
+    unsafe {
+        let base = (*InstancePtr).Config.BaseAddress;
+        Xil_In32(base + RegOffset)
+    }
 }
 
 pub unsafe fn XUsbPs_SetBits(InstancePtr: *mut XUsbPs, RegOffset: u32, Bits: u32) {
-    XUsbPs_WriteReg(
-        InstancePtr,
-        RegOffset,
-        XUsbPs_ReadReg(InstancePtr, RegOffset) | Bits,
-    );
+    unsafe {
+        XUsbPs_WriteReg(
+            InstancePtr,
+            RegOffset,
+            XUsbPs_ReadReg(InstancePtr, RegOffset) | Bits,
+        );
+    }
 }
 pub unsafe fn XUsbPs_ClrBits(InstancePtr: *mut XUsbPs, RegOffset: u32, Bits: u32) {
-    XUsbPs_WriteReg(
-        InstancePtr,
-        RegOffset,
-        XUsbPs_ReadReg(InstancePtr, RegOffset) & !Bits,
-    );
+    unsafe {
+        XUsbPs_WriteReg(
+            InstancePtr,
+            RegOffset,
+            XUsbPs_ReadReg(InstancePtr, RegOffset) & !Bits,
+        );
+    }
 }
 
 pub unsafe fn XUsbPs_GetFrameNum(InstancePtr: *mut XUsbPs) -> u32 {
-    XUsbPs_ReadReg(InstancePtr, XUSBPS_FRAME_OFFSET as u32)
+    unsafe { XUsbPs_ReadReg(InstancePtr, XUSBPS_FRAME_OFFSET as u32) }
 }
 
 pub unsafe fn XUsbPs_Start(InstancePtr: *mut XUsbPs) {
-    XUsbPs_SetBits(InstancePtr, XUSBPS_CMD_OFFSET as _, XUSBPS_CMD_RS_MASK as _)
+    unsafe { XUsbPs_SetBits(InstancePtr, XUSBPS_CMD_OFFSET as _, XUSBPS_CMD_RS_MASK as _) }
 }
 
 pub unsafe fn XUsbPs_Stop(InstancePtr: *mut XUsbPs) {
-    XUsbPs_ClrBits(InstancePtr, XUSBPS_CMD_OFFSET as _, XUSBPS_CMD_RS_MASK as _)
+    unsafe { XUsbPs_ClrBits(InstancePtr, XUSBPS_CMD_OFFSET as _, XUSBPS_CMD_RS_MASK as _) }
 }
 pub unsafe fn XUsbPs_ForceFS(InstancePtr: *mut XUsbPs) {
-    XUsbPs_SetBits(
-        InstancePtr,
-        XUSBPS_PORTSCR1_OFFSET as _,
-        XUSBPS_PORTSCR_PFSC_MASK as _,
-    )
+    unsafe {
+        XUsbPs_SetBits(
+            InstancePtr,
+            XUSBPS_PORTSCR1_OFFSET as _,
+            XUSBPS_PORTSCR_PFSC_MASK as _,
+        )
+    }
 }
 pub unsafe fn XUsbPs_StartTimer0(InstancePtr: *mut XUsbPs, Interval: u32) {
-    XUsbPs_WriteReg(InstancePtr, XUSBPS_TIMER0_LD_OFFSET as _, Interval);
-    XUsbPs_SetBits(
-        InstancePtr,
-        XUSBPS_TIMER0_CTL_OFFSET as _,
-        (XUSBPS_TIMER_RUN_MASK | XUSBPS_TIMER_RESET_MASK | XUSBPS_TIMER_REPEAT_MASK) as _,
-    );
+    unsafe {
+        XUsbPs_WriteReg(InstancePtr, XUSBPS_TIMER0_LD_OFFSET as _, Interval);
+        XUsbPs_SetBits(
+            InstancePtr,
+            XUSBPS_TIMER0_CTL_OFFSET as _,
+            (XUSBPS_TIMER_RUN_MASK | XUSBPS_TIMER_RESET_MASK | XUSBPS_TIMER_REPEAT_MASK) as _,
+        );
+    }
 }
 pub unsafe fn XUsbPs_StopTimer0(InstancePtr: *mut XUsbPs) {
-    XUsbPs_ClrBits(
-        InstancePtr,
-        XUSBPS_TIMER0_CTL_OFFSET as _,
-        XUSBPS_TIMER_RUN_MASK as _,
-    );
+    unsafe {
+        XUsbPs_ClrBits(
+            InstancePtr,
+            XUSBPS_TIMER0_CTL_OFFSET as _,
+            XUSBPS_TIMER_RUN_MASK as _,
+        );
+    }
 }
 pub unsafe fn XUsbPs_ReadTimer0(InstancePtr: *mut XUsbPs) -> u32 {
-    XUsbPs_ReadReg(InstancePtr, XUSBPS_TIMER0_CTL_OFFSET as _) & XUSBPS_TIMER_COUNTER_MASK as u32
+    unsafe {
+        XUsbPs_ReadReg(InstancePtr, XUSBPS_TIMER0_CTL_OFFSET as _)
+            & XUSBPS_TIMER_COUNTER_MASK as u32
+    }
 }
 pub unsafe fn XUsbPs_RemoteWakeup(InstancePtr: *mut XUsbPs) {
-    XUsbPs_SetBits(
-        InstancePtr,
-        XUSBPS_PORTSCR1_OFFSET as _,
-        XUSBPS_PORTSCR_FPR_MASK as _,
-    )
+    unsafe {
+        XUsbPs_SetBits(
+            InstancePtr,
+            XUSBPS_PORTSCR1_OFFSET as _,
+            XUSBPS_PORTSCR_FPR_MASK as _,
+        )
+    }
 }
 
 fn endpoint_direction_mask(direction: u8, out_mask: u32, in_mask: u32) -> u32 {
@@ -699,65 +718,85 @@ fn endpoint_direction_mask(direction: u8, out_mask: u32, in_mask: u32) -> u32 {
 }
 
 pub unsafe fn XUsbPs_EpEnable(InstancePtr: *mut XUsbPs, EpNum: u8, Dir: u8) {
-    let bits = endpoint_direction_mask(Dir, XUSBPS_EPCR_RXE_MASK as _, XUSBPS_EPCR_TXE_MASK as _);
-    XUsbPs_SetBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    unsafe {
+        let bits =
+            endpoint_direction_mask(Dir, XUSBPS_EPCR_RXE_MASK as _, XUSBPS_EPCR_TXE_MASK as _);
+        XUsbPs_SetBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    }
 }
 pub unsafe fn XUsbPs_EpDisable(InstancePtr: *mut XUsbPs, EpNum: u8, Dir: u8) {
-    let bits = endpoint_direction_mask(Dir, XUSBPS_EPCR_RXE_MASK as _, XUSBPS_EPCR_TXE_MASK as _);
-    XUsbPs_ClrBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    unsafe {
+        let bits =
+            endpoint_direction_mask(Dir, XUSBPS_EPCR_RXE_MASK as _, XUSBPS_EPCR_TXE_MASK as _);
+        XUsbPs_ClrBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    }
 }
 pub unsafe fn XUsbPs_EpStall(InstancePtr: *mut XUsbPs, EpNum: u8, Dir: u8) {
-    let bits = endpoint_direction_mask(Dir, XUSBPS_EPCR_RXS_MASK as _, XUSBPS_EPCR_TXS_MASK as _);
-    XUsbPs_SetBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    unsafe {
+        let bits =
+            endpoint_direction_mask(Dir, XUSBPS_EPCR_RXS_MASK as _, XUSBPS_EPCR_TXS_MASK as _);
+        XUsbPs_SetBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    }
 }
 pub unsafe fn XUsbPs_EpUnStall(InstancePtr: *mut XUsbPs, EpNum: u8, Dir: u8) {
-    let bits = endpoint_direction_mask(Dir, XUSBPS_EPCR_RXS_MASK as _, XUSBPS_EPCR_TXS_MASK as _);
-    XUsbPs_ClrBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    unsafe {
+        let bits =
+            endpoint_direction_mask(Dir, XUSBPS_EPCR_RXS_MASK as _, XUSBPS_EPCR_TXS_MASK as _);
+        XUsbPs_ClrBits(InstancePtr, XUSBPS_EPCRn_OFFSET(EpNum as _), bits)
+    }
 }
 pub unsafe fn XUsbPs_EpFlush(InstancePtr: *mut XUsbPs, EpNum: u8, Dir: u8) {
-    XUsbPs_SetBits(
-        InstancePtr,
-        XUSBPS_EPFLUSH_OFFSET as _,
-        1 << (EpNum as usize
-            + (if Dir & XUSBPS_EP_DIRECTION_OUT as u8 != 0 {
-                XUSBPS_EPFLUSH_RX_SHIFT
-            } else {
-                XUSBPS_EPFLUSH_TX_SHIFT
-            })),
-    )
+    unsafe {
+        XUsbPs_SetBits(
+            InstancePtr,
+            XUSBPS_EPFLUSH_OFFSET as _,
+            1 << (EpNum as usize
+                + (if Dir & XUSBPS_EP_DIRECTION_OUT as u8 != 0 {
+                    XUSBPS_EPFLUSH_RX_SHIFT
+                } else {
+                    XUSBPS_EPFLUSH_TX_SHIFT
+                })),
+        )
+    }
 }
 pub unsafe fn XUsbPs_IntrEnable(InstancePtr: *mut XUsbPs, IntrMask: u32) {
-    XUsbPs_SetBits(InstancePtr, XUSBPS_IER_OFFSET as _, IntrMask)
+    unsafe { XUsbPs_SetBits(InstancePtr, XUSBPS_IER_OFFSET as _, IntrMask) }
 }
 pub unsafe fn XUsbPs_IntrDisable(InstancePtr: *mut XUsbPs, IntrMask: u32) {
-    XUsbPs_ClrBits(InstancePtr, XUSBPS_IER_OFFSET as _, IntrMask)
+    unsafe { XUsbPs_ClrBits(InstancePtr, XUSBPS_IER_OFFSET as _, IntrMask) }
 }
 pub unsafe fn XUsbPs_NakIntrEnable(InstancePtr: *mut XUsbPs, NakIntrMask: u32) {
-    XUsbPs_SetBits(InstancePtr, XUSBPS_EPNAKIER_OFFSET as _, NakIntrMask)
+    unsafe { XUsbPs_SetBits(InstancePtr, XUSBPS_EPNAKIER_OFFSET as _, NakIntrMask) }
 }
 pub unsafe fn XUsbPs_NakIntrDisable(InstancePtr: *mut XUsbPs, NakIntrMask: u32) {
-    XUsbPs_ClrBits(InstancePtr, XUSBPS_EPNAKIER_OFFSET as _, NakIntrMask)
+    unsafe { XUsbPs_ClrBits(InstancePtr, XUSBPS_EPNAKIER_OFFSET as _, NakIntrMask) }
 }
 pub unsafe fn XUsbPs_NakIntrClear(InstancePtr: *mut XUsbPs, NakIntrMask: u32) {
-    XUsbPs_WriteReg(InstancePtr, XUSBPS_EPNAKISR_OFFSET as _, NakIntrMask)
+    unsafe { XUsbPs_WriteReg(InstancePtr, XUSBPS_EPNAKISR_OFFSET as _, NakIntrMask) }
 }
 pub unsafe fn XUsbPs_SetIntrThreshold(InstancePtr: *mut XUsbPs, Threshold: u8) {
-    XUsbPs_WriteReg(InstancePtr, XUSBPS_CMD_OFFSET as _, Threshold as _)
+    unsafe { XUsbPs_WriteReg(InstancePtr, XUSBPS_CMD_OFFSET as _, Threshold as _) }
 }
 pub unsafe fn XUsbPs_SetSetupTripwire(InstancePtr: *mut XUsbPs) {
-    XUsbPs_SetBits(
-        InstancePtr,
-        XUSBPS_CMD_OFFSET as _,
-        XUSBPS_CMD_SUTW_MASK as _,
-    )
+    unsafe {
+        XUsbPs_SetBits(
+            InstancePtr,
+            XUSBPS_CMD_OFFSET as _,
+            XUSBPS_CMD_SUTW_MASK as _,
+        )
+    }
 }
 pub unsafe fn XUsbPs_ClrSetupTripwire(InstancePtr: *mut XUsbPs) {
-    XUsbPs_ClrBits(
-        InstancePtr,
-        XUSBPS_CMD_OFFSET as _,
-        XUSBPS_CMD_SUTW_MASK as _,
-    )
+    unsafe {
+        XUsbPs_ClrBits(
+            InstancePtr,
+            XUSBPS_CMD_OFFSET as _,
+            XUSBPS_CMD_SUTW_MASK as _,
+        )
+    }
 }
 pub unsafe fn XUsbPs_SetupTripwireIsSet(InstancePtr: *mut XUsbPs) -> bool {
-    XUsbPs_ReadReg(InstancePtr, XUSBPS_CMD_OFFSET as _) & XUSBPS_CMD_SUTW_MASK as u32 != 0
+    unsafe {
+        XUsbPs_ReadReg(InstancePtr, XUSBPS_CMD_OFFSET as _) & XUSBPS_CMD_SUTW_MASK as u32 != 0
+    }
 }

@@ -1,17 +1,16 @@
 //! USB Serial Communication
 
 use core::{
-    cmp,
     ffi::{c_char, VaList},
-    ops::Deref,
+    fmt,
 };
 
 use crate::Mutex;
 use heapless::spsc::Queue;
-use semihosting::io::{stdout, Stdout, Write};
+use semihosting::io::{stdout, Write};
 use snafu::{OptionExt, ResultExt, Snafu};
 use vexide_core::{
-    io::{Cursor, Seek, SeekFrom, Stdin},
+    io::{Cursor, Stdin},
     sync::LazyLock,
 };
 
@@ -206,6 +205,14 @@ impl Serial {
     }
 }
 
+impl core::fmt::Write for &Serial {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        self.write_all(1, s.as_bytes())
+            .map_err(|_| core::fmt::Error)?;
+        Ok(())
+    }
+}
+
 pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
     match SERIAL.write(channel, &[c]) {
         Ok(n) => i32::try_from(n).unwrap(),
@@ -236,12 +243,108 @@ pub fn vexSerialWriteFree(channel: u32) -> i32 {
         .map(|n| i32::try_from(n).unwrap())
         .unwrap_or(-1)
 }
-pub fn vex_vprintf(format: *const c_char, args: VaList) -> i32 {
-    Default::default()
+
+/// # Safety
+///
+/// - `format` must be a valid printf format string for the given `args`
+pub unsafe fn vex_vprintf(format: *const c_char, args: VaList<'_, '_>) -> i32 {
+    // Safety: Caller guarantees `format` is a valid printf format string for the given `args`.
+    unsafe {
+        printf_compat::format(
+            format as *const u8,
+            args,
+            printf_compat::output::fmt_write(&mut &*SERIAL),
+        )
+    }
 }
-pub fn vex_vsprintf(out: *mut c_char, format: *const c_char, args: VaList) -> i32 {
-    Default::default()
+
+/// # Safety
+///
+/// - `format` must be a valid printf format string for the given `args`
+/// - `out` must be a valid pointer to a buffer of sufficient length
+pub unsafe fn vex_vsprintf(out: *mut c_char, format: *const c_char, args: VaList<'_, '_>) -> i32 {
+    struct PtrFmtWrite {
+        ptr: *mut u8,
+    }
+    impl fmt::Write for PtrFmtWrite {
+        fn write_str(&mut self, s: &str) -> fmt::Result {
+            let len = s.len();
+            // Safety: Caller guarantees that `self.ptr` is a valid pointer to a buffer of
+            // sufficient length. `s` originates from kernel code and thus does not
+            // overlap with `self.ptr`.
+            unsafe {
+                core::ptr::copy_nonoverlapping(s.as_ptr(), self.ptr, len);
+                self.ptr = self.ptr.add(len);
+            }
+            Ok(())
+        }
+    }
+    let mut writer = PtrFmtWrite {
+        ptr: out as *mut u8,
+    };
+    unsafe {
+        let res = printf_compat::format(
+            format as *const u8,
+            args,
+            printf_compat::output::fmt_write(&mut writer),
+        );
+        // add null terminator to C-string
+        writer.ptr.write(0);
+        res
+    }
 }
-pub fn vex_vsnprintf(out: *mut c_char, max_len: u32, format: *const c_char, args: VaList) -> i32 {
-    Default::default()
+
+/// # Safety
+///
+/// - `format` must be a valid printf format string for the given `args`
+/// - `out` must be a valid pointer to a buffer of length `max_len` or more
+pub unsafe fn vex_vsnprintf(
+    out: *mut c_char,
+    max_len: u32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) -> i32 {
+    struct PtrFmtWrite {
+        ptr: *mut u8,
+        remaining_len: usize,
+    }
+    impl fmt::Write for PtrFmtWrite {
+        fn write_str(&mut self, s: &str) -> fmt::Result {
+            let len = s.len();
+            let len = core::cmp::min(len, self.remaining_len);
+            // if we run out of room, we write as much as we can and return an error
+            let out_of_room = s.len() > self.remaining_len;
+
+            // Safety: Caller guarantees that `self.ptr` is a valid pointer to a buffer of
+            // sufficient length. `s` originates from kernel code and thus does not
+            // overlap with `self.ptr`.
+            unsafe {
+                core::ptr::copy_nonoverlapping(s.as_ptr(), self.ptr, len);
+                self.ptr = self.ptr.add(len);
+                self.remaining_len -= len;
+            }
+
+            if out_of_room {
+                Err(fmt::Error)
+            } else {
+                Ok(())
+            }
+        }
+    }
+    let mut writer = PtrFmtWrite {
+        ptr: out as *mut u8,
+        remaining_len: max_len as usize - 1, // reserve space for null terminator
+    };
+    let result = unsafe {
+        printf_compat::format(
+            format as *const u8,
+            args,
+            printf_compat::output::fmt_write(&mut writer),
+        )
+    };
+    // add null terminator to C-string
+    unsafe {
+        writer.ptr.write(0);
+    }
+    result
 }
