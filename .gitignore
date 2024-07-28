@@ -1,3 +1,6 @@
+# Dev tools
+qemu-system-arm
+
 # GDB
 .gdb_history
 

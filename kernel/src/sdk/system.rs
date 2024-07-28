@@ -47,7 +47,9 @@ pub fn vexSystemDigitalIO(pin: u32, value: u32) {}
 pub fn vexSystemStartupOptions() -> u32 {
     Default::default()
 }
-pub fn vexSystemExitRequest() {}
+pub fn vexSystemExitRequest() {
+    semihosting::process::exit(0);
+}
 pub fn vexSystemHighResTimeGet() -> u64 {
     // Read the global timer register
     let time: &mut XTime = &mut Default::default();
@@ -58,10 +60,12 @@ pub fn vexSystemHighResTimeGet() -> u64 {
     *time
 }
 pub fn vexSystemPowerupTimeGet() -> u64 {
-    Default::default()
+    // powerup time is the same as execution time in our case
+    vexSystemHighResTimeGet()
 }
 pub fn vexSystemLinkAddrGet() -> u32 {
-    Default::default()
+    // no multi-file support yet
+    0x0
 }
 pub fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()
@@ -174,6 +178,10 @@ pub fn vexSystemWatchdogGet() -> u32 {
     Default::default()
 }
 pub fn vexSystemBoot() {}
+
+// TODO: Register these as exception handlers for ARM stuff so we
+// get some sort of feedback if one occurs and not just a pc jump
+// to 0x10.
 pub fn vexSystemUndefinedException() {}
 pub fn vexSystemFIQInterrupt() {}
 pub fn vexSystemIQRQnterrupt() {}

@@ -3,7 +3,8 @@
     unused_variables,
     non_camel_case_types,
     non_upper_case_globals,
-    non_snake_case
+    non_snake_case,
+    clippy::missing_const_for_fn
 )]
 
 pub mod abs_enc;
