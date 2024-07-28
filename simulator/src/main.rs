@@ -11,18 +11,33 @@ const DEFAULT_KERNEL: &str = concat!(
     "/../kernel/target/armv7a-none-eabi/debug/kernel"
 );
 
+/// Simulate the VEX V5 robot program at <BINARY>.
 #[derive(clap::Parser)]
 struct Opt {
-    /// Whether to listen for a gdbstub connection.
+    /// Start the simulator in a paused state and open a GDB server.
+    ///
+    /// When enabled, the simulator will make a GDB server available on port 1234,
+    /// allowing a debugger to set breakpoints in and step through the kernel or user code.
     #[clap(short, long)]
     gdb: bool,
 
-    /// The kernel binary to run. Defaults to the mock VEXos kernel.
+    /// Override the kernel image.
+    ///
+    /// The simulator requires an emulated kernel to handle SDK calls
+    /// and set up the virtual machine before running the robot code.
+    /// This option defaults to a kernel designed to replicate the behavior
+    /// of programs under VEXos.
     #[clap(short, long, default_value = DEFAULT_KERNEL)]
     kernel: PathBuf,
 
-    /// The user code binary to be simulated.
+    /// Override the QEMU executable to a custom version of `qemu-system-arm`.
+    #[clap(short, long, default_value = "qemu-system-arm")]
+    qemu: PathBuf,
+
     binary: PathBuf,
+
+    /// Extra arguments to pass to QEMU.
+    qemu_args: Vec<String>,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -31,7 +46,7 @@ fn main() -> anyhow::Result<()> {
     // let ramfs = ramfs::RamFS::new().context("Failed to create in-memory filesystem.")?;
     // let memory_file_path = ramfs.path().join("v5-simulator");
 
-    let mut qemu = Command::new("qemu-system-arm")
+    let mut qemu = Command::new(opt.qemu)
         .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
         .args(["-cpu", "cortex-a9"])
         .args(["-object", "memory-backend-ram,id=mem,size=256M"])
@@ -47,23 +62,19 @@ fn main() -> anyhow::Result<()> {
             ),
         ])
         .args([
+            // Semihosting interface allows host <-> guest communication
             "-semihosting",
             "-semihosting-config",
             "enable=on,target=native",
         ])
-        // .args(&[
-        //     "-mon",
-        //     "simmonitor,mode=control,pretty=on",
-        //     "-chardev",
-        //     "stdio,id=simmonitor,signal=off",
-        // ])
+        .args(opt.qemu_args)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .args(["-S"])
-        .args(["-s"])
-        .spawn()
-        .context("Failed to start QEMU.")?;
+        .stderr(Stdio::inherit());
+    if opt.gdb {
+        qemu.args(["-S", "-s"]);
+    }
+    qemu.spawn().context("Failed to start QEMU.")?;
 
     // thread::sleep(std::time::Duration::from_millis(100));
     // let memory_file = MmapOptions::new()
