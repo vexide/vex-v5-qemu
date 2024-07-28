@@ -10,7 +10,7 @@ mod ramfs;
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../target/armv7a-none-eabi/debug/kernel"
+    "/../kernel/target/armv7a-none-eabi/debug/kernel"
 );
 
 #[derive(clap::Parser)]

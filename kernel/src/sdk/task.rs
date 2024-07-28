@@ -2,6 +2,10 @@
 
 use core::ffi::{c_char, c_int, c_void};
 
+use semihosting::io::stdout;
+
+use super::SERIAL;
+
 pub fn vexTaskAdd(
     callback: unsafe extern "C" fn() -> c_int,
     interval: c_int,
@@ -16,4 +20,7 @@ pub fn vexTaskHardwareConcurrency() -> i32 {
     Default::default()
 }
 pub fn vexBackgroundProcessing() {}
-pub fn vexTasksRun() {}
+pub fn vexTasksRun() {
+    semihosting::println!("Flushing");
+    SERIAL.flush().unwrap();
+}
