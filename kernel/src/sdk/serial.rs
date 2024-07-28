@@ -219,10 +219,12 @@ pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
 pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
     semihosting::println!("vexSerialWriteBuffer");
     let data = unsafe { core::slice::from_raw_parts(data, data_len as usize) };
-    match SERIAL.write(channel, data) {
+    let res = match SERIAL.write(channel, data) {
         Ok(n) => i32::try_from(n).unwrap(),
         Err(_) => -1,
-    }
+    };
+    SERIAL.flush().ok();
+    res
 }
 pub fn vexSerialReadChar(channel: u32) -> i32 {
     Default::default()

@@ -5,8 +5,6 @@ use std::{
 
 use anyhow::Context;
 
-mod ramfs;
-
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
