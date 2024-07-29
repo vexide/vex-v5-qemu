@@ -228,11 +228,25 @@ pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32)
         Err(_) => -1,
     }
 }
+
+/// Read a single byte from the serial input buffer, returning
+/// the byte or -1 if no data is available or an error occurred.
 pub fn vexSerialReadChar(channel: u32) -> i32 {
-    Default::default()
+    SERIAL
+        .read_byte(channel)
+        .ok()
+        .and_then(|byte| byte.map(i32::from))
+        .unwrap_or(-1)
 }
+
+/// Peek a single byte from the serial input buffer, returning
+/// the byte or -1 if no data is available or an error occurred.
 pub fn vexSerialPeekChar(channel: u32) -> i32 {
-    Default::default()
+    SERIAL
+        .peek_byte(channel)
+        .ok()
+        .and_then(|byte| byte.map(i32::from))
+        .unwrap_or(-1)
 }
 pub fn vexSerialWriteFree(channel: u32) -> i32 {
     SERIAL
