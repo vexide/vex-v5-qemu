@@ -15,8 +15,11 @@ use vexide_core::{
     sync::LazyLock,
 };
 
+use crate::Mutex;
+
 mod util {
     use core::cmp;
+
     use vexide_core::io::{Cursor, Write};
 
     use super::SerialError;
@@ -184,8 +187,9 @@ impl Serial {
         }
     }
 
-    /// Flush the serial output buffer.
+    /// Flush the serial output buffer and update the input buffer.
     pub fn flush(&self) -> Result<()> {
+        // Flush output
         let mut stdout_buffer = self.stdout_buffer.lock();
         if stdout_buffer.position() == 0 {
             return Ok(());
@@ -200,6 +204,44 @@ impl Serial {
         stdout
             .write_all(bytes)
             .map_err(|inner| IoSnafu { inner }.build())?;
+
+        drop(stdout);
+
+        // Receive input
+        let mut stdin_buffer = self.stdin_buffer.lock();
+        let mut stdin = UART1.lock();
+
+        let mut buffer = [0; 1024];
+        // Flushing only happens when vexTasksRun is called so we want to move as much data
+        // into the input buffer as possible. This loop will read from stdin until the buffer
+        // is full or there is no more data to read.
+        while !stdin_buffer.is_full() {
+            // 1024 is an arbitrary medium-sized buffer that should be able to handle
+            // most input in 1 read
+            let mut len = stdin
+                .read(&mut buffer)
+                .map_err(|inner| IoSnafu { inner }.build())?;
+            if len == 0 {
+                break;
+            }
+
+            // this check ensures we don't overflow the buffer
+            len = core::cmp::min(len, stdin_buffer.capacity() - stdin_buffer.len());
+            for &byte in &buffer[..len] {
+                stdin_buffer
+                    .enqueue(byte)
+                    .expect("expected stdin buffer to have sufficient space");
+            }
+        }
+
+        // Discard any extra stdin input because there's not enough space for it. A real
+        // VEXos implementation wouldn't have a semihosting buffer so in our recreation
+        // we need to make sure not to take advantage of it.
+        while let Ok(byte) = stdin.read(&mut buffer) {
+            if byte == 0 {
+                break;
+            }
+        }
         Ok(())
     }
 }
