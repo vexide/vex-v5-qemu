@@ -1,4 +1,5 @@
 //! USB Serial Communication
+#![warn(missing_docs)]
 
 use core::{
     ffi::{c_char, VaList},
@@ -62,8 +63,10 @@ mod util {
     }
 }
 
+/// The global serial driver instance which can be accessed from anywhere in the kernel.
 pub static SERIAL: LazyLock<Serial> = LazyLock::new(Serial::new);
 
+/// An error that can occur when interacting with the serial driver.
 #[derive(Debug, Snafu)]
 pub enum SerialError {
     /// An invalid channel was provided.
@@ -76,11 +79,14 @@ pub enum SerialError {
     StdioNotSupported,
     /// An I/O error occurred.
     #[snafu(display("An I/O error occurred: {inner}"))]
-    Io { inner: vexide_core::io::Error },
+    Io {
+        /// The underlying I/O error.
+        inner: vexide_core::io::Error,
+    },
 }
 
 impl SerialError {
-    pub fn io_full_buffer() -> vexide_core::io::Error {
+    fn io_full_buffer() -> vexide_core::io::Error {
         vexide_core::io::Error::new(
             vexide_core::io::ErrorKind::WriteZero,
             "failed to write whole buffer",
@@ -98,14 +104,10 @@ pub struct Serial {
     stdin_buffer: Mutex<Queue<u8, { Stdin::STDIN_BUFFER_SIZE }>>,
 }
 
-impl Default for Serial {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Serial {
-    pub fn new() -> Self {
+    /// Create a new instance of the serial driver. Instead of calling this directly, use the
+    /// global [`SERIAL`] instance.
+    fn new() -> Self {
         Self {
             stdout_buffer: Mutex::new(Cursor::new(
                 [0; vexide_core::io::Stdout::INTERNAL_BUFFER_SIZE],
@@ -210,6 +212,8 @@ impl core::fmt::Write for &Serial {
     }
 }
 
+/// Write a single character to the serial output buffer, returning
+/// the number of bytes written or -1 on error.
 pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
     match SERIAL.write(channel, &[c]) {
         Ok(n) => i32::try_from(n).unwrap(),
@@ -217,6 +221,9 @@ pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
     }
 }
 
+/// Write the given buffer to the serial output buffer, returning
+/// the number of bytes written or -1 on error.
+///
 /// # Safety
 ///
 /// - `data` must be a valid pointer to a buffer of length `data_len`.
@@ -248,6 +255,9 @@ pub fn vexSerialPeekChar(channel: u32) -> i32 {
         .and_then(|byte| byte.map(i32::from))
         .unwrap_or(-1)
 }
+
+/// Check the number of free bytes in the serial output buffer, returning
+/// the number of free bytes or -1 on error.
 pub fn vexSerialWriteFree(channel: u32) -> i32 {
     SERIAL
         .num_free_bytes(channel)
@@ -255,6 +265,9 @@ pub fn vexSerialWriteFree(channel: u32) -> i32 {
         .unwrap_or(-1)
 }
 
+/// Format the given string and write it to the stdio serial output buffer, returning
+/// the number of bytes written or -1 on error.
+///
 /// # Safety
 ///
 /// - `format` must be a valid printf format string for the given `args`
@@ -269,7 +282,14 @@ pub unsafe fn vex_vprintf(format: *const c_char, args: VaList<'_, '_>) -> i32 {
     }
 }
 
+/// Format the given string and write it to the `out` buffer, returning
+/// the number of bytes written or -1 on error.
+///
 /// # Safety
+///
+/// For a similar but safer alternative, see [`vex_vsnprintf`] which will guard against
+/// buffer overflows. Or, better yet, use the Rust standard library's
+/// [`alloc::format`] macro.
 ///
 /// - `format` must be a valid printf format string for the given `args`
 /// - `out` must be a valid pointer to a buffer of sufficient length
@@ -305,6 +325,9 @@ pub unsafe fn vex_vsprintf(out: *mut c_char, format: *const c_char, args: VaList
     }
 }
 
+/// Format the given string and write at most `max_len` bytes of it
+/// to the `out` buffer, returning the number of bytes written or -1 on error.
+///
 /// # Safety
 ///
 /// - `format` must be a valid printf format string for the given `args`
