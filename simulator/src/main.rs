@@ -11,7 +11,7 @@ use anyhow::Context;
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../kernel/target/armv7a-none-eabi/debug/kernel"
+    "/../kernel/target/armv7a-vex-v5/debug/kernel"
 );
 
 /// Simulate the VEX V5 robot program at <BINARY>.
