@@ -4,8 +4,8 @@
 
 pub mod asm;
 pub mod sdk;
-pub mod xil;
 pub mod vectors;
+pub mod xil;
 
 use core::{
     arch::asm,
@@ -169,8 +169,6 @@ pub extern "C" fn reset() -> ! {
 
     setup_gic();
     setup_timer();
-
-    semihosting::println!("Starting robot code");
 
     unsafe {
         vexStartup();

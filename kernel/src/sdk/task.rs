@@ -22,9 +22,9 @@ pub fn vexTaskSleep(time: u32) {}
 
 /// Returns the maximum number of threads that are supported by the VEXos
 /// task scheduler.
-/// 
-/// Real V5 enviornments set this at 128, but since we don't currently emulate the 
-/// VEXcode task scheduler, we just return 0. 
+///
+/// Real V5 enviornments set this at 128, but since we don't currently emulate the
+/// VEXcode task scheduler, we just return 0.
 pub fn vexTaskHardwareConcurrency() -> i32 {
     0
 }
@@ -35,7 +35,7 @@ pub fn vexBackgroundProcessing() {}
 
 /// Ticks's the (non-existent in this environment) internal VEXos task
 /// scheduler
-/// 
+///
 /// This more importantly handles many device reads and flushes
 /// serial.
 pub fn vexTasksRun() {
