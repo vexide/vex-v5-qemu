@@ -1,6 +1,6 @@
 # VEX V5 Simulator
 
-This project is a best-effort simulation of the V5 userspace enviornment using [QEMU](https://www.qemu.org/). The goal of this is to accurate simulate the enviornment that user programs run in for debugging purposes and maybe some physics simulation in the future. It is currently capable of running and debugging programs written with [vexide](https://vexide.dev/) and [PROS](https://pros.cs.purdue.edu/).
+This project is a best-effort simulation of the V5 userspace enviornment using [QEMU](https://www.qemu.org/). The goal of this is to accurately simulate the enviornment that user programs run in for debugging purposes and maybe some physics simulation in the future. It is currently capable of running and debugging programs written with [vexide](https://vexide.dev/) and [PROS](https://pros.cs.purdue.edu/).
 
 ## What?
 
