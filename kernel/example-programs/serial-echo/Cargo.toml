@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 vex-sdk = "0.17.0"
-vexide = { git = "https://github.com/vexide/vexide.git", version = "0.3.0" }
+vexide = { git = "https://github.com/vexide/vexide.git" }

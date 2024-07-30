@@ -6,16 +6,15 @@ use core::{
     fmt,
 };
 
-use crate::{drivers::uart::UART1, Mutex};
 use heapless::spsc::Queue;
-use log::info;
+use log::{info, trace};
 use snafu::{OptionExt, Snafu};
 use vexide_core::{
-    io::{Cursor, Stdin, Write},
+    io::{Cursor, Read, Stdin, Write},
     sync::LazyLock,
 };
 
-use crate::Mutex;
+use crate::{drivers::uart::UART1, Mutex};
 
 mod util {
     use core::cmp;
@@ -190,6 +189,13 @@ impl Serial {
     /// Flush the serial output buffer and update the input buffer.
     pub fn flush(&self) -> Result<()> {
         // Flush output
+        self.flush_stdout()?;
+        // Receive input
+        self.recv_stdin()?;
+        Ok(())
+    }
+
+    fn flush_stdout(&self) -> Result<()> {
         let mut stdout_buffer = self.stdout_buffer.lock();
         if stdout_buffer.position() == 0 {
             return Ok(());
@@ -205,9 +211,10 @@ impl Serial {
             .write_all(bytes)
             .map_err(|inner| IoSnafu { inner }.build())?;
 
-        drop(stdout);
+        Ok(())
+    }
 
-        // Receive input
+    fn recv_stdin(&self) -> Result<()> {
         let mut stdin_buffer = self.stdin_buffer.lock();
         let mut stdin = UART1.lock();
 
@@ -222,8 +229,10 @@ impl Serial {
                 .read(&mut buffer)
                 .map_err(|inner| IoSnafu { inner }.build())?;
             if len == 0 {
-                break;
+                return Ok(());
             }
+
+            trace!("Read {} bytes from stdin", len);
 
             // this check ensures we don't overflow the buffer
             len = core::cmp::min(len, stdin_buffer.capacity() - stdin_buffer.len());

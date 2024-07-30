@@ -8,3 +8,4 @@ clap = { version = "4.5.1", features = ["derive"] }
 # memmap2 = "0.9.4"
 # snafu = "0.8.4"
 anyhow = "1.0.86"
+ctrlc = "3.4.4"
