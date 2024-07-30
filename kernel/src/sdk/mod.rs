@@ -474,6 +474,8 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
     table
 };
 
-pub unsafe extern "C" fn unshimmed_syscall() -> ! {
-    loop {}
+pub extern "C" fn unshimmed_syscall() -> ! {
+    loop {
+        core::hint::spin_loop();
+    }
 }
