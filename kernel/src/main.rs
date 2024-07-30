@@ -163,6 +163,8 @@ pub extern "C" fn reset() -> ! {
 
         // Normally, startup code would clear .bss around here, but VEX
         // doesn't do that so we won't either :D
+
+        vexide_core::allocator::vexos::init_heap();
     }
 
     setup_gic();
