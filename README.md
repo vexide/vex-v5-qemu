@@ -4,7 +4,7 @@ This project is a best-effort simulation of the V5 userspace enviornment using [
 
 ## What?
 
-The V5 brain runs off of Cortex-A9 cores in it's main SOC (the Xilinx ZYNQ zc7020). We are emulating the core responsible for running user code on the brain (also known as CPU1). VEXos is an embedded platform, but user programs don't quite run on bare metal, expecting some hardware-related things to already be booted and setup. We do this through our own "kernel" (although that's a rather strange word to describe it) that attempts to boot the chip the same way VEXos does before executing user code.
+The V5 brain runs off two Cortex-A9 cores in it's main SOC (the Xilinx ZYNQ zc7020). We are emulating the core responsible for running user code on the brain (also known as CPU1). VEXos is an embedded platform, but user programs don't quite run on bare metal, expecting some hardware-related things to already be booted and setup. We do this through our own "kernel" (although that's a rather strange word to describe it) that attempts to boot the chip the same way VEXos does before executing user code.
 
 In other words, this project implements the stuff boxed in red.
 
