@@ -178,3 +178,6 @@ pub extern "C" fn reset() -> ! {
 
     unreachable!("vexStartup should not return!");
 }
+
+// Include the vector table
+core::arch::global_asm!(include_str!("vectors.s"));

@@ -13,9 +13,6 @@ use core::arch::{asm, global_asm};
 
 use vex_sdk::{vexSystemDataAbortInterrupt, vexSystemFIQInterrupt, vexSystemPrefetchAbortInterrupt};
 
-// Include the vector table
-global_asm!(include_str!("vectors.s"));
-
 /// Undefined Instruction Vector
 ///
 /// This function is jumped to when the CPU when pc runs into an undefined instruction. It
