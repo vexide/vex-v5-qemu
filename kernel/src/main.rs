@@ -1,14 +1,14 @@
 #![no_std]
 #![no_main]
-#![feature(c_variadic)]
+#![feature(c_variadic, naked_functions)]
 
-extern crate alloc;
-
+pub mod asm;
 pub mod sdk;
 pub mod xil;
+pub mod vectors;
 
 use core::{
-    arch::global_asm,
+    arch::asm,
     cell::UnsafeCell,
     ffi::c_void,
     sync::atomic::{AtomicU32, Ordering},
@@ -44,7 +44,7 @@ pub static mut WATCHDOG_TIMER: UnsafeCell<XScuWdt> =
 
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
-pub unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
+unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     let timer = unsafe { PRIVATE_TIMER.get_mut() };
 
     if unsafe { XScuTimer_IsExpired(timer) } {
@@ -131,21 +131,44 @@ pub fn setup_gic() {
 }
 
 extern "C" {
-    #[link_name = "_cold_memory_start"]
-    static COLD_MEMORY_START: *const ();
+    // #[link_name = "_user_memory_start"]
+    // static USER_MEMORY_START: *const ();
+
+    #[link_name = "__text_start"]
+    static VECTORS_START: u32;
 
     #[link_name = "_vex_startup"]
     fn vexStartup();
 }
 
-extern "C" fn main() -> ! {
-    setup_gic();
-    setup_timer();
-    // SAFETY: This is the first time this function is called and __heap_start
-    // and __heap_end are correctly set by the linker script.
+#[no_mangle]
+pub extern "C" fn reset() -> ! {
     unsafe {
+        // Install vector table for interrupt handling
+        //
+        // This probably isn't necessary, since I believe that our CPU
+        // will assume that the vector table is located at 0x0.
+        //
+        // See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Exception-vectors-and-the-exception-base-address>
+        asm::set_vbar(VECTORS_START);
+
+        // Enable FPU
+        asm::enable_vfp();
+
+        // Setup the stack pointer
+        asm!("ldr sp, =__stack_top");
+
+        // TODO: look into playing with l2 cache
+        // See: <https://git.m-labs.hk/M-Labs/zynq-rs/src/branch/master/experiments/src/main.rs
+
+        // Normally, startup code would clear .bss around here, but VEX
+        // doesn't do that so we won't either :D
+
         vexide_core::allocator::vexos::init_heap();
     }
+
+    setup_gic();
+    setup_timer();
 
     semihosting::println!("Starting robot code");
 
@@ -155,23 +178,3 @@ extern "C" fn main() -> ! {
 
     unreachable!("vexStartup should not return!");
 }
-
-// Load the stack, setup entrypoint, enable FPU.
-global_asm!(
-    r#"
-        .section .text
-        .global _start
-        .type _start, STT_FUNC
-
-    _start:
-        ldr sp, =0x10000
-        mrc p15, 0x0, r1, c1, c0, 0x2
-        orr r1, r1, #0xf00000
-        mcr p15, 0x0, r1, c1, c0, 0x2
-        mrc p10, 0x7, r1, c8, c0, 0x0
-        orr r1, r1, #0x40000000
-        mcr p10, 0x7, r1, c8, c0, 0x0
-        b {main}
-    "#,
-    main = sym main
-);

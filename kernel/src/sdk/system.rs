@@ -196,12 +196,21 @@ pub fn vexSystemWatchdogGet() -> u32 {
 }
 pub fn vexSystemBoot() {}
 
-// TODO: Register these as exception handlers for ARM stuff so we
-// get some sort of feedback if one occurs and not just a pc jump
-// to 0x10.
-pub fn vexSystemUndefinedException() {}
-pub fn vexSystemFIQInterrupt() {}
-pub fn vexSystemIQRQnterrupt() {}
-pub fn vexSystemSWInterrupt() {}
-pub fn vexSystemDataAbortInterrupt() {}
-pub fn vexSystemPrefetchAbortInterrupt() {}
+pub fn vexSystemUndefinedException() {
+    semihosting::println!("Undefined Instruction Exception");
+}
+pub fn vexSystemFIQInterrupt() {
+    semihosting::println!("FIQ");
+}
+pub fn vexSystemIQRQnterrupt() {
+    semihosting::println!("IRQ");
+}
+pub fn vexSystemSWInterrupt() {
+    semihosting::println!("Software Interrupt");
+}
+pub fn vexSystemDataAbortInterrupt() {
+    semihosting::println!("Data Abort Exception");
+}
+pub fn vexSystemPrefetchAbortInterrupt() {
+    semihosting::println!("Prefetch Abort Exception");
+}
