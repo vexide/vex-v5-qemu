@@ -8,7 +8,7 @@ use core::{
 use crate::Mutex;
 use heapless::spsc::Queue;
 use semihosting::io::{stdout, Write};
-use snafu::{OptionExt, ResultExt, Snafu};
+use snafu::{OptionExt, Snafu};
 use vexide_core::{
     io::{Cursor, Stdin},
     sync::LazyLock,

@@ -17,9 +17,6 @@ pub const XSCUWDT_DISABLE_VALUE_2: u32 = 0x87654321;
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XScuWdt_Config {
     pub Name: *const c_char,
-    // NOTE: libxil for some reason marks this as UINTPTR, but its not
-    // treated as such, and marking this as *mut c_uint here causes trouble
-    // on the rust end of things, so we'll just treat it as u32.
     pub BaseAddr: u32,
     pub IntrId: u32,
     pub IntrParent: *mut c_uint,
@@ -46,7 +43,7 @@ extern "C" {
 pub unsafe extern "C" fn XScuWdt_GetControlReg(InstancePtr: *const XScuWdt) -> u32 {
     unsafe {
         core::ptr::read_volatile(
-            ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_CONTROL_OFFSET) as *const u32,
+            ((*InstancePtr).Config.BaseAddr + XSCUWDT_CONTROL_OFFSET) as *const u32,
         )
     }
 }
@@ -54,7 +51,7 @@ pub unsafe extern "C" fn XScuWdt_GetControlReg(InstancePtr: *const XScuWdt) -> u
 pub unsafe extern "C" fn XScuWdt_SetControlReg(InstancePtr: *mut XScuWdt, ControlReg: u32) {
     unsafe {
         core::ptr::write_volatile(
-            ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_CONTROL_OFFSET) as *mut u32,
+            ((*InstancePtr).Config.BaseAddr + XSCUWDT_CONTROL_OFFSET) as *mut u32,
             ControlReg,
         );
     }
@@ -63,7 +60,7 @@ pub unsafe extern "C" fn XScuWdt_SetControlReg(InstancePtr: *mut XScuWdt, Contro
 pub unsafe extern "C" fn XScuWdt_LoadWdt(InstancePtr: *mut XScuWdt, Value: u32) {
     unsafe {
         core::ptr::write_volatile(
-            ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_LOAD_OFFSET) as *mut u32,
+            ((*InstancePtr).Config.BaseAddr + XSCUWDT_LOAD_OFFSET) as *mut u32,
             Value,
         );
     }
@@ -72,11 +69,11 @@ pub unsafe extern "C" fn XScuWdt_LoadWdt(InstancePtr: *mut XScuWdt, Value: u32) 
 pub unsafe extern "C" fn XScuWdt_SetTimerMode(InstancePtr: *mut XScuWdt) {
     unsafe {
         core::ptr::write_volatile(
-            ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_DISABLE_OFFSET) as *mut u32,
+            ((*InstancePtr).Config.BaseAddr + XSCUWDT_DISABLE_OFFSET) as *mut u32,
             XSCUWDT_DISABLE_VALUE_1,
         );
         core::ptr::write_volatile(
-            ((*InstancePtr).Config.BaseAddr as u32 + XSCUWDT_DISABLE_OFFSET) as *mut u32,
+            ((*InstancePtr).Config.BaseAddr + XSCUWDT_DISABLE_OFFSET) as *mut u32,
             XSCUWDT_DISABLE_VALUE_2,
         );
     }
