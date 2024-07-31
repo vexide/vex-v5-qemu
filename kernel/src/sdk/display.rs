@@ -53,11 +53,20 @@ pub fn vexImagePngRead(
 ) -> u32 {
     Default::default()
 }
-pub fn vexDisplayVPrintf(xpos: i32, ypos: i32, bOpaque: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVBigString(nLineNumber: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVBigStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVSmallStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVCenteredString(nLineNumber: i32, format: *const c_char, args: VaList) {}
-pub fn vexDisplayVBigCenteredString(nLineNumber: i32, format: *const c_char, args: VaList) {}
+pub fn vexDisplayVPrintf(
+    xpos: i32,
+    ypos: i32,
+    bOpaque: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
+}
+pub fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub fn vexDisplayVStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub fn vexDisplayVBigString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub fn vexDisplayVBigStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub fn vexDisplayVSmallStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {
+}
+pub fn vexDisplayVCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub fn vexDisplayVBigCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {
+}

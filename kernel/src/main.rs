@@ -44,8 +44,68 @@ pub static mut WATCHDOG_TIMER: UnsafeCell<XScuWdt> =
 
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
-unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
-    let timer = unsafe { PRIVATE_TIMER.get_mut() };
+extern "C" {
+    // This will be needed if or when we need to read the program's code signature.
+    // #[link_name = "_user_memory_start"]
+    // static USER_MEMORY_START: *const ();
+
+    /// Location of the exception vector table.
+    #[link_name = "__text_start"]
+    static VECTORS_START: u32;
+
+    /// Entrypoint of the user program (located at 0x03800020)
+    #[link_name = "_vex_startup"]
+    fn vexStartup();
+}
+
+/// Reset Vector
+///
+/// This function will be immediately executed when the CPU first starts,
+/// and is the entrypoint/bootloader to the simulator.
+#[no_mangle]
+pub extern "C" fn reset() -> ! {
+    unsafe {
+        // Install vector table for interrupt and exception handling.
+        //
+        // This probably isn't necessary, since I believe that our CPU
+        // will assume that the vector table is located at 0x0.
+        //
+        // See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Exception-vectors-and-the-exception-base-address>
+        asm::set_vbar(VECTORS_START);
+
+        // Enable FPU
+        asm::enable_vfp();
+
+        // Setup the stack pointer
+        asm!("ldr sp, =__stack_top");
+
+        // TODO: look into playing with L2 cache
+        // See: <https://git.m-labs.hk/M-Labs/zynq-rs/src/branch/master/experiments/src/main.rs
+
+        // Normally, startup code would clear .bss around here, but VEX
+        // doesn't do that so we won't either :D
+
+        vexide_core::allocator::vexos::init_heap();
+    }
+
+    // Setup interrupt controller to handle IRQs.
+    setup_gic();
+
+    // Setup private timer peripheral and register a tick interrupt handler
+    // using the GIC.
+    setup_timer();
+
+    // Call user code!!
+    unsafe {
+        vexStartup();
+    }
+
+    unreachable!("vexStartup should not return!");
+}
+
+/// Handles a timer interrupt
+unsafe extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
+    let timer = timer as *mut XScuTimer;
 
     if unsafe { XScuTimer_IsExpired(timer) } {
         unsafe {
@@ -63,6 +123,8 @@ unsafe extern "C" fn timer_interrupt_handler(_: *mut c_void) {
     // not public API.
 }
 
+/// Configures the Private Timer peripheral and registers an interrupt handler
+/// for timer ticks using the Generic Interrupt Controller (GIC).
 pub fn setup_timer() {
     unsafe {
         let timer = PRIVATE_TIMER.get_mut();
@@ -78,13 +140,8 @@ pub fn setup_timer() {
             XScuTimer_SetPrescaler(timer, 0);
 
             // Configure timer
-            // Enable auto-reload mode.
-            XScuTimer_EnableAutoReload(timer);
-
-            // Load the timer counter register with the correct tick rate.
-            XScuTimer_LoadTimer(timer, 333333);
-
-            // Clear interrupt status.
+            XScuTimer_EnableAutoReload(timer); // Enable auto-reload mode.
+            XScuTimer_LoadTimer(timer, 333333); // Load the timer counter register with the correct tick rate.
             XScuTimer_ClearInterruptStatus(timer);
 
             // Register timer handler with interrupt controller
@@ -92,7 +149,7 @@ pub fn setup_timer() {
                 gic,
                 29,
                 Some(timer_interrupt_handler),
-                timer as *mut XScuTimer as *mut c_void,
+                timer as *mut XScuTimer as _,
             );
 
             // Start timer and enable timer IRQs on this CPU.
@@ -111,6 +168,9 @@ pub fn setup_timer() {
     }
 }
 
+/// Configures the Generic Interrupt Controller (GIC) to handle interrupt requests (IRQs).
+///
+/// Required for handling interrupts from XScuTimer and XScuWdt for RTOS-purposes.
 pub fn setup_gic() {
     unsafe {
         let gic = INTERRUPT_CONTROLLER.get_mut();
@@ -122,6 +182,8 @@ pub fn setup_gic() {
             panic!("Failed to initialize GIC config");
         }
 
+        // This will register the GIC as a handler for IRQs on Xilinx's IRQ exception
+        // vector (`IRQInterrupt`). See `vectors.rs` for where we set that up during boot.
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_IRQ_INT,
             Some(XScuGic_InterruptHandler),
@@ -130,52 +192,9 @@ pub fn setup_gic() {
     }
 }
 
-extern "C" {
-    // #[link_name = "_user_memory_start"]
-    // static USER_MEMORY_START: *const ();
-
-    #[link_name = "__text_start"]
-    static VECTORS_START: u32;
-
-    #[link_name = "_vex_startup"]
-    fn vexStartup();
-}
-
-#[no_mangle]
-pub extern "C" fn reset() -> ! {
-    unsafe {
-        // Install vector table for interrupt handling
-        //
-        // This probably isn't necessary, since I believe that our CPU
-        // will assume that the vector table is located at 0x0.
-        //
-        // See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Exception-vectors-and-the-exception-base-address>
-        asm::set_vbar(VECTORS_START);
-
-        // Enable FPU
-        asm::enable_vfp();
-
-        // Setup the stack pointer
-        asm!("ldr sp, =__stack_top");
-
-        // TODO: look into playing with l2 cache
-        // See: <https://git.m-labs.hk/M-Labs/zynq-rs/src/branch/master/experiments/src/main.rs
-
-        // Normally, startup code would clear .bss around here, but VEX
-        // doesn't do that so we won't either :D
-
-        vexide_core::allocator::vexos::init_heap();
-    }
-
-    setup_gic();
-    setup_timer();
-
-    unsafe {
-        vexStartup();
-    }
-
-    unreachable!("vexStartup should not return!");
-}
-
-// Include the vector table
+// Include the exception vector table.
+//
+// These instructions are stored starting at 0x0 in program memory and will
+// be the first thing executed by the CPU. In our case, we immediately jump
+// to the `reset` vector on boot.
 core::arch::global_asm!(include_str!("vectors.s"));

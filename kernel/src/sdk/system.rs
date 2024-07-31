@@ -11,7 +11,6 @@ use crate::{
             XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
             XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS,
         },
-        time::{XTime, XTime_GetTime},
         timer::{
             XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt,
             XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
@@ -55,10 +54,10 @@ pub fn vexSystemHighResTimeGet() -> u64 {
 
     const GLOBAL_TIMER_BASE_ADDRESS: u32 = PERIPH_BASE_ADDR + 0x0200;
 
-    const GLOBAL_TIMER_COUNTER_REGISTER_LOW: u32 = GLOBAL_TIMER_BASE_ADDRESS + 0x00;
+    const GLOBAL_TIMER_COUNTER_REGISTER_LOW: u32 = GLOBAL_TIMER_BASE_ADDRESS /* + 0x00 */;
     const GLOBAL_TIMER_COUNTER_REGISTER_HIGH: u32 = GLOBAL_TIMER_BASE_ADDRESS + 0x04;
 
-    const CLOCKS_PER_USEC: u64 = (666666687 / (2 * 1000000));
+    const CLOCKS_PER_USEC: u64 = 666666687 / (2 * 1000000);
 
     let mut low: u32;
     let mut high: u32;
@@ -95,8 +94,13 @@ pub fn vexSystemTimerStop() {
         XScuTimer_Stop(PRIVATE_TIMER.get_mut());
     }
 }
+
+/// Clears the timer interrupt status if the timer has expired.
 pub fn vexSystemTimerClearInterrupt() {
-    unsafe { timer_interrupt_handler(core::mem::transmute(PRIVATE_TIMER.get_mut())) }
+    // Realistically I think this should be a call XScuTimer_ClearInterruptStatus
+    // and NOT the timer interrupt handler (which also increments the time for vexSystemTimeGet),
+    // but this is supposedly the behavior observed in VEXos, so we'll do it too.
+    unsafe { timer_interrupt_handler(PRIVATE_TIMER.get_mut() as *mut XScuTimer as _) }
 }
 
 /// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
@@ -122,7 +126,7 @@ pub fn vexSystemTimerReinitForRtos(
             gic,
             XPAR_SCUTIMER_INTR,
             Some(handler),
-            core::mem::transmute(timer as *mut XScuTimer),
+            timer as *mut XScuTimer as _
         );
 
         // Restart the timer and enable the timer interrupt
