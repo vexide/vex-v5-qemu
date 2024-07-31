@@ -475,7 +475,5 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
 };
 
 pub extern "C" fn unshimmed_syscall() -> ! {
-    loop {
-        core::hint::spin_loop();
-    }
+    unimplemented!("Attempted to call unimplemented jumptable function!");
 }
