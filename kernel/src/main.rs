@@ -95,6 +95,8 @@ pub extern "C" fn reset() -> ! {
     // using the GIC.
     setup_timer();
 
+    setup_uart();
+
     // Call user code!!
     unsafe {
         vexStartup();
@@ -190,6 +192,33 @@ pub fn setup_gic() {
             INTERRUPT_CONTROLLER.get_mut() as *mut XScuGic as *mut c_void,
         );
     }
+}
+
+pub fn setup_uart() {
+    use xil::uart::*;
+    let mut driver = unsafe { XUartPs::zeroed() };
+    let config = unsafe {
+        XUartPs_LookupConfig(0xE0001000) // FIXME: is this 0xE0000000 instead?
+    };
+    if config.is_null() {
+        panic!("Failed to lookup UART config");
+    }
+    let status = unsafe { XUartPs_CfgInitialize(&mut driver, config, (*config).BaseAddress) };
+    if status != 0 {
+        panic!("Failed to initialize UART driver");
+    }
+
+    unsafe { XUartPs_SetBaudRate(&mut driver, XUARTPS_DFT_BAUDRATE) };
+
+    let hello_world = b"Hello World";
+    let mut sent_count = 0;
+    while sent_count < hello_world.len() {
+        unsafe {
+            sent_count += XUartPs_Send(&mut driver, &hello_world[sent_count], 1) as usize;
+        }
+    }
+
+    semihosting::println!("Sent {} bytes", sent_count);
 }
 
 // Include the exception vector table.

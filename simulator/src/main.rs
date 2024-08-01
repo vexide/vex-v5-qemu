@@ -58,13 +58,10 @@ fn main() -> anyhow::Result<()> {
                 opt.binary.display()
             ),
         ])
-        .args(["-nographic"])
-        .args([
-            // Semihosting interface allows host <-> guest communication
-            "-semihosting",
-            "-semihosting-config",
-            "enable=on,target=native",
-        ])
+        .args(["-display", "none"])
+        .args(["-chardev", "stdio,id=char0"])
+        .args(["-serial", "null"])
+        .args(["-serial", "chardev:char0"])
         .args(opt.qemu_args)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
