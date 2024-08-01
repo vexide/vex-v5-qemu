@@ -106,6 +106,12 @@ pub const XUARTPS_DFT_BAUDRATE: u32 = 115200;
 /// Wait for 1 sec in worst case
 pub const TIMEOUT_VAL: u32 = 1000000;
 
+// UART Statuses
+
+pub const XST_SUCCESS: i32 = 0;
+pub const XST_UART_TEST_FAIL: i32 = 1054;
+pub const XST_UART_BAUD_ERROR: i32 = 1055;
+
 // Configuration options
 
 /// Starts break transmission

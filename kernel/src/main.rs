@@ -3,6 +3,7 @@
 #![feature(c_variadic, naked_functions)]
 
 pub mod asm;
+pub mod drivers;
 pub mod sdk;
 pub mod vectors;
 pub mod xil;
@@ -14,6 +15,8 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
+use drivers::uart::UartDriver;
+use vexide_core::io::Write;
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
@@ -25,6 +28,7 @@ use xil::{
         XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start,
         XScuTimer_Stop, XPAR_SCUTIMER_INTR, XPAR_XSCUTIMER_0_BASEADDR,
     },
+    uart::XUARTPS_DFT_BAUDRATE,
     wdt::XScuWdt,
 };
 
@@ -195,30 +199,9 @@ pub fn setup_gic() {
 }
 
 pub fn setup_uart() {
-    use xil::uart::*;
-    let mut driver = unsafe { XUartPs::zeroed() };
-    let config = unsafe {
-        XUartPs_LookupConfig(0xE0001000) // FIXME: is this 0xE0000000 instead?
-    };
-    if config.is_null() {
-        panic!("Failed to lookup UART config");
-    }
-    let status = unsafe { XUartPs_CfgInitialize(&mut driver, config, (*config).BaseAddress) };
-    if status != 0 {
-        panic!("Failed to initialize UART driver");
-    }
-
-    unsafe { XUartPs_SetBaudRate(&mut driver, XUARTPS_DFT_BAUDRATE) };
-
-    let hello_world = b"Hello World";
-    let mut sent_count = 0;
-    while sent_count < hello_world.len() {
-        unsafe {
-            sent_count += XUartPs_Send(&mut driver, &hello_world[sent_count], 1) as usize;
-        }
-    }
-
-    semihosting::println!("Sent {} bytes", sent_count);
+    let mut driver = unsafe { UartDriver::new(0xE0001000).unwrap() };
+    driver.set_baud_rate(XUARTPS_DFT_BAUDRATE).unwrap();
+    writeln!(driver, "Hello World!").unwrap();
 }
 
 // Include the exception vector table.
