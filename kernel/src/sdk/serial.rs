@@ -7,6 +7,7 @@ use core::{
 };
 
 use heapless::spsc::Queue;
+use log::{debug, trace};
 use snafu::Snafu;
 use vexide_core::{
     io::{Cursor, Read, Stdin, Write},
