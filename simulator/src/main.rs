@@ -1,9 +1,11 @@
 use std::{
-    path::PathBuf,
-    process::{Command, Stdio},
+    path::PathBuf, process::{Command, Stdio},
 };
 
 use anyhow::Context;
+use vex_v5_qemu_protocol::HostBoundPacket;
+
+mod protocol;
 
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
@@ -66,13 +68,23 @@ fn main() -> anyhow::Result<()> {
             "enable=on,target=native",
         ])
         .args(opt.qemu_args)
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
         .stderr(Stdio::inherit());
+
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
     let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
+
+    let mut stdout = qemu.stdout.take().unwrap();
+    let mut stdin = qemu.stdin.take().unwrap();
+
+    while protocol::recv_packet(&mut stdout).expect("Failed to recieve handshake packet from guest.")
+        != Some(HostBoundPacket::Handshake)
+    {
+        core::hint::spin_loop();
+    }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
 

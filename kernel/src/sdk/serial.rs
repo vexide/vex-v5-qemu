@@ -7,7 +7,7 @@ use core::{
 
 use crate::Mutex;
 use heapless::spsc::Queue;
-use semihosting::io::{stdout, Write};
+use semihosting::io::{stderr, Write};
 use snafu::{OptionExt, Snafu};
 use vexide_core::{
     io::{Cursor, Stdin},
@@ -191,7 +191,7 @@ impl Serial {
         if stdout_buffer.position() == 0 {
             return Ok(());
         }
-        let mut stdout = stdout().ok().context(StdioNotSupportedSnafu)?;
+        let mut stdout = stderr().ok().context(StdioNotSupportedSnafu)?;
         let old_buffer = core::mem::replace(
             &mut *stdout_buffer,
             Cursor::new([0; vexide_core::io::Stdout::INTERNAL_BUFFER_SIZE]),

@@ -3,9 +3,13 @@
 #![feature(c_variadic, naked_functions)]
 
 pub mod asm;
+pub mod panic;
+pub mod protocol;
 pub mod sdk;
 pub mod vectors;
 pub mod xil;
+
+extern crate alloc;
 
 use core::{
     arch::asm,
@@ -14,10 +18,14 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
+use vex_v5_qemu_protocol::{GuestBoundPacket, HostBoundPacket};
+use vexide_core::allocator::vexos::init_heap;
+
 use xil::{
+    exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
     gic::{
-        XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
-        XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR,
+        XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_InterruptHandler,
+        XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType, XPAR_SCUGIC_0_DIST_BASEADDR,
     },
     timer::{
         XScuTimer, XScuTimer_CfgInitialize, XScuTimer_ClearInterruptStatus,
@@ -26,11 +34,6 @@ use xil::{
         XScuTimer_Stop, XPAR_SCUTIMER_INTR, XPAR_XSCUTIMER_0_BASEADDR,
     },
     wdt::XScuWdt,
-};
-
-use crate::xil::{
-    exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
-    gic::XScuGic_InterruptHandler,
 };
 
 pub type Mutex<T> = lock_api::Mutex<vexide_core::sync::RawMutex, T>;
@@ -44,15 +47,13 @@ pub static mut WATCHDOG_TIMER: UnsafeCell<XScuWdt> =
 
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
+// This will be needed if or when we need to read the program's code signature.
+pub const USER_MEMORY_START: u32 = 0x03800000;
+
+/// Location of the exception vector table.
+pub const VECTORS_START: u32 = 0x0;
+
 extern "C" {
-    // This will be needed if or when we need to read the program's code signature.
-    // #[link_name = "_user_memory_start"]
-    // static USER_MEMORY_START: *const ();
-
-    /// Location of the exception vector table.
-    #[link_name = "__text_start"]
-    static VECTORS_START: u32;
-
     /// Entrypoint of the user program (located at 0x03800020)
     #[link_name = "_vex_startup"]
     fn vexStartup();
@@ -62,8 +63,12 @@ extern "C" {
 ///
 /// This function will be immediately executed when the CPU first starts,
 /// and is the entrypoint/bootloader to the simulator.
+//
+// TODO: look into playing with L2 cache
+// See: <https://git.m-labs.hk/M-Labs/zynq-rs/src/branch/master/experiments/src/main.rs
 #[no_mangle]
 pub extern "C" fn reset() -> ! {
+    // Boot CPU1
     unsafe {
         // Install vector table for interrupt and exception handling.
         //
@@ -79,21 +84,30 @@ pub extern "C" fn reset() -> ! {
         // Setup the stack pointer
         asm!("ldr sp, =__stack_top");
 
-        // TODO: look into playing with L2 cache
-        // See: <https://git.m-labs.hk/M-Labs/zynq-rs/src/branch/master/experiments/src/main.rs
+        // Initialize the heap allocator
+        init_heap();
 
-        // Normally, startup code would clear .bss around here, but VEX
-        // doesn't do that so we won't either :D
+        // Setup interrupt controller to handle IRQs.
+        setup_gic();
 
-        vexide_core::allocator::vexos::init_heap();
+        // Setup private timer peripheral and register a tick interrupt handler
+        // using the GIC.
+        setup_timer();
     }
 
-    // Setup interrupt controller to handle IRQs.
-    setup_gic();
+    // Handshake with the host
+    protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
 
-    // Setup private timer peripheral and register a tick interrupt handler
-    // using the GIC.
-    setup_timer();
+    while protocol::recv_packet().expect("Failed to recieve handshake packet from host.")
+        != Some(GuestBoundPacket::Handshake)
+    {
+        core::hint::spin_loop();
+    }
+
+    // protocol::send_packet(HostBoundPacket::CodeSignature(CodeSignature::from(
+    //     unsafe { core::ptr::read(USER_MEMORY_START as *const vcodesig) },
+    // )))
+    // .unwrap();
 
     // Call user code!!
     unsafe {
@@ -102,6 +116,7 @@ pub extern "C" fn reset() -> ! {
 
     unreachable!("vexStartup should not return!");
 }
+
 
 /// Handles a timer interrupt
 unsafe extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
@@ -125,7 +140,11 @@ unsafe extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
 
 /// Configures the Private Timer peripheral and registers an interrupt handler
 /// for timer ticks using the Generic Interrupt Controller (GIC).
-pub fn setup_timer() {
+///
+/// # Safety
+///
+/// This function should only be called once at boot.
+pub unsafe fn setup_timer() {
     unsafe {
         let timer = PRIVATE_TIMER.get_mut();
         let gic = INTERRUPT_CONTROLLER.get_mut();
@@ -171,7 +190,11 @@ pub fn setup_timer() {
 /// Configures the Generic Interrupt Controller (GIC) to handle interrupt requests (IRQs).
 ///
 /// Required for handling interrupts from XScuTimer and XScuWdt for RTOS-purposes.
-pub fn setup_gic() {
+///
+/// # Safety
+///
+/// This function should only be called once at boot.
+pub unsafe fn setup_gic() {
     unsafe {
         let gic = INTERRUPT_CONTROLLER.get_mut();
 

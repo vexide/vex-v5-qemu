@@ -22,17 +22,21 @@ debug = true
 
 [dependencies]
 heapless = "0.8.0"
-# host_call = { path = "../host_call" }
 lock_api = "0.4.12"
-semihosting = { version = "0.1.13", features = ["stdio", "panic-handler"] }
+semihosting = { version = "0.1.13", features = ["stdio"] }
 snafu = { version = "0.8.4", default-features = false, features = [
     "unstable-core-error",
     "rust_1_61",
 ] }
-vex-sdk = "0.12.3"
+vex-sdk = "0.17.0"
 # vexide core also provides us with an allocator using the symbols from the linker script
 vexide-core = { git = "https://github.com/vexide/vexide", branch = "feat/dep-of-sim-kernel", version = "0.3.0", features = [
     "force_rust_libm", # don't want to have to deal with adding in the external libm - we dont even use math functions currently
 ] }
 critical-section = "1.1.2"
 printf-compat = { version = "0.1.1", default-features = false }
+bincode = { version = "2.0.0-rc.3", default-features = false, features = [
+    "derive",
+    "alloc",
+] }
+vex-v5-qemu-protocol = { path = "../protocol" }
