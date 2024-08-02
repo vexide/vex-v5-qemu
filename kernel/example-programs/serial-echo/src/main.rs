@@ -14,17 +14,21 @@ extern crate alloc;
 
 #[vexide::main]
 async fn main(peripherals: Peripherals) {
-    println!("Hello, world!");
     let mut buf = String::new();
     loop {
-        let mut bytes_buffer = [0u8; Stdin::STDIN_BUFFER_SIZE];
-        if let Ok(bytes) = stdin().read(&mut bytes_buffer) {
-            buf.extend(bytes_buffer.iter().take(bytes).map(|byte| *byte as char));
+        sleep(Duration::from_millis(20));
+        // let byte = unsafe { vexSerialReadChar(1) };
+        let byte = black_box(-1);
+        if byte == -1 {
+            continue;
         }
-        while let Some(pair) = buf.split_once('\n') {
-            println!("You typed: {}", pair.0);
-            buf = pair.1.to_string();
+        let byte = byte as u8 as char;
+        if byte == '\n' {
+            println!();
+            println!("You typed: {:?}", buf);
+            buf.clear();
+        } else {
+            buf.push(byte);
         }
-        sleep(Duration::from_millis(250)).await;
     }
 }

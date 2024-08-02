@@ -1,7 +1,9 @@
+use lock_api::MutexGuard;
+use log::trace;
 use snafu::Snafu;
 use vexide_core::{
     io::{self, Read, Write},
-    sync::{LazyLock, RwLock},
+    sync::LazyLock,
 };
 
 use crate::{xil::uart::*, Mutex};
@@ -39,7 +41,7 @@ impl UartDriverError {
     }
 }
 
-pub static UART1: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
+pub(super) static UART1_DRIVER: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
     // SAFETY: This is the only place this UART device is being initialized.
     Mutex::new(unsafe { UartDriver::new(UART1_BASE_ADDR).unwrap() })
 });
@@ -91,12 +93,17 @@ impl UartDriver {
 // threads (Doesn't access or set the name, doesn't use interrupt mode.)
 unsafe impl Send for UartDriver {}
 
-impl Write for UartDriver {
+pub struct UartHandle {
+    inner: &'static Mutex<UartDriver>,
+}
+
+impl Write for UartHandle {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let mut sent_count = 0;
         while sent_count < buf.len() {
+            let mut lock = self.inner.lock();
             // SAFETY: The instance is fully initialized.
-            sent_count += unsafe { XUartPs_Send(&mut self.instance, &buf[sent_count], 1) as usize };
+            sent_count += unsafe { XUartPs_Send(&mut lock.instance, &buf[sent_count], 1) as usize };
         }
         Ok(sent_count)
     }
@@ -106,15 +113,28 @@ impl Write for UartDriver {
     }
 }
 
-impl Read for UartDriver {
+impl Read for UartHandle {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut read_count = 0;
         while read_count < buf.len() {
             // SAFETY: The instance is fully initialized.
+            let mut lock = self.inner.lock();
             let num_read =
-                unsafe { XUartPs_Recv(&mut self.instance, &mut buf[read_count], 1) as usize };
+                unsafe { XUartPs_Recv(&mut lock.instance, &mut buf[read_count], 1) as usize };
+            drop(lock);
+            trace!("num_read: {}", num_read);
             read_count += num_read;
+            if num_read == 0 {
+                break;
+            }
         }
         Ok(read_count)
+    }
+}
+
+#[must_use = "Serial will not write/read itself!"]
+pub fn uart1() -> UartHandle {
+    UartHandle {
+        inner: &UART1_DRIVER,
     }
 }

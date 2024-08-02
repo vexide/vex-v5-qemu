@@ -18,13 +18,11 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
-use alloc::string::String;
 use drivers::{
     logging::KernelLogger,
-    uart::{self, UartDriver},
+    uart::{self, uart1},
 };
 use log::{info, LevelFilter};
-use vexide_core::io::{Read, Write};
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
@@ -36,7 +34,6 @@ use xil::{
         XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start,
         XScuTimer_Stop, XPAR_SCUTIMER_INTR, XPAR_XSCUTIMER_0_BASEADDR,
     },
-    uart::XUARTPS_DFT_BAUDRATE,
     wdt::XScuWdt,
 };
 
@@ -108,7 +105,7 @@ pub extern "C" fn reset() -> ! {
     setup_timer();
 
     // Setup UART1 driver and enable logging
-    uart::UART1.deref();
+    let _ = uart1();
     KernelLogger::init(LevelFilter::Trace).unwrap();
 
     info!("Kernel ready - starting user code with vexStartup()");

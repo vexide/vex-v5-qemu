@@ -7,14 +7,14 @@ use core::{
 };
 
 use heapless::spsc::Queue;
-use log::{info, trace};
-use snafu::{OptionExt, Snafu};
+use log::{debug, trace};
+use snafu::Snafu;
 use vexide_core::{
     io::{Cursor, Read, Stdin, Write},
     sync::LazyLock,
 };
 
-use crate::{drivers::uart::UART1, Mutex};
+use crate::{drivers::uart::uart1, Mutex};
 
 mod util {
     use core::cmp;
@@ -98,7 +98,7 @@ impl SerialError {
 
 type Result<T> = core::result::Result<T, SerialError>;
 
-/// Serial driver based on ARM semihosting stdio operations.
+/// Buffering serial implementation based on UART1.
 pub struct Serial {
     stdout_buffer: Mutex<Cursor<[u8; vexide_core::io::Stdout::INTERNAL_BUFFER_SIZE]>>,
     // FIXME: capacity is actually N-1 instead of N
@@ -200,14 +200,13 @@ impl Serial {
         if stdout_buffer.position() == 0 {
             return Ok(());
         }
-        let mut stdout = UART1.lock();
         let old_buffer = core::mem::replace(
             &mut *stdout_buffer,
             Cursor::new([0; vexide_core::io::Stdout::INTERNAL_BUFFER_SIZE]),
         );
         let len = old_buffer.position() as usize;
         let bytes = &old_buffer.into_inner()[0..len];
-        stdout
+        uart1()
             .write_all(bytes)
             .map_err(|inner| IoSnafu { inner }.build())?;
 
@@ -215,8 +214,8 @@ impl Serial {
     }
 
     fn recv_stdin(&self) -> Result<()> {
+        // trace!("recv_stdin");
         let mut stdin_buffer = self.stdin_buffer.lock();
-        let mut stdin = UART1.lock();
 
         let mut buffer = [0; 1024];
         // Flushing only happens when vexTasksRun is called so we want to move as much data
@@ -225,7 +224,7 @@ impl Serial {
         while !stdin_buffer.is_full() {
             // 1024 is an arbitrary medium-sized buffer that should be able to handle
             // most input in 1 read
-            let mut len = stdin
+            let mut len = uart1()
                 .read(&mut buffer)
                 .map_err(|inner| IoSnafu { inner }.build())?;
             if len == 0 {
@@ -246,7 +245,7 @@ impl Serial {
         // Discard any extra stdin input because there's not enough space for it. A real
         // VEXos implementation wouldn't have a semihosting buffer so in our recreation
         // we need to make sure not to take advantage of it.
-        while let Ok(byte) = stdin.read(&mut buffer) {
+        while let Ok(byte) = uart1().read(&mut buffer) {
             if byte == 0 {
                 break;
             }
@@ -266,9 +265,17 @@ impl core::fmt::Write for &Serial {
 /// Write a single character to the serial output buffer, returning
 /// the number of bytes written or -1 on error.
 pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
+    if SERIAL.num_free_bytes(channel).ok() == Some(0) {
+        debug!("Autoflush");
+        SERIAL.flush().unwrap();
+    }
     match SERIAL.write(channel, &[c]) {
+        Ok(0) => unreachable!(),
         Ok(n) => i32::try_from(n).unwrap(),
-        Err(_) => -1,
+        Err(err) => {
+            log::error!("Error writing to serial: {:?}", err);
+            -1
+        }
     }
 }
 
@@ -279,11 +286,25 @@ pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
 ///
 /// - `data` must be a valid pointer to a buffer of length `data_len`.
 pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
+    trace!(
+        "vexSerialWriteBuffer: channel={}, data_len={}",
+        channel,
+        data_len
+    );
     let data = unsafe { core::slice::from_raw_parts(data, data_len as usize) };
 
+    if SERIAL.num_free_bytes(channel).ok() == Some(0) {
+        debug!("Autoflush");
+        SERIAL.flush().unwrap();
+    }
+
     match SERIAL.write(channel, data) {
+        Ok(0) => unreachable!(),
         Ok(n) => i32::try_from(n).unwrap(),
-        Err(_) => -1,
+        Err(err) => {
+            log::error!("Error writing to serial: {:?}", err);
+            -1
+        }
     }
 }
 

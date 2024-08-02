@@ -1,8 +1,8 @@
 use std::{
-    io::{stdin, Read, Write},
+    io::{stdin, ErrorKind, Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
-    thread::sleep,
+    thread::{self, sleep},
     time::Duration,
 };
 
@@ -67,21 +67,34 @@ fn main() -> anyhow::Result<()> {
         .args(["-serial", "chardev:char0"])
         .args(opt.qemu_args)
         .stdin(Stdio::piped())
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit());
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
     let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
 
     let mut child_stdin = qemu.stdin.take().unwrap();
-    let mut stdin = stdin();
-    let mut buf = [0u8; 1];
-    loop {
-        if stdin.read(&mut buf)? == 0 {
-            break;
+    let mut child_stdout = qemu.stdout.take().unwrap();
+    thread::spawn(move || {
+        for byte in child_stdout.bytes() {
+            let byte = byte.unwrap();
+            print!("{}", byte as char);
         }
-        child_stdin.write_all(&buf)?;
+    });
+    let stdin = stdin();
+    for byte in stdin.lock().bytes() {
+        let byte = match byte {
+            Ok(byte) => byte,
+            Err(e) if e.kind() == ErrorKind::WouldBlock => {
+                println!(".");
+                sleep(Duration::from_millis(250));
+                continue;
+            }
+            Err(e) => panic!("Failed to read from stdin: {}", e),
+        };
+        print!("->{}", byte as char);
+        child_stdin.write_all(&[byte]).unwrap();
     }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
