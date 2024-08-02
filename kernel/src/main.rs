@@ -6,7 +6,10 @@ extern crate alloc;
 
 pub mod asm;
 pub mod drivers;
+pub mod logging;
+pub mod panic;
 pub mod sdk;
+pub mod utils;
 pub mod vectors;
 pub mod xil;
 
@@ -18,12 +21,9 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
-use alloc::string::String;
-use drivers::{
-    logging::KernelLogger,
-    uart::{self, UartDriver},
-};
+use drivers::uart::{self, UartDriver};
 use log::{info, LevelFilter};
+use logging::KernelLogger;
 use vexide_core::io::{Read, Write};
 use xil::{
     gic::{

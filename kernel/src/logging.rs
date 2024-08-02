@@ -1,5 +1,3 @@
-use core::ops::Deref;
-
 use alloc::boxed::Box;
 use log::{debug, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 use vexide_core::io::Write;
@@ -32,7 +30,7 @@ impl Log for KernelLogger {
         if self.enabled(record.metadata()) {
             let mut uart = uart::UART1.lock();
 
-            write!(uart, "[{}] {}\n", record.level(), record.args()).unwrap();
+            writeln!(uart, "[{}] {}", record.level(), record.args()).unwrap();
         }
     }
 

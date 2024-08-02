@@ -1,7 +1,5 @@
 use log::info;
 
-pub mod logging;
-pub mod panic;
 pub mod uart;
 
 pub fn exit(code: i32) -> ! {
