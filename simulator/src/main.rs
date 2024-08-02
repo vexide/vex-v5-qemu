@@ -1,6 +1,9 @@
 use std::{
+    io::{Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
+    thread::sleep,
+    time::Duration,
 };
 
 use anyhow::Context;
@@ -62,14 +65,23 @@ fn main() -> anyhow::Result<()> {
         .args(["-chardev", "stdio,id=char0"])
         .args(["-serial", "null"])
         .args(["-serial", "chardev:char0"])
+        .args([
+            "-semihosting",
+            "-semihosting-config",
+            "enable=on,target=native",
+        ])
         .args(opt.qemu_args)
-        .stdin(Stdio::inherit())
+        .stdin(Stdio::piped())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
     let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
+
+    sleep(Duration::from_secs(1));
+    let mut stdin = qemu.stdin.take().unwrap();
+    stdin.write_all("Hello, from host!\n".as_bytes())?;
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
 

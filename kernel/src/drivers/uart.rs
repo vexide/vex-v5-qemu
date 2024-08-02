@@ -1,5 +1,5 @@
 use snafu::Snafu;
-use vexide_core::io;
+use vexide_core::io::{self, Read, Write};
 
 use crate::xil::uart::*;
 
@@ -79,7 +79,7 @@ impl UartDriver {
     }
 }
 
-impl io::Write for UartDriver {
+impl Write for UartDriver {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let mut sent_count = 0;
         while sent_count < buf.len() {
@@ -94,18 +94,15 @@ impl io::Write for UartDriver {
     }
 }
 
-// impl io::Read for UartDriver {
-//     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-//         let mut read_count = 0;
-//         while read_count < buf.len() {
-//             // SAFETY: The instance is fully initialized.
-//             let num_read =
-//                 unsafe { XUartPs_Recv(&mut self.instance, &mut buf[read_count], 1) as usize };
-//             read_count += num_read;
-//             if num_read == 0 {
-//                 break;
-//             }
-//         }
-//         Ok(read_count)
-//     }
-// }
+impl Read for UartDriver {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut read_count = 0;
+        while read_count < buf.len() {
+            // SAFETY: The instance is fully initialized.
+            let num_read =
+                unsafe { XUartPs_Recv(&mut self.instance, &mut buf[read_count], 1) as usize };
+            read_count += num_read;
+        }
+        Ok(read_count)
+    }
+}

@@ -2,6 +2,8 @@
 #![no_main]
 #![feature(c_variadic, naked_functions)]
 
+extern crate alloc;
+
 pub mod asm;
 pub mod drivers;
 pub mod sdk;
@@ -15,8 +17,9 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
+use alloc::string::String;
 use drivers::uart::UartDriver;
-use vexide_core::io::Write;
+use vexide_core::io::{Read, Write};
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
@@ -201,7 +204,23 @@ pub fn setup_gic() {
 pub fn setup_uart() {
     let mut driver = unsafe { UartDriver::new(0xE0001000).unwrap() };
     driver.set_baud_rate(XUARTPS_DFT_BAUDRATE).unwrap();
-    writeln!(driver, "Hello World!").unwrap();
+    writeln!(driver, "Hello from Kernel!").unwrap();
+
+    // Read line from UART
+    let mut buffer = String::new();
+    loop {
+        let mut byte = [0u8; 1];
+        let n = driver.read(&mut byte).unwrap();
+        if n == 0 {
+            continue;
+        }
+        let byte = byte[0] as char;
+        buffer.push(byte);
+        if byte == '\n' {
+            break;
+        }
+    }
+    semihosting::eprintln!("Read: {:?}", buffer);
 }
 
 // Include the exception vector table.
