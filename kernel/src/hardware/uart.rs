@@ -1,8 +1,5 @@
 use snafu::Snafu;
-use vexide_core::{
-    io::{self, Read, Write},
-    sync::LazyLock,
-};
+use vexide_core::io::{self, Read, Write};
 
 use crate::xil::uart::*;
 

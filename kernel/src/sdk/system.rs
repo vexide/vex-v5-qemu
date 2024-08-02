@@ -6,9 +6,7 @@ use log::{error, info};
 use vex_sdk::*;
 
 use crate::{
-    hardware::gic::InterruptTrigger,
-    peripherals::{timer_interrupt_handler, GIC, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER},
-    xil::{
+    hardware::gic::InterruptTrigger, peripherals::{timer_interrupt_handler, GIC, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER}, utils::exit, xil::{
         gic::{XScuGic_LookupConfig, XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS},
         timer::{
             XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt,
@@ -18,7 +16,7 @@ use crate::{
             XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig,
             XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start, XPAR_XSCUWDT_0_BASEADDR,
         },
-    },
+    }
 };
 
 pub fn vexPrivateApiDisable(sig: u32) {}
@@ -45,10 +43,7 @@ pub fn vexSystemStartupOptions() -> u32 {
     Default::default()
 }
 pub fn vexSystemExitRequest() {
-    // exit(0);
-    loop {
-        core::hint::spin_loop();
-    }
+    exit(0);
 }
 pub fn vexSystemHighResTimeGet() -> u64 {
     const PERIPH_BASE_ADDR: u32 = 0xF8F00000;

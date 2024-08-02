@@ -2,7 +2,7 @@ use core::panic::PanicInfo;
 use lock_api::RawMutex;
 use vexide_core::io::Write;
 
-use crate::peripherals::UART1;
+use crate::{peripherals::UART1, utils::exit};
 
 #[panic_handler]
 fn panic_handler(info: &PanicInfo<'_>) -> ! {
@@ -16,9 +16,6 @@ fn panic_handler(info: &PanicInfo<'_>) -> ! {
         // Reads as "kernel panicked at <...>:"
         writeln!(UART1.try_lock().unwrap(), "kernel {}", info).unwrap();
 
-        // TODO: exit
-        loop {
-            core::hint::spin_loop();
-        }
+        exit(101);
     })
 }

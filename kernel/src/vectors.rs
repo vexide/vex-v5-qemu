@@ -96,10 +96,7 @@ pub extern "C" fn prefetch_abort() -> ! {
         vexSystemPrefetchAbortInterrupt();
     }
 
-    // TODO: Replace with exit once implemented
-    loop {
-        core::hint::spin_loop();
-    }
+    exit(1);
 }
 
 /// Data Abort Vector
@@ -118,10 +115,7 @@ pub extern "C" fn data_abort() -> ! {
         vexSystemDataAbortInterrupt();
     }
 
-    // TODO: Replace with exit once implemented
-    loop {
-        core::hint::spin_loop();
-    }
+    exit(1);
 }
 
 /// Interrupt Request Vector
