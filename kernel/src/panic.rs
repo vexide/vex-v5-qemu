@@ -3,7 +3,8 @@ use core::panic::PanicInfo;
 use lock_api::RawMutex;
 use vexide_core::io::Write;
 
-use super::uart::{uart1, UART1_DRIVER};
+use super::uart::uart1;
+use crate::drivers::uart::UART1_DRIVER;
 
 #[panic_handler]
 fn panic_handler(info: &PanicInfo<'_>) -> ! {

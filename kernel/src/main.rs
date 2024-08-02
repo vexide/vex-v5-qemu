@@ -6,7 +6,10 @@ extern crate alloc;
 
 pub mod asm;
 pub mod drivers;
+pub mod logging;
+pub mod panic;
 pub mod sdk;
+pub mod utils;
 pub mod vectors;
 pub mod xil;
 
@@ -18,11 +21,9 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
-use drivers::{
-    logging::KernelLogger,
-    uart::{self, uart1},
-};
+use drivers::uart::{self, uart1};
 use log::{info, LevelFilter};
+use logging::KernelLogger;
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,

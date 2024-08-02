@@ -6,8 +6,8 @@ use log::{error, info};
 use vex_sdk::*;
 
 use crate::{
-    drivers::exit,
     timer_interrupt_handler,
+    utils::exit,
     xil::{
         gic::{
             XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,

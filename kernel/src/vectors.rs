@@ -14,7 +14,7 @@ use vex_sdk::{
     vexSystemDataAbortInterrupt, vexSystemFIQInterrupt, vexSystemPrefetchAbortInterrupt,
 };
 
-use crate::drivers::exit;
+use crate::utils::exit;
 
 /// Undefined Instruction Vector
 ///

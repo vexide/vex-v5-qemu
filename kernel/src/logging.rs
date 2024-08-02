@@ -4,7 +4,8 @@ use core::ops::Deref;
 use log::{debug, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 use vexide_core::io::Write;
 
-use super::uart::{self, uart1};
+use super::uart;
+use crate::drivers::uart::uart1;
 
 pub struct KernelLogger {
     level: LevelFilter,
@@ -30,7 +31,7 @@ impl Log for KernelLogger {
 
     fn log(&self, record: &log::Record<'_>) {
         if self.enabled(record.metadata()) {
-            writeln!(uart1(), "[{}] {}", record.level(), record.args()).unwrap();
+            write!(uart1(), "[{}] {}\n", record.level(), record.args()).unwrap();
         }
     }
 

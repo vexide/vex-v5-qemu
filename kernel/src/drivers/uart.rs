@@ -41,7 +41,7 @@ impl UartDriverError {
     }
 }
 
-pub(super) static UART1_DRIVER: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
+pub static UART1_DRIVER: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
     // SAFETY: This is the only place this UART device is being initialized.
     Mutex::new(unsafe { UartDriver::new(UART1_BASE_ADDR).unwrap() })
 });
