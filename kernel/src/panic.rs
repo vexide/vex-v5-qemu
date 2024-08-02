@@ -12,7 +12,8 @@ fn panic_handler(info: &PanicInfo<'_>) -> ! {
             // so we can consider the previous lock to be elapsed.
             UART1.raw().unlock();
         }
-        writeln!(UART1.try_lock().unwrap(), "Panic: {}", info).unwrap();
+        // Logs as "Kernel panicked at ..."
+        writeln!(UART1.try_lock().unwrap(), "Kernel {}", info).unwrap();
         loop {}
     })
 }
