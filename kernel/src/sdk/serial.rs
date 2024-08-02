@@ -7,8 +7,7 @@ use core::{
 
 use crate::{drivers::uart::UART1, Mutex};
 use heapless::spsc::Queue;
-use log::info;
-use snafu::{OptionExt, Snafu};
+use snafu::Snafu;
 use vexide_core::{
     io::{Cursor, Stdin, Write},
     sync::LazyLock,

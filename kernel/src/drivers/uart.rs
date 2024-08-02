@@ -1,7 +1,7 @@
 use snafu::Snafu;
 use vexide_core::{
     io::{self, Read, Write},
-    sync::{LazyLock, RwLock},
+    sync::LazyLock,
 };
 
 use crate::{xil::uart::*, Mutex};

@@ -21,10 +21,9 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
-use drivers::uart::{self, UartDriver};
+use drivers::uart::{self};
 use log::{info, LevelFilter};
 use logging::KernelLogger;
-use vexide_core::io::{Read, Write};
 use xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Enable, XScuGic_LookupConfig,
@@ -36,7 +35,6 @@ use xil::{
         XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_SetPrescaler, XScuTimer_Start,
         XScuTimer_Stop, XPAR_SCUTIMER_INTR, XPAR_XSCUTIMER_0_BASEADDR,
     },
-    uart::XUARTPS_DFT_BAUDRATE,
     wdt::XScuWdt,
 };
 
