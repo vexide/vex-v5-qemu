@@ -94,6 +94,7 @@ use core::{
     ptr,
 };
 
+pub const UART0_BASE_ADDR: u32 = 0xE0000000;
 pub const UART1_BASE_ADDR: u32 = 0xE0001000;
 
 /// The following constants indicate the max and min baud rates and these

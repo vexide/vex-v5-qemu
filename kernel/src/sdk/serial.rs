@@ -5,7 +5,7 @@ use core::{
     fmt,
 };
 
-use crate::{drivers::uart::UART1, Mutex};
+use crate::{peripherals::UART1, Mutex};
 use heapless::spsc::Queue;
 use snafu::Snafu;
 use vexide_core::{

@@ -1,8 +1,10 @@
+//! Kernel Logger Implementation
+
 use alloc::boxed::Box;
 use log::{debug, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 use vexide_core::io::Write;
 
-use super::uart;
+use crate::UART1;
 
 pub struct KernelLogger {
     level: LevelFilter,
@@ -28,7 +30,7 @@ impl Log for KernelLogger {
 
     fn log(&self, record: &log::Record<'_>) {
         if self.enabled(record.metadata()) {
-            let mut uart = uart::UART1.lock();
+            let mut uart = UART1.lock();
 
             writeln!(uart, "[{}] {}", record.level(), record.args()).unwrap();
         }

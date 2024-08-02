@@ -1,0 +1,17 @@
+[package]
+name = "vex-v5-qemu-protocol"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+description = "Host-to-guest serial communications layer for vex-v5-qemu."
+authors = ["Tropical"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+vex-sdk = "0.17.0"
+bincode = { version = "2.0.0-rc.3", default-features = false, features = [
+    "derive",
+    "alloc",
+] }
+bitflags = "2.6.0"

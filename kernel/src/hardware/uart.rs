@@ -4,7 +4,7 @@ use vexide_core::{
     sync::LazyLock,
 };
 
-use crate::{xil::uart::*, Mutex};
+use crate::xil::uart::*;
 
 #[derive(Debug, Snafu)]
 pub enum UartDriverError {
@@ -38,11 +38,6 @@ impl UartDriverError {
         }
     }
 }
-
-pub static UART1: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
-    // SAFETY: This is the only place this UART device is being initialized.
-    Mutex::new(unsafe { UartDriver::new(UART1_BASE_ADDR).unwrap() })
-});
 
 /// A safe wrapper around the Xilinx UART driver.
 pub struct UartDriver {

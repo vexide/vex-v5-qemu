@@ -2,8 +2,6 @@ use std::{
     io::{stdin, Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
-    thread::sleep,
-    time::Duration,
 };
 
 use anyhow::Context;

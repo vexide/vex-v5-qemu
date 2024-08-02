@@ -6,13 +6,10 @@ use log::{error, info};
 use vex_sdk::*;
 
 use crate::{
-    timer_interrupt_handler,
-    utils::exit,
+    hardware::gic::InterruptTrigger,
+    peripherals::{timer_interrupt_handler, GIC, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER},
     xil::{
-        gic::{
-            XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
-            XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS,
-        },
+        gic::{XScuGic_LookupConfig, XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS},
         timer::{
             XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt,
             XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
@@ -22,7 +19,6 @@ use crate::{
             XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start, XPAR_XSCUWDT_0_BASEADDR,
         },
     },
-    INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
 };
 
 pub fn vexPrivateApiDisable(sig: u32) {}
@@ -49,7 +45,10 @@ pub fn vexSystemStartupOptions() -> u32 {
     Default::default()
 }
 pub fn vexSystemExitRequest() {
-    exit(0);
+    // exit(0);
+    loop {
+        core::hint::spin_loop();
+    }
 }
 pub fn vexSystemHighResTimeGet() -> u64 {
     const PERIPH_BASE_ADDR: u32 = 0xF8F00000;
@@ -110,29 +109,21 @@ pub fn vexSystemTimerReinitForRtos(
     priority: u32,
     handler: extern "C" fn(data: *mut c_void),
 ) -> i32 {
+    let mut gic = GIC.lock();
     unsafe {
-        let gic = INTERRUPT_CONTROLLER.get_mut();
         let timer = PRIVATE_TIMER.get_mut();
 
-        // Set tick interrupt priority
-        // PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
-        XScuGic_SetPriorityTriggerType(
-            gic,
+        // Reinstall tick handler with provided priority
+        let result = gic.set_handler(
             XPAR_SCUTIMER_INTR,
             priority as u8,
-            3, // Rising-edge trigger
-        );
-
-        // Install tick handler
-        let status = XScuGic_Connect(
-            gic,
-            XPAR_SCUTIMER_INTR,
-            Some(handler),
+            InterruptTrigger::RisingEdge,
+            timer_interrupt_handler,
             timer as *mut XScuTimer as _,
         );
 
         // Restart the timer and enable the timer interrupt
-        if status == 0 {
+        if result.is_ok() {
             XScuTimer_Start(timer);
 
             // Clear interrupt status if the timer expired.
