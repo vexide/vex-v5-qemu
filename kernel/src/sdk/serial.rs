@@ -5,12 +5,12 @@ use core::{
     fmt,
 };
 
-use crate::Mutex;
+use crate::{drivers::uart::UART1, Mutex};
 use heapless::spsc::Queue;
-use semihosting::io::{stdout, Write};
+use log::info;
 use snafu::{OptionExt, Snafu};
 use vexide_core::{
-    io::{Cursor, Stdin},
+    io::{Cursor, Stdin, Write},
     sync::LazyLock,
 };
 
@@ -77,9 +77,6 @@ pub enum SerialError {
     /// An I/O error occurred.
     #[snafu(display("An I/O error occurred: {inner}"))]
     Io { inner: vexide_core::io::Error },
-    /// An I/O error occurred while flushing stdout.
-    #[snafu(display("An I/O error occurred while flushing stdout: {inner}"))]
-    Flush { inner: semihosting::io::Error },
 }
 
 impl SerialError {
@@ -191,7 +188,7 @@ impl Serial {
         if stdout_buffer.position() == 0 {
             return Ok(());
         }
-        let mut stdout = stdout().ok().context(StdioNotSupportedSnafu)?;
+        let mut stdout = UART1.lock();
         let old_buffer = core::mem::replace(
             &mut *stdout_buffer,
             Cursor::new([0; vexide_core::io::Stdout::INTERNAL_BUFFER_SIZE]),
@@ -200,7 +197,7 @@ impl Serial {
         let bytes = &old_buffer.into_inner()[0..len];
         stdout
             .write_all(bytes)
-            .map_err(|inner| FlushSnafu { inner }.build())?;
+            .map_err(|inner| IoSnafu { inner }.build())?;
         Ok(())
     }
 }

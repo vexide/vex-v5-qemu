@@ -14,6 +14,8 @@ use vex_sdk::{
     vexSystemDataAbortInterrupt, vexSystemFIQInterrupt, vexSystemPrefetchAbortInterrupt,
 };
 
+use crate::drivers::exit;
+
 /// Undefined Instruction Vector
 ///
 /// This function is jumped to when the CPU when pc runs into an undefined instruction. It
@@ -82,7 +84,7 @@ pub extern "C" fn prefetch_abort() -> ! {
     unsafe {
         vexSystemPrefetchAbortInterrupt();
     }
-    semihosting::process::exit(1);
+    exit(1);
 }
 
 /// Data Abort Vector
@@ -100,7 +102,7 @@ pub extern "C" fn data_abort() -> ! {
     unsafe {
         vexSystemDataAbortInterrupt();
     }
-    semihosting::process::exit(1);
+    exit(1);
 }
 
 /// Interrupt Request Vector

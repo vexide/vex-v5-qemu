@@ -1,7 +1,10 @@
 use snafu::Snafu;
-use vexide_core::io::{self, Read, Write};
+use vexide_core::{
+    io::{self, Read, Write},
+    sync::{LazyLock, RwLock},
+};
 
-use crate::xil::uart::*;
+use crate::{xil::uart::*, Mutex};
 
 #[derive(Debug, Snafu)]
 pub enum UartDriverError {
@@ -35,6 +38,11 @@ impl UartDriverError {
         }
     }
 }
+
+pub static UART1: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
+    // SAFETY: This is the only place this UART device is being initialized.
+    Mutex::new(unsafe { UartDriver::new(UART1_BASE_ADDR).unwrap() })
+});
 
 /// A safe wrapper around the Xilinx UART driver.
 pub struct UartDriver {
@@ -78,6 +86,10 @@ impl UartDriver {
         UartDriverError::try_from_xst_status(status)
     }
 }
+
+// SAFETY: The UART driver does not access or store any raw pointers that could be sent between
+// threads (Doesn't access or set the name, doesn't use interrupt mode.)
+unsafe impl Send for UartDriver {}
 
 impl Write for UartDriver {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {

@@ -14,11 +14,16 @@ use core::{
     arch::asm,
     cell::UnsafeCell,
     ffi::c_void,
+    ops::Deref,
     sync::atomic::{AtomicU32, Ordering},
 };
 
 use alloc::string::String;
-use drivers::uart::UartDriver;
+use drivers::{
+    logging::KernelLogger,
+    uart::{self, UartDriver},
+};
+use log::{info, LevelFilter};
 use vexide_core::io::{Read, Write};
 use xil::{
     gic::{
@@ -102,7 +107,11 @@ pub extern "C" fn reset() -> ! {
     // using the GIC.
     setup_timer();
 
-    setup_uart();
+    // Setup UART1 driver and enable logging
+    uart::UART1.deref();
+    KernelLogger::init(LevelFilter::Trace).unwrap();
+
+    info!("Kernel ready - starting user code with vexStartup()");
 
     // Call user code!!
     unsafe {
@@ -199,28 +208,6 @@ pub fn setup_gic() {
             INTERRUPT_CONTROLLER.get_mut() as *mut XScuGic as *mut c_void,
         );
     }
-}
-
-pub fn setup_uart() {
-    let mut driver = unsafe { UartDriver::new(0xE0001000).unwrap() };
-    driver.set_baud_rate(XUARTPS_DFT_BAUDRATE).unwrap();
-    writeln!(driver, "Hello from Kernel!").unwrap();
-
-    // Read line from UART
-    let mut buffer = String::new();
-    loop {
-        let mut byte = [0u8; 1];
-        let n = driver.read(&mut byte).unwrap();
-        if n == 0 {
-            continue;
-        }
-        let byte = byte[0] as char;
-        buffer.push(byte);
-        if byte == '\n' {
-            break;
-        }
-    }
-    semihosting::eprintln!("Read: {:?}", buffer);
 }
 
 // Include the exception vector table.

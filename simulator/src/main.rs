@@ -1,5 +1,5 @@
 use std::{
-    io::{Read, Write},
+    io::{stdin, Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
     thread::sleep,
@@ -79,9 +79,15 @@ fn main() -> anyhow::Result<()> {
     }
     let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
 
-    sleep(Duration::from_secs(1));
-    let mut stdin = qemu.stdin.take().unwrap();
-    stdin.write_all("Hello, from host!\n".as_bytes())?;
+    let mut child_stdin = qemu.stdin.take().unwrap();
+    let mut stdin = stdin();
+    let mut buf = [0u8; 1];
+    loop {
+        if stdin.read(&mut buf)? == 0 {
+            break;
+        }
+        child_stdin.write_all(&buf)?;
+    }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
 
