@@ -24,11 +24,6 @@ use crate::{
 
 // SAFETY: This is the only place these devices are being initialized from.
 
-/// UART0 (Universal Asynchronous Receiver/Transmitter) stream 0
-pub static UART0: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
-    Mutex::new(unsafe { UartDriver::new(UART0_BASE_ADDR).unwrap() })
-});
-
 /// UART1 (Universal Asynchronous Receiver/Transmitter) stream 1
 pub static UART1: LazyLock<Mutex<UartDriver>> = LazyLock::new(|| {
     Mutex::new(unsafe { UartDriver::new(UART1_BASE_ADDR).unwrap() })

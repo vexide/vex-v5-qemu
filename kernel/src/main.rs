@@ -17,7 +17,7 @@ use core::arch::asm;
 
 use log::{info, LevelFilter};
 use logger::KernelLogger;
-use peripherals::{GIC, UART0, UART1};
+use peripherals::{GIC, UART1};
 
 pub type Mutex<T> = lock_api::Mutex<vexide_core::sync::RawMutex, T>;
 
@@ -67,7 +67,6 @@ pub extern "C" fn reset() -> ! {
 
     // Force initialize lazy static peripherals.
     _ = &*GIC;
-    _ = &*UART0;
     _ = &*UART1;
 
     // Setup private timer peripheral and register a tick interrupt handler
