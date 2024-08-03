@@ -106,7 +106,7 @@ pub fn setup_private_timer() -> Result<(), GicError> {
         0, // priority
         InterruptTrigger::RisingEdge,
         timer_interrupt_handler,
-        &mut unsafe { timer.raw() } as *mut XScuTimer as _,
+        timer.raw_mut() as *mut XScuTimer as _,
     )?;
 
     // Begin counting down from the provided LOAD value.

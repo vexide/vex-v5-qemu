@@ -36,7 +36,7 @@ impl WatchdogTimer {
 
     pub unsafe fn new(base_address: u32) -> Result<Self, WatchdogTimerError> {
         // SAFETY: The driver is initialized before it is returned.
-        let mut instance = unsafe { XScuWdt::zeroed() };
+        let mut instance = unsafe { core::mem::zeroed() };
 
         let config = unsafe { XScuWdt_LookupConfig(base_address as *mut u32) };
         if config.is_null() {
@@ -134,11 +134,8 @@ impl WatchdogTimer {
         unsafe { XScuWdt_IsWdtExpired(&self.instance) }
     }
 
-    /// # Safety
-    ///
-    /// This function returns a raw instance handle to an [`XScuWdt`].
-    pub const unsafe fn raw(&self) -> XScuWdt {
-        self.instance
+    pub unsafe fn raw_mut(&mut self) -> &mut XScuWdt {
+        &mut self.instance
     }
 }
 

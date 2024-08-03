@@ -43,12 +43,6 @@ pub struct XScuGic {
     pub UnhandledInterrupts: u32,
 }
 
-impl XScuGic {
-    pub const unsafe fn zeroed() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-
 extern "C" {
     pub fn XScuGic_CfgInitialize(
         InstancePtr: *mut XScuGic,
@@ -71,7 +65,7 @@ extern "C" {
         Int_Id: u32,
         Priority: u8,
         Trigger: u8,
-    ) -> i32;
+    );
     pub fn XScuGic_Enable(InstancePtr: *mut XScuGic, Int_Id: u32);
     pub fn XScuGic_Disable(InstancePtr: *mut XScuGic, Int_Id: u32);
 }

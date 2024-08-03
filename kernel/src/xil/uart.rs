@@ -427,12 +427,6 @@ pub struct XUartPs {
     pub is_rxbs_error: u8,
 }
 
-impl XUartPs {
-    pub const unsafe fn zeroed() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-
 // MARK: Macros (Inline Functions) Definitions
 
 /// Get the UART Channel Status Register.

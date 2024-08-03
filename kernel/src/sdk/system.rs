@@ -73,7 +73,7 @@ pub fn vexSystemTimerClearInterrupt() {
     // Realistically I think this should be a call to [`PrivateTimer::clear_interrupt_status()`]
     // and NOT the timer interrupt handler (which also increments the time for vexSystemTimeGet),
     // but this is supposedly the behavior observed in VEXos, so we'll do it too.
-    unsafe { timer_interrupt_handler(&mut PRIVATE_TIMER.lock().raw() as *mut XScuTimer as _) }
+    timer_interrupt_handler(PRIVATE_TIMER.lock().raw_mut() as *mut XScuTimer as _)
 }
 
 /// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
@@ -90,7 +90,7 @@ pub fn vexSystemTimerReinitForRtos(
         priority as u8,
         InterruptTrigger::RisingEdge,
         timer_interrupt_handler,
-        &mut unsafe { timer.raw() } as *mut XScuTimer as _,
+        timer.raw_mut() as *mut XScuTimer as _,
     );
 
     // Restart the timer and enable the timer interrupt
@@ -111,7 +111,7 @@ pub fn vexSystemTimerReinitForRtos(
 
 /// Handles an IRQ using the interrupt controller's handler table.
 pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
-    let gic = GIC.lock();
+    let mut gic = GIC.lock();
 
     // The ID of the interrupt is obtained by bitwise anding the ICCIAR value
     let interrupt_id = ulICCIAR & 0x3FF;
@@ -123,7 +123,7 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
         // Check for a valid interrupt ID.
         if interrupt_id < (XSCUGIC_MAX_NUM_INTR_INPUTS as u32) {
             // Call respective interrupt handler from the vector table.
-            let entry = (*gic.raw().Config).HandlerTable[interrupt_id as usize];
+            let entry = (*(gic.raw_mut().Config)).HandlerTable[interrupt_id as usize];
             (entry.handler).unwrap()(entry.callback_ref);
         }
     }

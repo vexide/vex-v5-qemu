@@ -32,12 +32,6 @@ pub struct XScuTimer {
     pub IsStarted: u32,
 }
 
-impl XScuTimer {
-    pub const unsafe fn zeroed() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-
 extern "C" {
     pub fn XScuTimer_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuTimer_Config;
     pub fn XScuTimer_CfgInitialize(

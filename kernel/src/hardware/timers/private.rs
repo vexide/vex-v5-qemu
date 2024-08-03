@@ -31,7 +31,7 @@ impl PrivateTimer {
 
     pub unsafe fn new(base_address: u32) -> Result<Self, PrivateTimerError> {
         // SAFETY: The timer is initialized before it is returned.
-        let mut instance = unsafe { XScuTimer::zeroed() };
+        let mut instance = unsafe { core::mem::zeroed() };
 
         let config = unsafe { XScuTimer_LookupConfig(base_address as *mut u32) };
         if config.is_null() {
@@ -107,11 +107,8 @@ impl PrivateTimer {
         unsafe { XScuTimer_IsExpired(&self.instance) }
     }
 
-    /// # Safety
-    ///
-    /// This function returns a raw instance handle to an [`XScuTimer`].
-    pub const unsafe fn raw(&self) -> XScuTimer {
-        self.instance
+    pub fn raw_mut(&mut self) -> &mut XScuTimer {
+        &mut self.instance
     }
 }
 

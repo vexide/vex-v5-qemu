@@ -52,7 +52,7 @@ impl GenericInterruptController {
     /// The caller must ensure that the GIC is only initialized once for a given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, GicError> {
         // SAFETY: The driver is initialized before it is returned.
-        let mut instance = unsafe { XScuGic::zeroed() };
+        let mut instance = unsafe { core::mem::zeroed() };
 
         let config = unsafe { XScuGic_LookupConfig(base_address as *mut u32) };
         if config.is_null() {
@@ -140,11 +140,8 @@ impl GenericInterruptController {
         unsafe { XScuGic_Disable(&mut self.instance, interrupt_id) }
     }
 
-    /// # Safety
-    ///
-    /// This function returns a raw instance handle to an [`XScuGic`].
-    pub const unsafe fn raw(&self) -> XScuGic {
-        self.instance
+    pub fn raw_mut(&mut self) -> &mut XScuGic {
+        &mut self.instance
     }
 }
 

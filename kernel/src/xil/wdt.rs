@@ -42,12 +42,6 @@ pub struct XScuWdt {
     pub IsStarted: u32,
 }
 
-impl XScuWdt {
-    pub const unsafe fn zeroed() -> Self {
-        unsafe { core::mem::zeroed() }
-    }
-}
-
 extern "C" {
     pub fn XScuWdt_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuWdt_Config;
     pub fn XScuWdt_CfgInitialize(

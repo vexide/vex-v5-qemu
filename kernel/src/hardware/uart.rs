@@ -53,7 +53,7 @@ impl UartDriver {
     /// The caller must ensure that the UART driver is only initialized once for a given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, UartDriverError> {
         // SAFETY: The driver is initialized before it is returned.
-        let mut driver = unsafe { XUartPs::zeroed() };
+        let mut driver = unsafe { core::mem::zeroed() };
         let config = unsafe { XUartPs_LookupConfig(base_address) };
         if config.is_null() {
             return InvalidBaseAddressSnafu { base_address }.fail();
@@ -78,11 +78,8 @@ impl UartDriver {
         UartDriverError::try_from_xst_status(status)
     }
 
-    /// # Safety
-    ///
-    /// This function returns a raw instance handle to an [`XUartPs`].
-    pub const unsafe fn raw(&self) -> XUartPs {
-        self.instance
+    pub fn raw_mut(&mut self) -> &mut XUartPs {
+        &mut self.instance
     }
 }
 
