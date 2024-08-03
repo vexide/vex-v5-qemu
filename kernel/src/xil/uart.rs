@@ -573,5 +573,4 @@ extern "C" {
         FuncPtr: XUartPs_Handler,
         CallBackRef: *mut c_void,
     );
-    pub fn XUartPs_SelfTest(InstancePtr: *mut XUartPs) -> i32;
 }

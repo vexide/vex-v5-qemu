@@ -74,5 +74,4 @@ extern "C" {
     ) -> i32;
     pub fn XScuGic_Enable(InstancePtr: *mut XScuGic, Int_Id: u32);
     pub fn XScuGic_Disable(InstancePtr: *mut XScuGic, Int_Id: u32);
-    pub fn XScuGic_SelfTest(InstancePtr: *mut XScuGic) -> i32;
 }
