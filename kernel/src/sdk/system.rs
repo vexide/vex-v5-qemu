@@ -89,7 +89,7 @@ pub fn vexSystemTimerReinitForRtos(
         PrivateTimer::INTERRUPT_ID,
         priority as u8,
         InterruptTrigger::RisingEdge,
-        timer_interrupt_handler,
+        handler,
         timer.raw_mut() as *mut XScuTimer as _,
     );
 
