@@ -1,5 +1,4 @@
 pub mod fpu;
 pub mod gic;
-pub mod timer;
+pub mod timers;
 pub mod uart;
-pub mod wdt;

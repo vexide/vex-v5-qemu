@@ -10,9 +10,6 @@ pub const XSCUGIC_MAX_NUM_INTR_INPUTS: usize = 95;
 
 pub type Xil_InterruptHandler = Option<unsafe extern "C" fn(data: *mut c_void)>;
 
-pub const XST_SUCCESS: i32 = 0;
-pub const XST_FAILURE: i32 = 1;
-
 /// Defines an entry in an interrupt vector table.
 ///
 /// The callback reference is the base address of the interrupting device
@@ -68,10 +65,7 @@ extern "C" {
         Handler: Xil_InterruptHandler,
         CallBackRef: *mut c_void,
     ) -> i32;
-    pub fn XScuGic_Disconnect(
-        InstancePtr: *mut XScuGic,
-        Int_Id: u32,
-    );
+    pub fn XScuGic_Disconnect(InstancePtr: *mut XScuGic, Int_Id: u32);
     pub fn XScuGic_SetPriorityTriggerType(
         InstancePtr: *mut XScuGic,
         Int_Id: u32,

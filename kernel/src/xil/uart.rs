@@ -111,7 +111,6 @@ pub const TIMEOUT_VAL: u32 = 1000000;
 
 // UART Statuses
 
-pub const XST_SUCCESS: i32 = 0;
 pub const XST_UART_TEST_FAIL: i32 = 1054;
 pub const XST_UART_BAUD_ERROR: i32 = 1055;
 
@@ -356,6 +355,7 @@ pub const XUARTPS_SR_RXOVR: u32 = 0x00000001;
 
 /// This typedef contains configuration information for the device.
 #[repr(C)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XUartPs_Config {
     pub Name: *const c_char,
     /// Base address of device (IPIF)
@@ -368,6 +368,7 @@ pub struct XUartPs_Config {
 
 /// Keep track of state information about a data buffer in the interrupt mode.
 #[repr(C)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XUartPsBuffer {
     pub NextBytePtr: *mut u8,
     pub RequestedBytes: u32,
@@ -376,6 +377,7 @@ pub struct XUartPsBuffer {
 
 /// Keep track of data format setting of a device.
 #[repr(C)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XUartPsFormat {
     /// In bps, ie 1200
     pub BaudRate: u32,
@@ -406,6 +408,7 @@ pub type XUartPs_Handler = extern "C" fn(CallBackRef: *mut c_void, Event: u32, E
 /// structure is passed around by functions to refer to a specific driver
 /// instance.
 #[repr(C)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct XUartPs {
     /// Configuration data structure
     pub Config: XUartPs_Config,

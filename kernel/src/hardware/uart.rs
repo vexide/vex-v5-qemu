@@ -1,13 +1,13 @@
 use snafu::Snafu;
 use vexide_core::io::{self, Read, Write};
 
-use crate::xil::uart::*;
+use crate::xil::{uart::*, XST_SUCCESS};
 
 #[derive(Debug, Snafu)]
 pub enum UartDriverError {
     /// The UART device cannot be initialized with the given base address.
     #[snafu(display(
-        "The UART device cannot be initialized with the base address 0x{base_address:08X}.",
+        "The UART driver cannot be initialized with the base address 0x{base_address:08X}.",
     ))]
     InvalidBaseAddress { base_address: u32 },
     /// The UART device failed to pass a self-test.
@@ -26,7 +26,7 @@ impl UartDriverError {
     pub const fn try_from_xst_status(status: i32) -> Result<(), Self> {
         use crate::xil::uart;
         match status {
-            uart::XST_SUCCESS => Ok(()),
+            XST_SUCCESS => Ok(()),
             status => Err(match status {
                 uart::XST_UART_TEST_FAIL => Self::SelfTestFailed,
                 uart::XST_UART_BAUD_ERROR => Self::InvalidBaudRate,
@@ -76,6 +76,13 @@ impl UartDriver {
         // SAFETY: The instance is fully initialized.
         let status = unsafe { XUartPs_SetBaudRate(&mut self.instance, baud_rate) };
         UartDriverError::try_from_xst_status(status)
+    }
+
+    /// # Safety
+    ///
+    /// This function returns a raw instance handle to an [`XUartPs`].
+    pub const unsafe fn raw(&self) -> XUartPs {
+        self.instance
     }
 }
 

@@ -4,20 +4,19 @@
 
 extern crate alloc;
 
+pub mod hardware;
+pub mod logger;
+pub mod panic;
+pub mod peripherals;
 pub mod sdk;
 pub mod utils;
 pub mod vectors;
 pub mod xil;
-pub mod panic;
-pub mod logger;
-pub mod hardware;
-pub mod peripherals;
 
 use core::arch::asm;
 
 use log::{info, LevelFilter};
 use logger::KernelLogger;
-use peripherals::{GIC, UART1};
 
 pub type Mutex<T> = lock_api::Mutex<vexide_core::sync::RawMutex, T>;
 
@@ -65,17 +64,14 @@ pub extern "C" fn reset() -> ! {
         vexide_core::allocator::vexos::init_heap();
     }
 
-    // Force initialize lazy static peripherals.
-    _ = &*GIC;
-    _ = &*UART1;
+    // Setup private timer peripheral and register a tick interrupt handler using the GIC.
+    //
+    // This fires a timer interrupt every 1mS allowing us to keep track of system time for
+    // [`vexSystemTimeGet`] as well for the purposes of ticking FreeRTOS if needed.
+    peripherals::setup_private_timer().unwrap();
 
-    // Setup private timer peripheral and register a tick interrupt handler
-    // using the GIC.
-    peripherals::setup_timer();
-
-    // Setup UART1 driver and enable logging
+    // Setup kernel logger. This will also lazily initialize UART1 in the process.
     KernelLogger::init(LevelFilter::Trace).unwrap();
-
     info!("Kernel ready - starting user code with vexStartup()");
 
     // Call user code!!

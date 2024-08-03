@@ -4,7 +4,7 @@ use alloc::boxed::Box;
 use log::{debug, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 use vexide_core::io::Write;
 
-use crate::UART1;
+use crate::peripherals::UART1;
 
 pub struct KernelLogger {
     level: LevelFilter,

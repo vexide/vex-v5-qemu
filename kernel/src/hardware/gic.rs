@@ -7,8 +7,8 @@ use crate::xil::{
     gic::{
         XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Disconnect, XScuGic_Enable,
         XScuGic_InterruptHandler, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
-        XST_SUCCESS,
     },
+    XST_SUCCESS,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -24,29 +24,17 @@ pub enum InterruptTrigger {
 
 #[derive(Debug, Snafu)]
 pub enum GicError {
-    /// The UART device cannot be initialized with the given base address.
+    /// The GIC cannot be initialized with the given base address.
     #[snafu(display(
-        "The UART device cannot be initialized with the base address 0x{base_address:08X}.",
+        "The peripheral cannot be initialized with the base address 0x{base_address:08X}.",
     ))]
     InvalidBaseAddress {
         base_address: u32,
     },
-    /// The UART driver failed to initialize.
+    /// The GIC failed to initialize.
     InitializeFailed,
     // Failed to connect interrupt handler.
     ConnectFailed,
-}
-
-impl GicError {
-    /// Convert an XST status code to a GIC error Result.
-    ///
-    /// Returns `Ok(())` if the status code is [`XST_SUCCESS`].
-    pub const fn try_from_xst_status(status: i32) -> Result<(), Self> {
-        match status {
-            XST_SUCCESS => Ok(()),
-            _ => Err(Self::InitializeFailed),
-        }
-    }
 }
 
 pub struct GenericInterruptController {
@@ -73,9 +61,10 @@ impl GenericInterruptController {
         }
 
         // SAFETY: The gic is a pointer to owned mutable memory and the config is valid.
-        let status =
-            unsafe { XScuGic_CfgInitialize(&mut instance, config, (*config).CpuBaseAddress) };
-        GicError::try_from_xst_status(status)?;
+        match unsafe { XScuGic_CfgInitialize(&mut instance, config, (*config).CpuBaseAddress) } {
+            XST_SUCCESS => {}
+            _ => return Err(GicError::InitializeFailed),
+        }
 
         // This will register the GIC as a handler for IRQs on Xilinx's IRQ exception
         // vector (`IRQInterrupt`). See `vectors.rs` for where we set that up during boot.
@@ -150,6 +139,13 @@ impl GenericInterruptController {
     /// - `interrupt_id`: ID of the interrupt type to disable.
     pub fn disable_interrupt(&mut self, interrupt_id: u32) {
         unsafe { XScuGic_Enable(&mut self.instance, interrupt_id) }
+    }
+
+    /// # Safety
+    ///
+    /// This function returns a raw instance handle to an [`XScuGic`].
+    pub const unsafe fn raw(&self) -> XScuGic {
+        self.instance
     }
 }
 
