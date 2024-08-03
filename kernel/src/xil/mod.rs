@@ -18,4 +18,4 @@ pub mod uart;
 pub mod wdt;
 
 pub const XST_SUCCESS: i32 = 0;
-pub const XST_FAILURE: i32 = 0;
+pub const XST_FAILURE: i32 = 1;
