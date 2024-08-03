@@ -5,8 +5,7 @@ use snafu::Snafu;
 use crate::xil::{
     exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
     gic::{
-        XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Disconnect, XScuGic_Enable,
-        XScuGic_InterruptHandler, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
+        XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Disable, XScuGic_Disconnect, XScuGic_Enable, XScuGic_InterruptHandler, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType
     },
     XST_SUCCESS,
 };
@@ -138,7 +137,7 @@ impl GenericInterruptController {
     ///
     /// - `interrupt_id`: ID of the interrupt type to disable.
     pub fn disable_interrupt(&mut self, interrupt_id: u32) {
-        unsafe { XScuGic_Enable(&mut self.instance, interrupt_id) }
+        unsafe { XScuGic_Disable(&mut self.instance, interrupt_id) }
     }
 
     /// # Safety
