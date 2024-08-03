@@ -23,7 +23,7 @@ use crate::{
 /// Clock frequency of Cortex-A9 timers (in Hz).
 ///
 /// This is half the CPU frequency (which is 666.6MHz).
-pub const PERIPHCLOCK: u32 = 666666687 / 2;
+pub const PERIPHCLK: u32 = 666666687 / 2;
 
 /// Base address of MMIO peripherals.
 pub const PERIPHBASE: u32 = 0xF8F00000;
@@ -93,7 +93,7 @@ pub fn setup_private_timer() -> Result<(), GicError> {
     // down. In our case, the timer's clock speed is half the CPU frequency
     // (666.6 MHz) and we want this timer to tick every millisecond, so we
     // configure it to start counting down from 333333 resulting in 1mS periods.
-    timer.load(PERIPHCLOCK / 10000);
+    timer.load(PERIPHCLK / 1000);
 
     // Another sanity check. This realistically shouldn't be needed unless a timer
     // IRQ has already occurred, which we haven't configured to happen yet.

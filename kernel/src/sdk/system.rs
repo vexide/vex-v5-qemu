@@ -14,7 +14,7 @@ use crate::{
         gic::InterruptTrigger,
         timers::{global_timer_counter, PrivateTimer, WatchdogTimerMode},
     },
-    peripherals::{timer_interrupt_handler, GIC, PERIPHCLOCK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER},
+    peripherals::{timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER},
     utils::exit,
     xil::{gic::XSCUGIC_MAX_NUM_INTR_INPUTS, timer::XScuTimer, XST_FAILURE, XST_SUCCESS},
 };
@@ -46,7 +46,7 @@ pub fn vexSystemExitRequest() {
     exit(0);
 }
 pub fn vexSystemHighResTimeGet() -> u64 {
-    global_timer_counter() / (PERIPHCLOCK as u64 / 1000000)
+    global_timer_counter() / (PERIPHCLK as u64 / 1000000)
 }
 pub fn vexSystemPowerupTimeGet() -> u64 {
     // powerup time is the same as execution time in our case
