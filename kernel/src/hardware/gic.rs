@@ -74,7 +74,7 @@ impl GenericInterruptController {
             Xil_ExceptionRegisterHandler(
                 XIL_EXCEPTION_ID_IRQ_INT,
                 Some(XScuGic_InterruptHandler),
-                &mut instance as *mut XScuGic as *mut c_void,
+                &mut instance as *mut XScuGic as _,
             );
         }
 

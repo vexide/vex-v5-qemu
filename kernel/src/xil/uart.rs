@@ -386,7 +386,7 @@ pub struct XUartPsFormat {
     /// Parity
     pub Parity: u32,
     /// Number of stop bits
-    pub StopBits: u32,
+    pub StopBits: u8,
 }
 
 /// This data type defines a handler that an application defines to communicate
