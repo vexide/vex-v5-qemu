@@ -360,10 +360,16 @@ pub struct XUartPs_Config {
     pub Name: *const c_char,
     /// Base address of device (IPIF)
     pub BaseAddress: u32,
-    /// Input clock frequency
-    pub InputClockHz: u32,
     /// Specifies whether modem pins are connected to MIO or FMIO
     pub ModemPinsConnected: i32,
+    /// Input clock frequency
+    pub InputClockHz: u32,
+    /// Input clocks
+    pub RefClk: u32,
+    /// Bits[11:0] Interrupt-id Bits[15:12] trigger type and level flags
+    pub IntrId: u32,
+    /// Bit[0] Interrupt parent type Bit[64/32:1] Parent base address
+    pub IntrParent: u32,
 }
 
 /// Keep track of state information about a data buffer in the interrupt mode.
