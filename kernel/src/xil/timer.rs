@@ -21,7 +21,7 @@ pub struct XScuTimer_Config {
     pub Name: *const c_char,
     pub BaseAddr: u32,
     pub IntrId: u32,
-    pub IntrParent: *mut c_uint,
+    pub IntrParent: u32,
 }
 
 #[repr(C)]
