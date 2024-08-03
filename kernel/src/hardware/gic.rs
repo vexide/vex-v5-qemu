@@ -54,7 +54,7 @@ impl GenericInterruptController {
         // SAFETY: The driver is initialized before it is returned.
         let mut instance = unsafe { core::mem::zeroed() };
 
-        let config = unsafe { XScuGic_LookupConfig(base_address as *mut u32) };
+        let config = unsafe { XScuGic_LookupConfig(base_address) };
         if config.is_null() {
             return InvalidBaseAddressSnafu { base_address }.fail();
         }

@@ -43,7 +43,7 @@ pub struct XScuWdt {
 }
 
 extern "C" {
-    pub fn XScuWdt_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuWdt_Config;
+    pub fn XScuWdt_LookupConfig(BaseAddr: u32) -> *mut XScuWdt_Config;
     pub fn XScuWdt_CfgInitialize(
         InstancePtr: *mut XScuWdt,
         ConfigPtr: *mut XScuWdt_Config,
