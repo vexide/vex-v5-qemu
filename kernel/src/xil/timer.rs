@@ -33,7 +33,7 @@ pub struct XScuTimer {
 }
 
 extern "C" {
-    pub fn XScuTimer_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuTimer_Config;
+    pub fn XScuTimer_LookupConfig(BaseAddr: u32) -> *mut XScuTimer_Config;
     pub fn XScuTimer_CfgInitialize(
         InstancePtr: *mut XScuTimer,
         ConfigPtr: *mut XScuTimer_Config,
