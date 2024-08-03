@@ -13,7 +13,7 @@ use crate::{
     },
     xil::{
         gic::XPAR_SCUGIC_0_DIST_BASEADDR,
-        timer::{XScuTimer, XPAR_XSCUTIMER_0_BASEADDR},
+        timer::{XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_IsExpired, XPAR_XSCUTIMER_0_BASEADDR},
         uart::UART1_BASE_ADDR,
         wdt::XPAR_XSCUWDT_0_BASEADDR,
     },
@@ -50,13 +50,16 @@ pub static WATCHDOG_TIMER: LazyLock<Mutex<WatchdogTimer>> =
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
 /// Handles a timer interrupt
-pub extern "C" fn timer_interrupt_handler(_: *mut c_void) {
-    let mut timer = PRIVATE_TIMER.lock();
+/// Handles a timer interrupt
+pub extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
+    let timer = timer as *mut XScuTimer;
 
     // Verify that the timer has in fact reached zero.
-    if timer.is_expired() {
+    if unsafe { XScuTimer_IsExpired(timer) } {
         // Clear ISR flag to ensure that future interrupts fire.
-        timer.clear_interrupt_status();
+        unsafe {
+            XScuTimer_ClearInterruptStatus(timer);
+        }
 
         // This interrupt is configured to fire every 1mS, so we'll
         // tick the low resolution system timer to track the number of
