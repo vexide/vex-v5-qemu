@@ -1,26 +1,22 @@
 //! VEXos System Functions
 
-use core::{arch::asm, ffi::c_void, sync::atomic::Ordering};
+use core::{
+    arch::asm,
+    ffi::c_void,
+    sync::atomic::{AtomicBool, Ordering},
+};
 
+use log::{error, info};
 use vex_sdk::*;
 
 use crate::{
-    timer_interrupt_handler,
-    xil::{
-        gic::{
-            XScuGic_Connect, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType,
-            XPAR_SCUGIC_0_DIST_BASEADDR, XSCUGIC_MAX_NUM_INTR_INPUTS,
-        },
-        timer::{
-            XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_EnableInterrupt,
-            XScuTimer_IsExpired, XScuTimer_Start, XScuTimer_Stop, XPAR_SCUTIMER_INTR,
-        },
-        wdt::{
-            XScuWdt_CfgInitialize, XScuWdt_GetControlReg, XScuWdt_LoadWdt, XScuWdt_LookupConfig,
-            XScuWdt_SetControlReg, XScuWdt_SetTimerMode, XScuWdt_Start, XPAR_XSCUWDT_0_BASEADDR,
-        },
+    hardware::{
+        gic::InterruptTrigger,
+        timers::{global_timer_counter, PrivateTimer, WatchdogTimerMode},
     },
-    INTERRUPT_CONTROLLER, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
+    peripherals::{timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER},
+    utils::exit,
+    xil::{gic::XSCUGIC_MAX_NUM_INTR_INPUTS, timer::XScuTimer, XST_FAILURE, XST_SUCCESS},
 };
 
 pub fn vexPrivateApiDisable(sig: u32) {}
@@ -47,33 +43,10 @@ pub fn vexSystemStartupOptions() -> u32 {
     Default::default()
 }
 pub fn vexSystemExitRequest() {
-    semihosting::process::exit(0);
+    exit(0);
 }
 pub fn vexSystemHighResTimeGet() -> u64 {
-    const PERIPH_BASE_ADDR: u32 = 0xF8F00000;
-
-    const GLOBAL_TIMER_BASE_ADDRESS: u32 = PERIPH_BASE_ADDR + 0x0200;
-
-    const GLOBAL_TIMER_COUNTER_REGISTER_LOW: u32 = GLOBAL_TIMER_BASE_ADDRESS /* + 0x00 */;
-    const GLOBAL_TIMER_COUNTER_REGISTER_HIGH: u32 = GLOBAL_TIMER_BASE_ADDRESS + 0x04;
-
-    const CLOCKS_PER_USEC: u64 = 666666687 / (2 * 1000000);
-
-    let mut low: u32;
-    let mut high: u32;
-
-    loop {
-        unsafe {
-            high = core::ptr::read_volatile(GLOBAL_TIMER_COUNTER_REGISTER_HIGH as *const u32);
-            low = core::ptr::read_volatile(GLOBAL_TIMER_COUNTER_REGISTER_LOW as *const u32);
-
-            if core::ptr::read_volatile(GLOBAL_TIMER_COUNTER_REGISTER_HIGH as *const u32) == high {
-                break;
-            }
-        }
-    }
-
-    (((high as u64) << 32_u32) | (low as u64)) / CLOCKS_PER_USEC
+    global_timer_counter() / (PERIPHCLK as u64 / 1000000)
 }
 pub fn vexSystemPowerupTimeGet() -> u64 {
     // powerup time is the same as execution time in our case
@@ -90,17 +63,17 @@ pub fn vexSystemUsbStatus() -> u32 {
     Default::default()
 }
 pub fn vexSystemTimerStop() {
-    unsafe {
-        XScuTimer_Stop(PRIVATE_TIMER.get_mut());
-    }
+    let mut timer = PRIVATE_TIMER.lock();
+    timer.set_interrupt_enabled(false);
+    timer.stop();
 }
 
 /// Clears the timer interrupt status if the timer has expired.
 pub fn vexSystemTimerClearInterrupt() {
-    // Realistically I think this should be a call XScuTimer_ClearInterruptStatus
+    // Realistically I think this should be a call to [`PrivateTimer::clear_interrupt_status()`]
     // and NOT the timer interrupt handler (which also increments the time for vexSystemTimeGet),
     // but this is supposedly the behavior observed in VEXos, so we'll do it too.
-    unsafe { timer_interrupt_handler(PRIVATE_TIMER.get_mut() as *mut XScuTimer as _) }
+    timer_interrupt_handler(PRIVATE_TIMER.lock().raw_mut() as *mut XScuTimer as _)
 }
 
 /// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
@@ -108,48 +81,38 @@ pub fn vexSystemTimerReinitForRtos(
     priority: u32,
     handler: extern "C" fn(data: *mut c_void),
 ) -> i32 {
-    unsafe {
-        let gic = INTERRUPT_CONTROLLER.get_mut();
-        let timer = PRIVATE_TIMER.get_mut();
+    let mut gic = GIC.lock();
+    let mut timer = PRIVATE_TIMER.lock();
 
-        // Set tick interrupt priority
-        // PROS sets this to the lowest possible priority (portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT).
-        XScuGic_SetPriorityTriggerType(
-            gic,
-            XPAR_SCUTIMER_INTR,
-            priority as u8,
-            3, // Rising-edge trigger
-        );
+    // Install user-provided tick handler with provided priority
+    let result = gic.set_handler(
+        PrivateTimer::INTERRUPT_ID,
+        priority as u8,
+        InterruptTrigger::RisingEdge,
+        handler,
+        timer.raw_mut() as *mut XScuTimer as _,
+    );
 
-        // Install tick handler
-        let status = XScuGic_Connect(
-            gic,
-            XPAR_SCUTIMER_INTR,
-            Some(handler),
-            timer as *mut XScuTimer as _
-        );
+    // Restart the timer and enable the timer interrupt
+    if result.is_ok() {
+        timer.start();
 
-        // Restart the timer and enable the timer interrupt
-        if status == 0 {
-            XScuTimer_Start(timer);
-
-            // Clear interrupt status if the timer expired.
-            if XScuTimer_IsExpired(timer) {
-                XScuTimer_ClearInterruptStatus(timer);
-            }
-
-            // Enable the timer interrupt.
-            XScuTimer_EnableInterrupt(timer);
-
-            return 0;
+        if timer.is_expired() {
+            timer.clear_interrupt_status();
         }
-    }
 
-    1
+        timer.set_interrupt_enabled(true);
+
+        XST_SUCCESS
+    } else {
+        XST_FAILURE
+    }
 }
 
 /// Handles an IRQ using the interrupt controller's handler table.
 pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
+    let mut gic = GIC.lock();
+
     // The ID of the interrupt is obtained by bitwise anding the ICCIAR value
     let interrupt_id = ulICCIAR & 0x3FF;
 
@@ -160,40 +123,42 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
         // Check for a valid interrupt ID.
         if interrupt_id < (XSCUGIC_MAX_NUM_INTR_INPUTS as u32) {
             // Call respective interrupt handler from the vector table.
-            let cfg = XScuGic_LookupConfig(XPAR_SCUGIC_0_DIST_BASEADDR as *mut u32);
-            let handler_entry = (*cfg).HandlerTable[interrupt_id as usize];
-            (handler_entry.handler).unwrap()(handler_entry.callback_ref);
+            let entry = (*(gic.raw_mut().Config)).HandlerTable[interrupt_id as usize];
+            (entry.handler).unwrap()(entry.callback_ref);
         }
     }
 }
 
+static WDT_INITIALIZED: AtomicBool = AtomicBool::new(false);
+
 /// Initializes the CPU1 watchdog timer.
 pub fn vexSystemWatchdogReinitRtos() -> i32 {
-    unsafe {
-        let wdt = WATCHDOG_TIMER.get_mut();
-
-        let config = XScuWdt_LookupConfig(XPAR_XSCUWDT_0_BASEADDR as *mut u32);
-        let status = XScuWdt_CfgInitialize(wdt, config, (*config).BaseAddr);
-
-        if status != 0 {
-            // XScuWdt_CfgInitialize returned XST_DEVICE_IS_STARTED, meaning that the watchdog timer was already started.
-            // If the watchdog was already initialized previously, there's no need to go further, so we'll indicate to the
-            // caller that this happened by returning 1.
-            return 1;
-        }
-
-        // Configure control register
-        let mut control_reg = XScuWdt_GetControlReg(wdt);
-        control_reg |= 0xff << 0x08;
-        XScuWdt_SetControlReg(wdt, control_reg);
-
-        // Load timer and start.
-        XScuWdt_LoadWdt(wdt, u32::MAX);
-        XScuWdt_SetTimerMode(wdt);
-        XScuWdt_Start(wdt);
+    // Since the watchdog timer can only be initialized a single time, this function should only
+    // ever be called once. In the event that it is called more than once, we check and bail early
+    // by returning XST_FAILURE.
+    if WDT_INITIALIZED.load(Ordering::Relaxed) {
+        return XST_FAILURE;
+    } else {
+        WDT_INITIALIZED.store(true, Ordering::Relaxed);
     }
 
-    0
+    let mut wdt = WATCHDOG_TIMER.lock();
+
+    // Configure prescaler and LOAD values to match the requirements of the zc706 FreeRTOS port.
+    wdt.set_prescaler(u8::MAX);
+    wdt.load(u32::MAX);
+
+    // The FreeRTOS port isn't actually using the watchdog timer for its "intended purpose" (identifying
+    // program deadlocks), but rather just uses it as a secondary timer peripheral for reporting statistics
+    // about task usage.
+    //
+    // As such, we run the watchdog timer in "timer mode" (rather than watchdog mode) to treat it like a normal
+    // decrementing clock.
+    wdt.set_mode(WatchdogTimerMode::Timer);
+
+    wdt.start(); // you get the idea
+
+    XST_SUCCESS
 }
 pub fn vexSystemWatchdogGet() -> u32 {
     Default::default()
@@ -201,20 +166,20 @@ pub fn vexSystemWatchdogGet() -> u32 {
 pub fn vexSystemBoot() {}
 
 pub fn vexSystemUndefinedException() {
-    semihosting::println!("Undefined Instruction Exception");
+    error!("Undefined Instruction Exception");
 }
 pub fn vexSystemFIQInterrupt() {
-    semihosting::println!("FIQ");
+    info!("FIQ");
 }
 pub fn vexSystemIQRQnterrupt() {
-    semihosting::println!("IRQ");
+    info!("IRQ");
 }
 pub fn vexSystemSWInterrupt() {
-    semihosting::println!("Software Interrupt");
+    info!("Software Interrupt");
 }
 pub fn vexSystemDataAbortInterrupt() {
-    semihosting::println!("Data Abort Exception");
+    error!("Data Abort Exception");
 }
 pub fn vexSystemPrefetchAbortInterrupt() {
-    semihosting::println!("Prefetch Abort Exception");
+    error!("Prefetch Abort Exception");
 }

@@ -14,6 +14,19 @@ use vex_sdk::{
     vexSystemDataAbortInterrupt, vexSystemFIQInterrupt, vexSystemPrefetchAbortInterrupt,
 };
 
+use crate::utils::exit;
+
+/// Sets the value of the VBAR (Vector Base Address Register).
+///
+/// # Safety
+///
+/// This function deals with extremely lowlevel registers that handle interrupts
+/// and system exceptions. Setting vbar to functions that incorrectly handle interrupts
+/// can be catastrophic.
+pub unsafe fn set_vbar(addr: u32) {
+    unsafe { core::arch::asm!("mcr p15, 0, {}, c12, c0, 0", in(reg) addr, options(nomem, nostack)) }
+}
+
 /// Undefined Instruction Vector
 ///
 /// This function is jumped to when the CPU when pc runs into an undefined instruction. It
@@ -82,7 +95,8 @@ pub extern "C" fn prefetch_abort() -> ! {
     unsafe {
         vexSystemPrefetchAbortInterrupt();
     }
-    semihosting::process::exit(1);
+
+    exit(1);
 }
 
 /// Data Abort Vector
@@ -100,7 +114,8 @@ pub extern "C" fn data_abort() -> ! {
     unsafe {
         vexSystemDataAbortInterrupt();
     }
-    semihosting::process::exit(1);
+
+    exit(1);
 }
 
 /// Interrupt Request Vector

@@ -24,7 +24,6 @@ debug = true
 heapless = "0.8.0"
 # host_call = { path = "../host_call" }
 lock_api = "0.4.12"
-semihosting = { version = "0.1.13", features = ["stdio", "panic-handler"] }
 snafu = { version = "0.8.4", default-features = false, features = [
     "unstable-core-error",
     "rust_1_61",
@@ -36,3 +35,4 @@ vexide-core = { git = "https://github.com/vexide/vexide", branch = "feat/dep-of-
 ] }
 critical-section = "1.1.2"
 printf-compat = { version = "0.1.1", default-features = false }
+log = "0.4.22"

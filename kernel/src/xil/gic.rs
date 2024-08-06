@@ -49,7 +49,7 @@ extern "C" {
         ConfigPtr: *mut XScuGic_Config,
         EffectiveAddr: u32,
     ) -> i32;
-    pub fn XScuGic_LookupConfig(BaseAddr: *mut c_uint) -> *mut XScuGic_Config;
+    pub fn XScuGic_LookupConfig(BaseAddr: u32) -> *mut XScuGic_Config;
     // This should be `InstancePtr: *mut XScuGic`, but rust can't transmute function pointers making this difficult
     // to cast to a Xil_ExceptionHandler.
     pub fn XScuGic_InterruptHandler(InstancePtr: *mut c_void);
@@ -59,11 +59,13 @@ extern "C" {
         Handler: Xil_InterruptHandler,
         CallBackRef: *mut c_void,
     ) -> i32;
+    pub fn XScuGic_Disconnect(InstancePtr: *mut XScuGic, Int_Id: u32);
     pub fn XScuGic_SetPriorityTriggerType(
         InstancePtr: *mut XScuGic,
         Int_Id: u32,
         Priority: u8,
         Trigger: u8,
-    ) -> i32;
+    );
     pub fn XScuGic_Enable(InstancePtr: *mut XScuGic, Int_Id: u32);
+    pub fn XScuGic_Disable(InstancePtr: *mut XScuGic, Int_Id: u32);
 }

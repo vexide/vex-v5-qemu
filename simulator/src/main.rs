@@ -1,4 +1,5 @@
 use std::{
+    io::{stdin, Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
 };
@@ -58,21 +59,28 @@ fn main() -> anyhow::Result<()> {
                 opt.binary.display()
             ),
         ])
-        .args(["-nographic"])
-        .args([
-            // Semihosting interface allows host <-> guest communication
-            "-semihosting",
-            "-semihosting-config",
-            "enable=on,target=native",
-        ])
+        .args(["-display", "none"])
+        .args(["-chardev", "stdio,id=char0"])
+        .args(["-serial", "null"])
+        .args(["-serial", "chardev:char0"])
         .args(opt.qemu_args)
-        .stdin(Stdio::inherit())
+        .stdin(Stdio::piped())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
     let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
+
+    let mut child_stdin = qemu.stdin.take().unwrap();
+    let mut stdin = stdin();
+    let mut buf = [0u8; 1];
+    loop {
+        if stdin.read(&mut buf)? == 0 {
+            break;
+        }
+        child_stdin.write_all(&buf)?;
+    }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;
 
