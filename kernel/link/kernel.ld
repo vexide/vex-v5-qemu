@@ -24,20 +24,22 @@ SECTIONS {
     .text ALIGN(4096) : {
         __text_start = .;
         KEEP (*(.text.vectors))
-        *(.text.boot);
         *(.text .text*)
     } > low_mem
 
-    .rodata ALIGN(4096) : {
-        *(.rodata*)
+    .rodata1 : {
+        *(.rodata1 .rodata1.*)
     } > low_mem
 
-    .data ALIGN(4096) : {
-        *(.data*)
+    .data : {
+        *(.data .data.*)
+        *(.data1 .data1.*)
     } > low_mem
 
-    .bss ALIGN(4096) : {
-        *(.bss*)
+    .bss : {
+        __bss_start = .;
+        *(.bss .bss.*)
+        __bss_end = .;
     } > low_mem
 
     .heap (NOLOAD) : ALIGN(4) {

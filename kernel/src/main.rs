@@ -47,7 +47,7 @@ pub extern "C" fn reset() -> ! {
         // will assume that the vector table is located at 0x0.
         //
         // See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Exception-vectors-and-the-exception-base-address>
-        vectors::set_vbar(VECTORS_START);
+        vectors::set_vbar(0x100000);
 
         // Enable hardware floating-point instructions
         hardware::fpu::enable_vfp();
