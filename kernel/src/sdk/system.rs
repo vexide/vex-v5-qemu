@@ -6,7 +6,6 @@ use core::{
     sync::atomic::{AtomicBool, Ordering},
 };
 
-use log::{error, info};
 use vex_sdk::*;
 
 use crate::{
@@ -14,7 +13,9 @@ use crate::{
         gic::InterruptTrigger,
         timers::{global_timer_counter, PrivateTimer, WatchdogTimerMode},
     },
-    peripherals::{timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER},
+    peripherals::{
+        timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
+    },
     utils::exit,
     xil::{gic::XSCUGIC_MAX_NUM_INTR_INPUTS, timer::XScuTimer, XST_FAILURE, XST_SUCCESS},
 };
@@ -165,21 +166,9 @@ pub fn vexSystemWatchdogGet() -> u32 {
 }
 pub fn vexSystemBoot() {}
 
-pub fn vexSystemUndefinedException() {
-    error!("Undefined Instruction Exception");
-}
-pub fn vexSystemFIQInterrupt() {
-    info!("FIQ");
-}
-pub fn vexSystemIQRQnterrupt() {
-    info!("IRQ");
-}
-pub fn vexSystemSWInterrupt() {
-    info!("Software Interrupt");
-}
-pub fn vexSystemDataAbortInterrupt() {
-    error!("Data Abort Exception");
-}
-pub fn vexSystemPrefetchAbortInterrupt() {
-    error!("Prefetch Abort Exception");
-}
+pub fn vexSystemUndefinedException() {}
+pub fn vexSystemFIQInterrupt() {}
+pub fn vexSystemIQRQnterrupt() {}
+pub fn vexSystemSWInterrupt() {}
+pub fn vexSystemDataAbortInterrupt() {}
+pub fn vexSystemPrefetchAbortInterrupt() {}

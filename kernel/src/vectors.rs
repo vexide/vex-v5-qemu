@@ -23,8 +23,30 @@ use crate::utils::exit;
 /// This function deals with extremely lowlevel registers that handle interrupts
 /// and system exceptions. Setting vbar to functions that incorrectly handle interrupts
 /// can be catastrophic.
+#[inline]
 pub unsafe fn set_vbar(addr: u32) {
     unsafe { core::arch::asm!("mcr p15, 0, {}, c12, c0, 0", in(reg) addr, options(nomem, nostack)) }
+}
+
+/// Reset Vector
+///
+/// This function will be immediately executed when the CPU first starts,
+/// and is the entrypoint/bootloader to the simulator.
+#[no_mangle]
+#[naked]
+pub extern "C" fn reset() -> ! {
+    unsafe {
+        asm!(
+            "
+            // setup the stack, then call entrypoint
+            ldr sp, =__stack_top
+            b _start
+
+            // TODO: we need to have separate stacks for each exception vector.
+            ",
+            options(noreturn)
+        )
+    }
 }
 
 /// Undefined Instruction Vector

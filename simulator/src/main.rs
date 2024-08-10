@@ -50,7 +50,10 @@ fn main() -> anyhow::Result<()> {
         .args(["-object", "memory-backend-ram,id=mem,size=256M"])
         .args([
             "-device",
-            &format!("loader,file={},addr=0x100000,cpu-num=0", opt.kernel.display()),
+            &format!(
+                "loader,file={},addr=0x100000,cpu-num=0",
+                opt.kernel.display()
+            ),
         ])
         .args([
             "-device",

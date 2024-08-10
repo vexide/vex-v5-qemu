@@ -4,8 +4,8 @@ use crate::xil::{
     timer::{
         XScuTimer, XScuTimer_CfgInitialize, XScuTimer_ClearInterruptStatus,
         XScuTimer_DisableAutoReload, XScuTimer_DisableInterrupt, XScuTimer_EnableAutoReload,
-        XScuTimer_EnableInterrupt, XScuTimer_GetCounterValue, XScuTimer_GetInterruptStatus,
-        XScuTimer_IsExpired, XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_RestartTimer,
+        XScuTimer_EnableInterrupt, XScuTimer_GetCounterValue, XScuTimer_IsExpired,
+        XScuTimer_LoadTimer, XScuTimer_LookupConfig, XScuTimer_RestartTimer,
         XScuTimer_SetPrescaler, XScuTimer_Start, XScuTimer_Stop,
     },
     XST_SUCCESS,

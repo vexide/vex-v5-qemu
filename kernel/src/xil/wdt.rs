@@ -1,6 +1,6 @@
 //! Cortex-A9 Watchdog Timer
 
-use core::ffi::{c_char, c_uint};
+use core::ffi::c_char;
 
 pub const XPAR_XSCUWDT_0_BASEADDR: u32 = 0xF8F00620;
 

@@ -1,6 +1,6 @@
 //! Cortex-A9 Private Timer
 
-use core::ffi::{c_char, c_uint};
+use core::ffi::c_char;
 
 pub const XPAR_XSCUTIMER_0_BASEADDR: u32 = 0xF8F00600;
 

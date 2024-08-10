@@ -2,7 +2,7 @@
 
 #![allow(non_camel_case_types)]
 
-use core::ffi::{c_char, c_uint, c_void};
+use core::ffi::{c_char, c_void};
 
 pub const XPAR_SCUGIC_0_DIST_BASEADDR: u32 = 0xF8F01000;
 

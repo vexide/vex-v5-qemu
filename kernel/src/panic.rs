@@ -1,6 +1,6 @@
 use core::panic::PanicInfo;
+use embedded_io::Write;
 use lock_api::RawMutex;
-use vexide_core::io::Write;
 
 use crate::{peripherals::UART1, utils::exit};
 

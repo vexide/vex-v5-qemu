@@ -1,4 +1,4 @@
-.section ".text.vectors"
+.section .vectors, "ax"
 .global vectors
 
 vectors:
