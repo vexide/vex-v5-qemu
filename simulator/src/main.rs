@@ -94,6 +94,7 @@ fn main() -> anyhow::Result<()> {
     let mut qemu_stdout = qemu.stdout.take().unwrap();
     let mut qemu_stdin = qemu.stdin.take().unwrap();
 
+
     while let Ok(packet) = protocol::recv_packet(&mut qemu_stdout) {
         if let Some(packet) = &packet {
             match packet {
