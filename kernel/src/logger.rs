@@ -2,10 +2,7 @@
 
 use core::time::Duration;
 
-use alloc::{
-    format,
-    string::{String, ToString},
-};
+use alloc::format;
 use log::{max_level, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 
 use vex_v5_qemu_protocol::HostBoundPacket;
@@ -13,12 +10,12 @@ use vex_v5_qemu_protocol::HostBoundPacket;
 use crate::{protocol, sdk::vexSystemHighResTimeGet};
 
 const ESCAPES: [Option<&str>; 6] = [
-    None,                // Default foreground
-    Some("\x1B[31m"),    // Error
-    Some("\x1B[33m"), // Warn
-    Some("\x1B[34m"),   // Info
-    Some("\x1B[36m"),   // Debug
-    Some("\x1B[37m"),  // Trace
+    None,             // Default foreground
+    Some("\x1B[31m"), // Error (red)
+    Some("\x1B[33m"), // Warn (yellow)
+    Some("\x1B[34m"), // Info (blue)
+    Some("\x1B[36m"), // Debug (cyan)
+    Some("\x1B[37m"), // Trace (white)
 ];
 
 pub struct KernelLogger;

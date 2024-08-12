@@ -29,6 +29,11 @@ pub struct PrivateTimer {
 impl PrivateTimer {
     pub const INTERRUPT_ID: u32 = 29;
 
+    /// Create a new private timer peripheral at the given base address.
+    ///
+    /// # Safety
+    ///
+    /// This function must only be called once per given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, PrivateTimerError> {
         // SAFETY: The timer is initialized before it is returned.
         let mut instance = unsafe { core::mem::zeroed() };

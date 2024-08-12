@@ -2,7 +2,7 @@ use alloc::{vec, vec::Vec};
 use bincode::error::{DecodeError, EncodeError};
 use embedded_io::{Read, ReadExactError, Write};
 use snafu::Snafu;
-use vex_v5_qemu_protocol::{KernelBoundPacket, HostBoundPacket};
+use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 use crate::peripherals::UART1;
 use crate::protocol;

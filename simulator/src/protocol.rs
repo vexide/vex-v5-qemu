@@ -6,7 +6,7 @@ use std::{
 use bincode::error::{DecodeError, EncodeError};
 use miette::Diagnostic;
 use thiserror::Error;
-use vex_v5_qemu_protocol::{KernelBoundPacket, HostBoundPacket};
+use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 #[derive(Error, Diagnostic, Debug)]
 pub enum ProtocolError {

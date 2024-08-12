@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::Context;
 use log::{debug, LevelFilter};
-use simplelog::{ColorChoice, Config, ConfigBuilder, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 pub mod protocol;
