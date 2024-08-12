@@ -1,23 +1,42 @@
 //! CPU Exception Vectors
 //!
-//! This module contains implementations of each ARM exception vector
-//! required to handle exceptions (including interrupts) in `vectors.s`.
+//! This module contains implementations of the ARM exception vector table,
+//! required for handling interrupts and various processor faults. Each exception
+//! maintains its own stack and will typically end up branching to an internal
+//! function in libxil.
 //!
-//! This file does not include the `reset` vector (entrypoint), which can be
-//! found in `main.rs`.
-//!
-//! In most cases, these functions are implemented from Xilinx's `asm_vectors.s`
-//! file: <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
+//! In most cases, these functions are copied off of Xilinx's `asm_vectors.s` file:
+//! <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
 
-use core::arch::asm;
+use core::arch::{asm, global_asm};
+
+// The exception vector table.
+//
+// These instructions are stored starting at 0x0 in program memory and will
+// be the first thing executed by the CPU. In our case, we immediately jump
+// to the `reset` vector on boot.
+global_asm!("
+.section .vectors, \"ax\"
+.global vectors
+
+vectors:
+    b reset
+    b undefined_instruction
+    b svc
+    b prefetch_abort
+    b data_abort
+    nop @ Placeholder for address exception vector
+    b irq
+    b fiq
+");
 
 /// Sets the value of the VBAR (Vector Base Address Register).
 ///
 /// # Safety
 ///
 /// This function deals with extremely lowlevel registers that handle interrupts
-/// and system exceptions. Setting vbar to functions that incorrectly handle interrupts
-/// can be catastrophic.
+/// and system exceptions. Setting vbar to functions that incorrectly handle
+/// interrupts can be catastrophic.
 #[inline]
 pub unsafe fn set_vbar(addr: u32) {
     unsafe { core::arch::asm!("mcr p15, 0, {}, c12, c0, 0", in(reg) addr, options(nomem, nostack)) }
@@ -25,8 +44,12 @@ pub unsafe fn set_vbar(addr: u32) {
 
 /// Reset Vector
 ///
-/// This function will be immediately executed when the CPU first starts,
-/// and is the entrypoint/bootloader to the simulator.
+/// This function will be immediately executed when the CPU first starts, and
+/// is the true entrypoint of the kernel.
+///
+/// Since each exception requires its own stack, we will briefly switch the
+/// processor to each exception mode, load the respective stack section into
+/// sp, then branch to [`_start`].
 #[no_mangle]
 #[naked]
 pub extern "C" fn reset() -> ! {

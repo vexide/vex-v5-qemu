@@ -43,13 +43,10 @@ extern "C" {
 /// to the host over a UART packet. See the `logger` module.
 static LOGGER: KernelLogger = KernelLogger;
 
-// Include the exception vector table.
-//
-// These instructions are stored starting at 0x0 in program memory and will
-// be the first thing executed by the CPU. In our case, we immediately jump
-// to the `reset` vector on boot.
-core::arch::global_asm!(include_str!("vectors.s"));
-
+/// Kernel entrypoint.
+///
+/// This function is the Rust entrypoint of the kernel, and is called immediately after
+/// the [`reset`] vector sets up the stack.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     unsafe {
