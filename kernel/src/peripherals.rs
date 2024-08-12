@@ -72,8 +72,8 @@ pub extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
 
     // NOTE: I think (?) vexos offers a way for users to register a callback
     // here through some part of the SDK, but nobody really uses that and its
-    // not a publicly exposed API. PROS just uses [`vexSystemTimerReinitForRtos`]
-    // anyways...
+    // not a publicly exposed API. PROS just uses
+    // [`vexSystemTimerReinitForRtos`] anyways...
 }
 
 /// Configures the Private Timer peripheral and registers an interrupt handler

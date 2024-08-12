@@ -71,13 +71,15 @@ pub fn vexSystemTimerStop() {
 
 /// Clears the timer interrupt status if the timer has expired.
 pub fn vexSystemTimerClearInterrupt() {
-    // Realistically I think this should be a call to [`PrivateTimer::clear_interrupt_status()`]
-    // and NOT the timer interrupt handler (which also increments the time for vexSystemTimeGet),
+    // Realistically I think this should be a call to
+    // [`PrivateTimer::clear_interrupt_status()`] and NOT the timer interrupt
+    // handler (which also increments the time for vexSystemTimeGet),
     // but this is supposedly the behavior observed in VEXos, so we'll do it too.
     timer_interrupt_handler(PRIVATE_TIMER.lock().raw_mut() as *mut XScuTimer as _)
 }
 
-/// Reinitializes the timer interrupt with a given tick handler and priority for the private timer instance.
+/// Reinitializes the timer interrupt with a given tick handler and priority for
+/// the private timer instance.
 pub fn vexSystemTimerReinitForRtos(
     priority: u32,
     handler: extern "C" fn(data: *mut c_void),
@@ -134,9 +136,9 @@ static WDT_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 /// Initializes the CPU1 watchdog timer.
 pub fn vexSystemWatchdogReinitRtos() -> i32 {
-    // Since the watchdog timer can only be initialized a single time, this function should only
-    // ever be called once. In the event that it is called more than once, we check and bail early
-    // by returning XST_FAILURE.
+    // Since the watchdog timer can only be initialized a single time, this function
+    // should only ever be called once. In the event that it is called more than
+    // once, we check and bail early by returning XST_FAILURE.
     if WDT_INITIALIZED.load(Ordering::Relaxed) {
         return XST_FAILURE;
     } else {
@@ -145,16 +147,17 @@ pub fn vexSystemWatchdogReinitRtos() -> i32 {
 
     let mut wdt = WATCHDOG_TIMER.lock();
 
-    // Configure prescaler and LOAD values to match the requirements of the zc706 FreeRTOS port.
+    // Configure prescaler and LOAD values to match the requirements of the zc706
+    // FreeRTOS port.
     wdt.set_prescaler(u8::MAX);
     wdt.load(u32::MAX);
 
-    // The FreeRTOS port isn't actually using the watchdog timer for its "intended purpose" (identifying
-    // program deadlocks), but rather just uses it as a secondary timer peripheral for reporting statistics
-    // about task usage.
+    // The FreeRTOS port isn't actually using the watchdog timer for its "intended
+    // purpose" (identifying program deadlocks), but rather just uses it as a
+    // secondary timer peripheral for reporting statistics about task usage.
     //
-    // As such, we run the watchdog timer in "timer mode" (rather than watchdog mode) to treat it like a normal
-    // decrementing clock.
+    // As such, we run the watchdog timer in "timer mode" (rather than watchdog
+    // mode) to treat it like a normal decrementing clock.
     wdt.set_mode(WatchdogTimerMode::Timer);
 
     wdt.start(); // you get the idea

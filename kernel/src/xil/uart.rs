@@ -400,8 +400,8 @@ pub struct XUartPsFormat {
 /// # Parameters
 ///
 /// - `CallBackRef` is a callback reference passed in by the upper layer when
-///   setting the handler, and is passed back to the upper layer when the handler
-///   is called. It is used to find the device driver instance.
+///   setting the handler, and is passed back to the upper layer when the
+///   handler is called. It is used to find the device driver instance.
 /// - `Event` contains one of the event constants indicating events that have
 ///   occurred.
 /// - `EventData` contains the number of bytes sent or received at the time of

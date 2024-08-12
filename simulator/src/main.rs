@@ -22,8 +22,9 @@ const DEFAULT_KERNEL: &str = concat!(
 struct Opt {
     /// Start the simulator in a paused state and open a GDB server.
     ///
-    /// When enabled, the simulator will make a GDB server available on port 1234,
-    /// allowing a debugger to set breakpoints in and step through the kernel or user code.
+    /// When enabled, the simulator will make a GDB server available on port
+    /// 1234, allowing a debugger to set breakpoints in and step through the
+    /// kernel or user code.
     #[clap(short, long)]
     gdb: bool,
 

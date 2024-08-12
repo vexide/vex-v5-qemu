@@ -1,12 +1,12 @@
 //! CPU Exception Vectors
 //!
 //! This module contains implementations of the ARM exception vector table,
-//! required for handling interrupts and various processor faults. Each exception
-//! maintains its own stack and will typically end up branching to an internal
-//! function in libxil.
+//! required for handling interrupts and various processor faults. Each
+//! exception maintains its own stack and will typically end up branching to an
+//! internal function in libxil.
 //!
-//! In most cases, these functions are copied off of Xilinx's `asm_vectors.s` file:
-//! <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
+//! In most cases, these functions are copied off of Xilinx's `asm_vectors.s`
+//! file: <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
 
 use core::arch::{asm, global_asm};
 
@@ -15,7 +15,8 @@ use core::arch::{asm, global_asm};
 // These instructions are stored starting at 0x0 in program memory and will
 // be the first thing executed by the CPU. In our case, we immediately jump
 // to the `reset` vector on boot.
-global_asm!("
+global_asm!(
+    "
 .section .vectors, \"ax\"
 .global vectors
 
@@ -28,7 +29,8 @@ vectors:
     nop @ Placeholder for address exception vector
     b irq
     b fiq
-");
+"
+);
 
 /// Sets the value of the VBAR (Vector Base Address Register).
 ///
@@ -99,11 +101,12 @@ pub extern "C" fn reset() -> ! {
 
 /// Undefined Instruction Vector
 ///
-/// This function is jumped to when the CPU when pc runs into an undefined instruction. It
-/// currently just saves the program state/registers and calls `UndefinedException` from libxil.
+/// This function is jumped to when the CPU when pc runs into an undefined
+/// instruction. It currently just saves the program state/registers and calls
+/// `UndefinedException` from libxil.
 ///
-/// This exception occurs when the CPU's instruction pipelining encounters and attempts to
-/// execute an instrction it does not recognize.
+/// This exception occurs when the CPU's instruction pipelining encounters and
+/// attempts to execute an instrction it does not recognize.
 #[no_mangle]
 #[naked]
 pub extern "C" fn undefined_instruction() -> ! {
@@ -126,8 +129,9 @@ pub extern "C" fn undefined_instruction() -> ! {
 
 /// Software Interrupt Vector
 ///
-/// This function is jumped to when the CPU receives a software interrupt (SWI/SVC). It
-/// currently just saves the program state/registers and calls `SWInterrupt` from libxil.
+/// This function is jumped to when the CPU receives a software interrupt
+/// (SWI/SVC). It currently just saves the program state/registers and calls
+/// `SWInterrupt` from libxil.
 #[no_mangle]
 #[naked]
 pub extern "C" fn svc() -> ! {
@@ -201,8 +205,8 @@ pub extern "C" fn data_abort() -> ! {
 
 /// Interrupt Request Vector
 ///
-/// This function is jumped to when the CPU receives an IRQ. It currently just saves the
-/// program state/registers and calls `IRQInterrupt` from libxil.
+/// This function is jumped to when the CPU receives an IRQ. It currently just
+/// saves the program state/registers and calls `IRQInterrupt` from libxil.
 #[no_mangle]
 #[naked]
 pub extern "C" fn irq() -> ! {

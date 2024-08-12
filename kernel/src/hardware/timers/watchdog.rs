@@ -48,7 +48,8 @@ impl WatchdogTimer {
             return InvalidBaseAddressSnafu { base_address }.fail();
         }
 
-        // SAFETY: The timer is a pointer to owned mutable memory and the config is valid.
+        // SAFETY: The timer is a pointer to owned mutable memory and the config is
+        // valid.
         match unsafe { XScuWdt_CfgInitialize(&mut instance, config, (*config).BaseAddr) } {
             XST_SUCCESS => {}
             _ => return Err(WatchdogTimerError::InitializeFailed),
@@ -144,6 +145,7 @@ impl WatchdogTimer {
     }
 }
 
-// SAFETY: The timer does not access or store any raw pointers that could be sent between
-// threads (Doesn't access or set the name, doesn't use interrupt mode.)
+// SAFETY: The timer does not access or store any raw pointers that could be
+// sent between threads (Doesn't access or set the name, doesn't use interrupt
+// mode.)
 unsafe impl Send for WatchdogTimer {}

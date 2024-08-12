@@ -45,8 +45,8 @@ static LOGGER: KernelLogger = KernelLogger;
 
 /// Kernel entrypoint.
 ///
-/// This function is the Rust entrypoint of the kernel, and is called immediately after
-/// the [`reset`] vector sets up the stack.
+/// This function is the Rust entrypoint of the kernel, and is called
+/// immediately after the [`reset`] vector sets up the stack.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     unsafe {
@@ -68,8 +68,8 @@ pub extern "C" fn _start() -> ! {
 
     // Force-initialize all peripherals.
     //
-    // If they fail to initialize, we want them to fail now rather than whenever they're
-    // first accessed.
+    // If they fail to initialize, we want them to fail now rather than whenever
+    // they're first accessed.
     GIC.force();
     PRIVATE_TIMER.force();
     WATCHDOG_TIMER.force();
@@ -78,13 +78,16 @@ pub extern "C" fn _start() -> ! {
     // Initialize UART kernel logger
     LOGGER.init(LevelFilter::Debug).unwrap();
 
-    // Setup private timer peripheral and register a tick interrupt handler using the GIC.
+    // Setup private timer peripheral and register a tick interrupt handler using
+    // the GIC.
     //
-    // This fires a timer interrupt every 1mS allowing us to keep track of system time for
-    // [`vexSystemTimeGet`] as well for the purposes of ticking FreeRTOS if needed.
+    // This fires a timer interrupt every 1mS allowing us to keep track of system
+    // time for [`vexSystemTimeGet`] as well for the purposes of ticking
+    // FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    // Send/receive a handshake packet with the host to ensure that packet transfer is viable.
+    // Send/receive a handshake packet with the host to ensure that packet transfer
+    // is viable.
     log::debug!("Handshaking with host...");
     protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
     while protocol::recv_packet().expect("Failed to receive handshake packet from host.")

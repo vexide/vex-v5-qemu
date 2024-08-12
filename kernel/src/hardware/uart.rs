@@ -14,8 +14,8 @@ pub enum UartDriverError {
     InvalidBaseAddress { base_address: u32 },
     /// The UART device failed to pass a self-test.
     SelfTestFailed,
-    /// The specified baud rate is not possible because the input clock frequency is not
-    /// divisible with an acceptable amount of error.
+    /// The specified baud rate is not possible because the input clock
+    /// frequency is not divisible with an acceptable amount of error.
     InvalidBaudRate,
     /// The UART driver failed to initialize.
     InitializeFailed,
@@ -52,7 +52,8 @@ impl UartDriver {
     ///
     /// # Safety
     ///
-    /// The caller must ensure that the UART driver is only initialized once for a given base address.
+    /// The caller must ensure that the UART driver is only initialized once for
+    /// a given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, UartDriverError> {
         // SAFETY: The driver is initialized before it is returned.
         let mut driver = unsafe { core::mem::zeroed() };
@@ -60,7 +61,8 @@ impl UartDriver {
         if config.is_null() {
             return InvalidBaseAddressSnafu { base_address }.fail();
         }
-        // SAFETY: The driver is a pointer to owned mutable memory and the config is valid.
+        // SAFETY: The driver is a pointer to owned mutable memory and the config is
+        // valid.
         let status = unsafe { XUartPs_CfgInitialize(&mut driver, config, (*config).BaseAddress) };
         UartDriverError::try_from_xst_status(status)?;
 
@@ -78,8 +80,9 @@ impl UartDriver {
     }
 }
 
-// SAFETY: The UART driver does not access or store any raw pointers that could be sent between
-// threads (Doesn't access or set the name, doesn't use interrupt mode.)
+// SAFETY: The UART driver does not access or store any raw pointers that could
+// be sent between threads (Doesn't access or set the name, doesn't use
+// interrupt mode.)
 unsafe impl Send for UartDriver {}
 
 impl ErrorType for UartDriver {

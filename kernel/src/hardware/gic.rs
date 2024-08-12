@@ -58,7 +58,8 @@ impl GenericInterruptController {
     ///
     /// # Safety
     ///
-    /// The caller must ensure that the GIC is only initialized once for a given base address.
+    /// The caller must ensure that the GIC is only initialized once for a given
+    /// base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, GicError> {
         let config = unsafe { XScuGic_LookupConfig(base_address) };
         if config.is_null() {
@@ -74,7 +75,8 @@ impl GenericInterruptController {
         }
 
         // This will register the GIC as a handler for IRQs on Xilinx's IRQ exception
-        // vector (`IRQInterrupt`). See `vectors.rs` for where we set that up during boot.
+        // vector (`IRQInterrupt`). See `vectors.rs` for where we set that up during
+        // boot.
         //
         // SAFETY: Function is called once.
         unsafe {
@@ -93,9 +95,9 @@ impl GenericInterruptController {
         })
     }
 
-    /// This function only exists as a thunk to XScuGic's IRQ exception vector handler,
-    /// [`XScuGic_InterruptHandler`]. This is because rust makes it hell to cast argument
-    /// types of function pointers.
+    /// This function only exists as a thunk to XScuGic's IRQ exception vector
+    /// handler, [`XScuGic_InterruptHandler`]. This is because rust makes it
+    /// hell to cast argument types of function pointers.
     #[inline]
     unsafe extern "C" fn exception_handler(data: *mut c_void) {
         unsafe { XScuGic_InterruptHandler(core::mem::transmute::<*mut c_void, *mut XScuGic>(data)) }
@@ -105,9 +107,11 @@ impl GenericInterruptController {
     ///
     /// # Parameters
     ///
-    /// - `interrupt_id`: The interrupt ID that the handler should be attached to.
+    /// - `interrupt_id`: The interrupt ID that the handler should be attached
+    ///   to.
     /// - `priority`: The interrupt priority.
-    /// - `trigger`: The case used by the GIC to determine when an interrupt occurs.
+    /// - `trigger`: The case used by the GIC to determine when an interrupt
+    ///   occurs.
     /// - `handler`: A C-style function pointer to the given interrupt handler.
     /// - `argument`: An argument to be passed to the `handler` function.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -166,6 +170,6 @@ impl GenericInterruptController {
     }
 }
 
-// SAFETY: The GIC does not access or store any raw pointers that could be sent between
-// threads (Doesn't access or set the name, doesn't use interrupt mode.)
+// SAFETY: The GIC does not access or store any raw pointers that could be sent
+// between threads (Doesn't access or set the name, doesn't use interrupt mode.)
 unsafe impl Send for GenericInterruptController {}

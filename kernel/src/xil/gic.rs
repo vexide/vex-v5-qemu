@@ -20,9 +20,9 @@ pub struct XScuGic_VectorTableEntry {
     /// Interrupt Handler
     pub handler: Xil_InterruptHandler,
 
-    /// The callback reference passed in by the upper layer when setting the Interrupt
-    /// handler for specific interrupt ID, and it will passed back to Interrupt handler
-    /// when it is invoked.
+    /// The callback reference passed in by the upper layer when setting the
+    /// Interrupt handler for specific interrupt ID, and it will passed back
+    /// to Interrupt handler when it is invoked.
     pub callback_ref: *mut c_void,
 }
 
@@ -50,8 +50,8 @@ extern "C" {
         EffectiveAddr: u32,
     ) -> i32;
     pub fn XScuGic_LookupConfig(BaseAddr: u32) -> *mut XScuGic_Config;
-    // This should be `InstancePtr: *mut XScuGic`, but rust can't transmute function pointers making this difficult
-    // to cast to a Xil_ExceptionHandler.
+    // This should be `InstancePtr: *mut XScuGic`, but rust can't transmute function
+    // pointers making this difficult to cast to a Xil_ExceptionHandler.
     pub fn XScuGic_InterruptHandler(InstancePtr: *mut XScuGic);
     pub fn XScuGic_Connect(
         InstancePtr: *mut XScuGic,

@@ -15,14 +15,15 @@ pub fn vexTaskGetCallbackAndId(index: u32, callback_id: *mut c_int) -> *mut c_vo
     core::ptr::null_mut()
 }
 
-/// Yields execution away from the current task for a given number of milliseconds.
+/// Yields execution away from the current task for a given number of
+/// milliseconds.
 pub fn vexTaskSleep(time: u32) {}
 
 /// Returns the maximum number of threads that are supported by the VEXos
 /// task scheduler.
 ///
-/// Real V5 enviornments set this at 128, but since we don't currently emulate the
-/// VEXcode task scheduler, we just return 0.
+/// Real V5 enviornments set this at 128, but since we don't currently emulate
+/// the VEXcode task scheduler, we just return 0.
 pub fn vexTaskHardwareConcurrency() -> i32 {
     0
 }
