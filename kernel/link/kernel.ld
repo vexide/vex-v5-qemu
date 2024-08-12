@@ -44,6 +44,10 @@ SECTIONS {
         *(.bss*)
     } > low_mem
 
+    .drvcfg_sec : {
+        *(.drvcfg_sec)
+    } > low_mem
+
     .heap (NOLOAD) : ALIGN(16) {
         __heap_start = .;
         . = __heap_end;
