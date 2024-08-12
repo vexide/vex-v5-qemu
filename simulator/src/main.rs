@@ -1,11 +1,13 @@
 use std::{
-    io::{stderr, stdin, stdout, Read, Write},
+    io::{stderr, stdout, Write},
     path::PathBuf,
     process::{Command, Stdio},
 };
 
 use anyhow::Context;
-use vex_v5_qemu_protocol::{GuestBoundPacket, HostBoundPacket};
+use log::{debug, LevelFilter};
+use simplelog::{ColorChoice, Config, ConfigBuilder, TermLogger, TerminalMode};
+use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 pub mod protocol;
 
@@ -46,6 +48,16 @@ struct Opt {
 
 fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
+
+    TermLogger::init(
+        LevelFilter::Debug,
+        ConfigBuilder::new()
+            .set_thread_level(LevelFilter::Off)
+            .build(),
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    )
+    .unwrap();
 
     let mut qemu = Command::new(opt.qemu);
     qemu.args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
@@ -88,17 +100,18 @@ fn main() -> anyhow::Result<()> {
                     let mut stdout = stdout().lock();
                     stdout.write_all(data).unwrap();
                     stdout.flush().unwrap();
-                },
+                }
                 HostBoundPacket::KernelSerial(data) => {
                     let mut stderr = stderr().lock();
                     stderr.write_all(data).unwrap();
                     stderr.flush().unwrap();
                 }
                 HostBoundPacket::CodeSignature(sig) => {
-                    println!("Got code signature: {:?}", sig);
+                    debug!("Received code signature: {:?}", sig);
                 }
                 HostBoundPacket::Handshake => {
-                    protocol::send_packet(&mut qemu_stdin, GuestBoundPacket::Handshake)?;
+                    debug!("Received handshake. Sending response packet back.");
+                    protocol::send_packet(&mut qemu_stdin, KernelBoundPacket::Handshake)?;
                 }
                 HostBoundPacket::ExitRequest(code) => {
                     qemu.kill().unwrap();

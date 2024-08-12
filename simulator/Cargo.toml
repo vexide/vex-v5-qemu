@@ -11,3 +11,5 @@ anyhow = "1.0.86"
 bincode = "2.0.0-rc.3"
 vex-v5-qemu-protocol = { path = "../protocol" }
 thiserror = "1.0.63"
+log = "0.4.22"
+simplelog = "0.12.2"

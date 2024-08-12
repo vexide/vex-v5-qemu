@@ -7,7 +7,7 @@ use crate::protocol::{self, exit};
 #[panic_handler]
 fn panic_handler(info: &PanicInfo<'_>) -> ! {
     protocol::send_packet(HostBoundPacket::KernelSerial(
-        format!("kernel {info}").as_bytes().to_vec(),
+        format!("kernel {info}\n").as_bytes().to_vec(),
     )).ok();
 
     exit(101);

@@ -20,7 +20,7 @@ pub enum HostBoundPacket {
 
 /// A message sent from the host to the guest.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Encode, Decode)]
-pub enum GuestBoundPacket {
+pub enum KernelBoundPacket {
     Handshake,
     Serial {
         channel: u32,
