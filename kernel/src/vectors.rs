@@ -12,12 +12,12 @@ use core::arch::{asm, global_asm};
 
 // The exception vector table.
 //
-// These instructions are stored starting at 0x0 in program memory and will
-// be the first thing executed by the CPU. In our case, we immediately jump
-// to the `reset` vector on boot.
+// These instructions are stored starting at 0x0 in program memory and will be
+// the first thing executed by the CPU. In our case, we immediately jump to the
+// `reset` vector on boot.
 global_asm!(
-    "
-.section .vectors, \"ax\"
+    r#"
+.section .vectors, "ax"
 .global vectors
 
 vectors:
@@ -29,7 +29,7 @@ vectors:
     nop @ Placeholder for address exception vector
     b irq
     b fiq
-"
+"#
 );
 
 /// Sets the value of the VBAR (Vector Base Address Register).
@@ -46,12 +46,12 @@ pub unsafe fn set_vbar(addr: u32) {
 
 /// Reset Vector
 ///
-/// This function will be immediately executed when the CPU first starts, and
-/// is the true entrypoint of the kernel.
+/// This function will be immediately executed when the CPU first starts, and is
+/// the true entrypoint of the kernel.
 ///
 /// Since each exception requires its own stack, we will briefly switch the
-/// processor to each exception mode, load the respective stack section into
-/// sp, then branch to [`_start`].
+/// processor to each exception mode, load the respective stack section into sp,
+/// then branch to [`_start`].
 #[no_mangle]
 #[naked]
 pub extern "C" fn reset() -> ! {
@@ -127,7 +127,7 @@ pub extern "C" fn undefined_instruction() -> ! {
     }
 }
 
-/// Software Interrupt Vector
+/// Supervisor Call Vector
 ///
 /// This function is jumped to when the CPU receives a software interrupt
 /// (SWI/SVC). It currently just saves the program state/registers and calls

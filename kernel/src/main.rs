@@ -113,5 +113,5 @@ pub extern "C" fn _start() -> ! {
         vexStartup();
     }
 
-    unreachable!("vexStartup should not return!");
+    unreachable!("User code should not return!");
 }
