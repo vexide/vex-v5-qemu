@@ -18,9 +18,7 @@ pub mod xil;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
-use sdk::vexSystemTimeGet;
 use vex_v5_qemu_protocol::{code_signature::CodeSignature, GuestBoundPacket, HostBoundPacket};
-use xil::exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_FIQ_INT};
 
 extern "C" {
     /// Entrypoint of the user program (located at 0x03800020)
@@ -66,22 +64,16 @@ pub extern "C" fn _start() -> ! {
     // Initialize UART kernel logger
     LOGGER.init(LevelFilter::Debug).unwrap();
 
-    unsafe {
-        semihosting::eprintln!("{}", core::ptr::addr_of!((*GIC.lock().raw_mut().Config)) as u32);
-    }
-
     // Setup private timer peripheral and register a tick interrupt handler using the GIC.
     //
     // This fires a timer interrupt every 1mS allowing us to keep track of system time for
     // [`vexSystemTimeGet`] as well for the purposes of ticking FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    // log::debug!("test {:?}", GIC.lock().raw_mut());
-
     // Handshake with the host
     protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
     while protocol::recv_packet().expect("Failed to recieve handshake packet from host.")
-    != Some(GuestBoundPacket::Handshake)
+        != Some(GuestBoundPacket::Handshake)
     {
         core::hint::spin_loop();
     }
@@ -93,7 +85,6 @@ pub extern "C" fn _start() -> ! {
         },
     )))
     .unwrap();
-
 
     // Call user code!!
     unsafe {

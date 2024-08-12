@@ -12,11 +12,11 @@ MEMORY {
 }
 
 __stack_size = 0x400000;
-__irq_stack_size = 0x1000;
-__fiq_stack_size = 0x1000;
-__abort_stack_size = 0x1000;
-__svc_stack_size = 0x1000;
-__undefined_stack_size = 0x1000;
+__irq_stack_size = 0x10000;
+__fiq_stack_size = 0x10000;
+__abort_stack_size = 0x10000;
+__svc_stack_size = 0x10000;
+__undefined_stack_size = 0x10000;
 
 __heap_end = _jump_table_start - __stack_size - __irq_stack_size - __fiq_stack_size - __abort_stack_size - __svc_stack_size - __undefined_stack_size;
 
@@ -50,27 +50,21 @@ SECTIONS {
     } > low_mem
 
     .stack (NOLOAD) : ALIGN(16) {
-        __stack_bottom = .;
         . += __stack_size;
         __stack_top = .;
 
-        __irq_stack_bottom = .;
         . += __irq_stack_size;
         __irq_stack_top = .;
 
-        __fiq_stack_bottom = .;
         . += __fiq_stack_size;
         __fiq_stack_top = .;
 
-        __abort_stack_bottom = .;
         . += __abort_stack_size;
         __abort_stack_top = .;
 
-        __svc_stack_bottom = .;
         . += __svc_stack_size;
         __svc_stack_top = .;
 
-        __undefined_stack_bottom = .;
         . += __undefined_stack_size;
         __undefined_stack_top = .;
     } > low_mem

@@ -7,6 +7,6 @@ vectors:
     b svc
     b prefetch_abort
     b data_abort
-    nop // Placeholder for address exception vector
+    nop @ Placeholder for address exception vector
     b irq
     b fiq

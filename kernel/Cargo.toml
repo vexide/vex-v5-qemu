@@ -38,4 +38,3 @@ bincode = { version = "2.0.0-rc.3", default-features = false, features = [
 ] }
 vex-v5-qemu-protocol = { path = "../protocol" }
 talc = "4.4.1"
-semihosting = { version = "0.1.13", features = ["stdio"] }

@@ -59,7 +59,7 @@ pub fn recv_packet() -> Result<Option<GuestBoundPacket>, ProtocolError> {
 }
 
 pub fn exit(code: i32) -> ! {
-    protocol::send_packet(HostBoundPacket::ExitRequest(code)).unwrap();
+    protocol::send_packet(HostBoundPacket::ExitRequest(code)).ok();
 
     loop {
         core::hint::spin_loop();

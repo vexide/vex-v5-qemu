@@ -10,11 +10,6 @@
 //! file: <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
 
 use core::arch::asm;
-use vex_sdk::{
-    vexSystemDataAbortInterrupt, vexSystemFIQInterrupt, vexSystemPrefetchAbortInterrupt,
-};
-
-use crate::protocol::exit;
 
 /// Sets the value of the VBAR (Vector Base Address Register).
 ///
@@ -38,31 +33,41 @@ pub extern "C" fn reset() -> ! {
     unsafe {
         asm!(
             "
-            ldr sp, =__stack_top
+            mrs r0, cpsr         @ Load CPSR
 
-            cpsid aif, #0b10001          @ FIQ
+                                 @ Set up stacks for each mode, writing only
+                                 @ the lower 8 bits, which contain the state
+
+            bic r0, r0, #0b11111 @ FIQ
+            orr r0, r0, #0b10001
+            msr cpsr_c, r0
             ldr sp, =__fiq_stack_top
 
-            cpsid aif, #0b10010          @ IRQ
+            bic r0, r0, #0b11111 @ IRQ
+            orr r0, r0, #0b10010
+            msr cpsr_c, r0
             ldr sp, =__irq_stack_top
 
-            cpsid aif, #0b10111          @ Abort
+            bic r0, r0, #0b11111 @ SVC
+            orr r0, r0, #0b10011
+            msr cpsr_c, r0
+            ldr sp, =__svc_stack_top
+
+            bic r0, r0, #0b11111 @ Abort
+            orr r0, r0, #0b10111
+            msr cpsr_c, r0
             ldr sp, =__abort_stack_top
 
-            cpsid aif, #0b11011          @ Undefined
+            bic r0, r0, #0b11111 @ Undefined
+            orr r0, r0, #0b11011
+            msr cpsr_c, r0
             ldr sp, =__undefined_stack_top
 
-            @ Enable interrupts in each mode
-            cpsie a, #0b10001          @ FIQ
-            cpsie a, #0b10010          @ IRQ
-            cpsie a, #0b10111          @ Abort
-            cpsie a, #0b11011          @ Undefined
-            cpsie ai, #0b10011          @ SVC (what the program normally runs in)
-            mov sp, r0
+            orr r0, r0, #0b11111 @ Sys
+            msr cpsr_c, r0
+            ldr sp, =__stack_top
 
-            b _start
-
-            // TODO: we need to have separate stacks for each exception vector.
+            b _start             @ Jump to Rust entrypoint
             ",
             options(noreturn)
         )
@@ -82,12 +87,12 @@ pub extern "C" fn undefined_instruction() -> ! {
     unsafe {
         asm!(
             "
-            stmdb sp!,{{r0-r3,r12,lr}} // state save from compiled code
+            stmdb sp!,{{r0-r3,r12,lr}}  @ state save from compiled code
             ldr r0, =UndefinedExceptionAddr
             sub r1, lr,#4
-            str r1, [r0] // Address of instruction causing undefined exception
-            bl UndefinedException // UndefinedException: call C function here
-            ldmia sp!, {{r0-r3,r12,lr}} // state restore from compiled code
+            str r1, [r0]                @ Address of instruction causing undefined exception
+            bl UndefinedException       @ UndefinedException: call C function here
+            ldmia sp!, {{r0-r3,r12,lr}} @ state restore from compiled code
 
             movs pc, lr
             ",
@@ -106,15 +111,13 @@ pub extern "C" fn svc() -> ! {
     unsafe {
         asm!(
             "
-            stmdb sp!,{{r0-r3,r12,lr}} // state save from compiled code
-            tst	r0, #0x20 // check the T bit
-            // ldrneh r0, [lr,#-2] // Thumb mode
-            // bicne r0, r0, #0xff00 // Thumb mode
-            ldreq r0, [lr,#-4] // ARM mode
-            biceq r0, r0, #0xff000000 // ARM mode
-            bl SWInterrupt // SWInterrupt: call C function here
-            ldmia sp!,{{r0-r3,r12,lr}} // state restore from compiled code
-            movs pc, lr // adjust return
+            stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
+            tst	r0, #0x20              @ check the T bit
+            ldreq r0, [lr,#-4]         @ ARM mode
+            biceq r0, r0, #0xff000000  @ ARM mode
+            bl SWInterrupt             @ SWInterrupt: call C function here
+            ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
+            movs pc, lr                @ adjust return
             ",
             options(noreturn)
         )
@@ -130,15 +133,22 @@ pub extern "C" fn svc() -> ! {
 ///
 /// See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Prefetch-Abort-exception>
 #[no_mangle]
+#[naked]
 pub extern "C" fn prefetch_abort() -> ! {
-    // TODO: copy <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s#L133>
-    // rather than just calling the jumptable function. This should first go through libxil, then libxil should
-    // call vexSystemPrefetchAbortInterrupt.
     unsafe {
-        vexSystemPrefetchAbortInterrupt();
+        asm!(
+            "
+                stmdb sp!,{{r0-r3,r12,lr}}  @ state save from compiled code
+                ldr r0, =PrefetchAbortAddr
+                sub r1, lr,#4
+                str r1, [r0]              @ Address of instruction causing prefetch abort
+                bl PrefetchAbortInterrupt @ PrefetchAbortInterrupt: call C function here
+                ldmia sp!,{{r0-r3,r12,lr}}  @ state restore from compiled code
+                subs pc, lr, #4           @ adjust return
+            ",
+            options(noreturn)
+        )
     }
-
-    exit(1);
 }
 
 /// Data Abort Vector
@@ -150,14 +160,20 @@ pub extern "C" fn prefetch_abort() -> ! {
 /// See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Data-Abort-exception>
 #[no_mangle]
 pub extern "C" fn data_abort() -> ! {
-    // TODO: copy <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s#L124>
-    // rather than just calling the jumptable function. This should first go through libxil, then libxil should
-    // call vexSystemDataAbortInterrupt.
     unsafe {
-        vexSystemDataAbortInterrupt();
+        asm!(
+            "
+            stmdb sp!,{{r0-r3, r12, lr}} @ state save from compiled code
+            ldr r0, =DataAbortAddr
+            sub r1, lr,#8
+            str r1, [r0]                 @ Address of instruction causing data abort
+            bl DataAbortInterrupt        @ DataAbortInterrupt :call C function here
+            ldmia sp!,{{r0-r3, r12, lr}} @ state restore from compiled code
+            subs pc, lr, #8			     @ adjust return
+            ",
+            options(noreturn)
+        )
     }
-
-    exit(1);
 }
 
 /// Interrupt Request Vector
@@ -170,22 +186,22 @@ pub extern "C" fn irq() -> ! {
     unsafe {
         asm!(
             "
-                stmdb sp!,{{r0-r3,r12,lr}} // state save from compiled code
+                stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
                 vpush {{d0-d7}}
                 vpush {{d16-d31}}
                 vmrs r1, FPSCR
                 push {{r1}}
                 vmrs r1, FPEXC
                 push {{r1}}
-                bl IRQInterrupt // IRQ vector
+                bl IRQInterrupt            @ IRQ vector
                 pop {{r1}}
                 vmsr FPEXC, r1
                 pop {{r1}}
                 vmsr FPSCR, r1
                 vpop {{d16-d31}}
                 vpop {{d0-d7}}
-                ldmia sp!,{{r0-r3,r12,lr}} // state restore from compiled code
-                subs pc, lr, #4 // adjust return
+                ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
+                subs pc, lr, #4            @ adjust return
             ",
             options(noreturn)
         )
@@ -193,16 +209,29 @@ pub extern "C" fn irq() -> ! {
 }
 
 #[no_mangle]
+#[naked]
 pub extern "C" fn fiq() -> ! {
-    // TODO: look at <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s#L82>
-    //
-    // This one's also a little weird since there's an FIQLoop symbol, where I have no idea
-    // if or when its ever called or used here. Either way, FIQs aren't ever used on the V5.
     unsafe {
-        vexSystemFIQInterrupt();
-    }
-
-    loop {
-        core::hint::spin_loop();
+        asm!(
+            "
+                stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
+                vpush {{d0-d7}}
+                vpush {{d16-d31}}
+                vmrs r1, FPSCR
+                push {{r1}}
+                vmrs r1, FPEXC
+                push {{r1}}
+                bl FIQInterrupt			   @ FIQ vector
+                pop {{r1}}
+                vmsr FPEXC, r1
+                pop {{r1}}
+                vmsr FPSCR, r1
+                vpop {{d16-d31}}
+                vpop {{d0-d7}}
+                ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
+                subs pc, lr, #4            @ adjust return
+            ",
+            options(noreturn)
+        )
     }
 }

@@ -69,12 +69,6 @@ fn main() -> anyhow::Result<()> {
         .args(["-chardev", "stdio,id=char0"])
         .args(["-serial", "null"])
         .args(["-serial", "chardev:char0"])
-        .args([
-            // Semihosting interface allows host <-> guest communication
-            "-semihosting",
-            "-semihosting-config",
-            "enable=on,target=native",
-        ])
         .args(opt.qemu_args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

@@ -69,9 +69,3 @@ extern "C" {
     pub fn XScuGic_Enable(InstancePtr: *mut XScuGic, Int_Id: u32);
     pub fn XScuGic_Disable(InstancePtr: *mut XScuGic, Int_Id: u32);
 }
-
-pub unsafe extern "C" fn indirect_XScuGic_InterruptHandler(Data: *mut c_void) {
-    unsafe {
-        XScuGic_InterruptHandler(core::mem::transmute(Data))
-    }
-}

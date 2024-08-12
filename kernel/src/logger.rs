@@ -25,7 +25,11 @@ impl Log for KernelLogger {
 
     fn log(&self, record: &log::Record<'_>) {
         if self.enabled(record.metadata()) {
-            semihosting::eprintln!("[{}] {}", record.level(), record.args());
+            protocol::send_packet(HostBoundPacket::KernelSerial(
+                format!("[{}] {}", record.level(), record.args())
+                    .as_bytes()
+                    .to_vec(),
+            )).unwrap();
         }
     }
 

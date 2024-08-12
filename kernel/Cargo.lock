@@ -124,7 +124,6 @@ dependencies = [
  "lock_api",
  "log",
  "printf-compat",
- "semihosting",
  "snafu",
  "talc",
  "vex-sdk",
@@ -188,12 +187,6 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
-
-[[package]]
-name = "semihosting"
-version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79d1bfe77da77f48286b7af6b1d718cde31d6f59a3ccae5b7d8bcf0d02b3c2e1"
 
 [[package]]
 name = "serde"
