@@ -103,7 +103,7 @@ pub extern "C" fn undefined_instruction() -> ! {
 
 /// Software Interrupt Vector
 ///
-/// This function is jumped to when the CPU recieves a software interrupt (SWI/SVC). It
+/// This function is jumped to when the CPU receives a software interrupt (SWI/SVC). It
 /// currently just saves the program state/registers and calls `SWInterrupt` from libxil.
 #[no_mangle]
 #[naked]
@@ -178,7 +178,7 @@ pub extern "C" fn data_abort() -> ! {
 
 /// Interrupt Request Vector
 ///
-/// This function is jumped to when the CPU recieves an IRQ. It currently just saves the
+/// This function is jumped to when the CPU receives an IRQ. It currently just saves the
 /// program state/registers and calls `IRQInterrupt` from libxil.
 #[no_mangle]
 #[naked]

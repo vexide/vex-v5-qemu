@@ -34,6 +34,11 @@ pub struct WatchdogTimer {
 impl WatchdogTimer {
     pub const INTERRUPT_ID: u32 = 30;
 
+    /// Create a new watchdog timer peripheral at the given base address.
+    ///
+    /// # Safety
+    ///
+    /// This function must only be called once per given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, WatchdogTimerError> {
         // SAFETY: The driver is initialized before it is returned.
         let mut instance = unsafe { core::mem::zeroed() };
@@ -134,7 +139,7 @@ impl WatchdogTimer {
         unsafe { XScuWdt_IsWdtExpired(&self.instance) }
     }
 
-    pub unsafe fn raw_mut(&mut self) -> &mut XScuWdt {
+    pub fn raw_mut(&mut self) -> &mut XScuWdt {
         &mut self.instance
     }
 }

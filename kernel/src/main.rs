@@ -18,14 +18,17 @@ pub mod xil;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
-use vex_v5_qemu_protocol::{code_signature::CodeSignature, GuestBoundPacket, HostBoundPacket};
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket, KernelBoundPacket};
 
 extern "C" {
-    /// Entrypoint of the user program (located at 0x03800020)
+    /// Entrypoint of the user program. (located at 0x03800020)
     #[link_name = "_vex_startup"]
     fn vexStartup();
 
-    // Start address of user program memory.
+    /// Start address of user program memory.
+    ///
+    /// This is 32 bytes before vexStartup and contains the user code
+    /// signature (header).
     #[link_name = "_user_memory_start"]
     static USER_MEMORY_START: *const ();
 
@@ -34,17 +37,29 @@ extern "C" {
     static VECTORS_START: *const ();
 }
 
+/// Kernel logging implementation.
+///
+/// This global implements the [`Log`] trait allowing us to to log information
+/// to the host over a UART packet. See the `logger` module.
 static LOGGER: KernelLogger = KernelLogger;
+
+// Include the exception vector table.
+//
+// These instructions are stored starting at 0x0 in program memory and will
+// be the first thing executed by the CPU. In our case, we immediately jump
+// to the `reset` vector on boot.
+core::arch::global_asm!(include_str!("vectors.s"));
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     unsafe {
-        // Install vector table for interrupt and exception handling.
+        // Set the vector base address register. This specifies to the CPU the start
+        // address of the exception vector table, which is jumped to when the CPU
+        // encounters an exception or interrupt. This is at address 0x10000 - the start
+        // of kernel memory.
         //
-        // This probably isn't necessary, since I believe that our CPU
-        // will assume that the vector table is located at 0x0.
-        //
-        // See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Exception-vectors-and-the-exception-base-address>
+        // The table is created in `vectors.s` and the handlers can be found in the
+        // `vectors` module.
         vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
 
         // Enable hardware floating-point instructions
@@ -55,7 +70,9 @@ pub extern "C" fn _start() -> ! {
     }
 
     // Force-initialize all peripherals.
-    // If they fail to initialize, we want them to fail now rather than whenever they're first accessed.
+    //
+    // If they fail to initialize, we want them to fail now rather than whenever they're
+    // first accessed.
     GIC.force();
     PRIVATE_TIMER.force();
     WATCHDOG_TIMER.force();
@@ -70,15 +87,17 @@ pub extern "C" fn _start() -> ! {
     // [`vexSystemTimeGet`] as well for the purposes of ticking FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    // Handshake with the host
+    // Send/receive a handshake packet with the host to ensure that packet transfer is viable.
+    log::debug!("Handshaking with host...");
     protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
-    while protocol::recv_packet().expect("Failed to recieve handshake packet from host.")
-        != Some(GuestBoundPacket::Handshake)
+    while protocol::recv_packet().expect("Failed to receive handshake packet from host.")
+        != Some(KernelBoundPacket::Handshake)
     {
         core::hint::spin_loop();
     }
 
-    // Send over codesignature information to host.
+    // Send user code signature to host.
+    log::debug!("Handshake complete. Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(CodeSignature::from(
         unsafe {
             core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
@@ -86,17 +105,13 @@ pub extern "C" fn _start() -> ! {
     )))
     .unwrap();
 
-    // Call user code!!
+    // Execute user program's entrypoint function.
+    //
+    // This is located 32 bytes after the code signature at 0x03800020.
+    log::debug!("Calling user code.");
     unsafe {
         vexStartup();
     }
 
     unreachable!("vexStartup should not return!");
 }
-
-// Include the exception vector table.
-//
-// These instructions are stored starting at 0x0 in program memory and will
-// be the first thing executed by the CPU. In our case, we immediately jump
-// to the `reset` vector on boot.
-core::arch::global_asm!(include_str!("vectors.s"));

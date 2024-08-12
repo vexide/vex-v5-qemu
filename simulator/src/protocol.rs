@@ -6,7 +6,7 @@ use std::{
 use bincode::error::{DecodeError, EncodeError};
 use miette::Diagnostic;
 use thiserror::Error;
-use vex_v5_qemu_protocol::{GuestBoundPacket, HostBoundPacket};
+use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 #[derive(Error, Diagnostic, Debug)]
 pub enum ProtocolError {
@@ -23,7 +23,7 @@ pub enum ProtocolError {
     Decode(#[from] DecodeError),
 }
 
-pub fn send_packet(stdin: &mut ChildStdin, packet: GuestBoundPacket) -> Result<(), ProtocolError> {
+pub fn send_packet(stdin: &mut ChildStdin, packet: KernelBoundPacket) -> Result<(), ProtocolError> {
     let encoded = bincode::encode_to_vec(packet, bincode::config::standard())?;
 
     let mut bytes = Vec::new();
