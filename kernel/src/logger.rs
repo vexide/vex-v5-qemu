@@ -1,10 +1,11 @@
 //! Kernel Logger Implementation
 
+use alloc::format;
 use log::{max_level, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 
-use embedded_io::Write;
+use vex_v5_qemu_protocol::HostBoundPacket;
 
-use crate::peripherals::UART1;
+use crate::protocol;
 
 pub struct KernelLogger;
 
@@ -24,7 +25,7 @@ impl Log for KernelLogger {
 
     fn log(&self, record: &log::Record<'_>) {
         if self.enabled(record.metadata()) {
-            writeln!(UART1.lock(), "[{}] {}", record.level(), record.args()).unwrap();
+            semihosting::eprintln!("[{}] {}", record.level(), record.args());
         }
     }
 

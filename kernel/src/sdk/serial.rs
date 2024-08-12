@@ -1,16 +1,36 @@
 //! USB Serial Communication
 
-use core::ffi::{c_char, VaList};
+use alloc::vec;
+use core::{
+    ffi::{c_char, VaList},
+    slice,
+};
+
+use vex_v5_qemu_protocol::HostBoundPacket;
+
+use crate::protocol;
 
 pub fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
-    -1
+    if protocol::send_packet(HostBoundPacket::UserSerial(vec![c])).is_err() {
+        -1
+    } else {
+        1
+    }
 }
 
 /// # Safety
 ///
 /// - `data` must be a valid pointer to a buffer of length `data_len`.
 pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
-    -1
+    if protocol::send_packet(HostBoundPacket::UserSerial(
+        unsafe { slice::from_raw_parts(data, data_len as usize) }.to_vec(),
+    ))
+    .is_err()
+    {
+        -1
+    } else {
+        data_len as i32
+    }
 }
 pub fn vexSerialReadChar(channel: u32) -> i32 {
     -1

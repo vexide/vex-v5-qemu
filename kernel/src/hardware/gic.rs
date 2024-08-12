@@ -3,11 +3,9 @@ use core::ffi::c_void;
 use snafu::Snafu;
 
 use crate::xil::{
-    exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
+    exception::{Xil_ExceptionHandler, Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_IRQ_INT},
     gic::{
-        XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Disable, XScuGic_Disconnect,
-        XScuGic_Enable, XScuGic_InterruptHandler, XScuGic_LookupConfig,
-        XScuGic_SetPriorityTriggerType,
+        indirect_XScuGic_InterruptHandler, XScuGic, XScuGic_CfgInitialize, XScuGic_Connect, XScuGic_Disable, XScuGic_Disconnect, XScuGic_Enable, XScuGic_InterruptHandler, XScuGic_LookupConfig, XScuGic_SetPriorityTriggerType
     },
     XST_SUCCESS,
 };
@@ -74,7 +72,7 @@ impl GenericInterruptController {
         unsafe {
             Xil_ExceptionRegisterHandler(
                 XIL_EXCEPTION_ID_IRQ_INT,
-                Some(XScuGic_InterruptHandler),
+                Some(indirect_XScuGic_InterruptHandler),
                 &mut instance as *mut XScuGic as _,
             );
         }

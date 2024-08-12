@@ -52,7 +52,7 @@ extern "C" {
     pub fn XScuGic_LookupConfig(BaseAddr: u32) -> *mut XScuGic_Config;
     // This should be `InstancePtr: *mut XScuGic`, but rust can't transmute function pointers making this difficult
     // to cast to a Xil_ExceptionHandler.
-    pub fn XScuGic_InterruptHandler(InstancePtr: *mut c_void);
+    pub fn XScuGic_InterruptHandler(InstancePtr: *mut XScuGic);
     pub fn XScuGic_Connect(
         InstancePtr: *mut XScuGic,
         Int_Id: u32,
@@ -68,4 +68,10 @@ extern "C" {
     );
     pub fn XScuGic_Enable(InstancePtr: *mut XScuGic, Int_Id: u32);
     pub fn XScuGic_Disable(InstancePtr: *mut XScuGic, Int_Id: u32);
+}
+
+pub unsafe extern "C" fn indirect_XScuGic_InterruptHandler(Data: *mut c_void) {
+    unsafe {
+        XScuGic_InterruptHandler(core::mem::transmute(Data))
+    }
 }

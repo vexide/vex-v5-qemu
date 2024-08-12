@@ -14,7 +14,7 @@ use vex_sdk::{
     vexSystemDataAbortInterrupt, vexSystemFIQInterrupt, vexSystemPrefetchAbortInterrupt,
 };
 
-use crate::utils::exit;
+use crate::protocol::exit;
 
 /// Sets the value of the VBAR (Vector Base Address Register).
 ///
@@ -38,8 +38,28 @@ pub extern "C" fn reset() -> ! {
     unsafe {
         asm!(
             "
-            // setup the stack, then call entrypoint
             ldr sp, =__stack_top
+
+            cpsid aif, #0b10001          @ FIQ
+            ldr sp, =__fiq_stack_top
+
+            cpsid aif, #0b10010          @ IRQ
+            ldr sp, =__irq_stack_top
+
+            cpsid aif, #0b10111          @ Abort
+            ldr sp, =__abort_stack_top
+
+            cpsid aif, #0b11011          @ Undefined
+            ldr sp, =__undefined_stack_top
+
+            @ Enable interrupts in each mode
+            cpsie a, #0b10001          @ FIQ
+            cpsie a, #0b10010          @ IRQ
+            cpsie a, #0b10111          @ Abort
+            cpsie a, #0b11011          @ Undefined
+            cpsie ai, #0b10011          @ SVC (what the program normally runs in)
+            mov sp, r0
+
             b _start
 
             // TODO: we need to have separate stacks for each exception vector.

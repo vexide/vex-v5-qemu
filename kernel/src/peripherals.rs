@@ -57,6 +57,8 @@ pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 pub extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
     let timer = timer as *mut XScuTimer;
 
+    log::debug!("Timer interrupt");
+
     // Verify that the timer has in fact reached zero.
     if unsafe { XScuTimer_IsExpired(timer) } {
         // Clear ISR flag to ensure that future interrupts fire.

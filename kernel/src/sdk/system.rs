@@ -16,7 +16,7 @@ use crate::{
     peripherals::{
         timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
     },
-    utils::exit,
+    protocol::exit,
     xil::{gic::XSCUGIC_MAX_NUM_INTR_INPUTS, timer::XScuTimer, XST_FAILURE, XST_SUCCESS},
 };
 
