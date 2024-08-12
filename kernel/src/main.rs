@@ -18,7 +18,7 @@ pub mod xil;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
-use vex_v5_qemu_protocol::{code_signature::CodeSignature, GuestBoundPacket, HostBoundPacket};
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, KernelBoundPacket, HostBoundPacket};
 
 extern "C" {
     /// Entrypoint of the user program (located at 0x03800020)
@@ -71,14 +71,16 @@ pub extern "C" fn _start() -> ! {
     peripherals::setup_private_timer().unwrap();
 
     // Handshake with the host
+    log::debug!("Handshaking with host...");
     protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
     while protocol::recv_packet().expect("Failed to recieve handshake packet from host.")
-        != Some(GuestBoundPacket::Handshake)
+        != Some(KernelBoundPacket::Handshake)
     {
         core::hint::spin_loop();
     }
 
     // Send over codesignature information to host.
+    log::debug!("Handshake complete. Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(CodeSignature::from(
         unsafe {
             core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
@@ -87,6 +89,7 @@ pub extern "C" fn _start() -> ! {
     .unwrap();
 
     // Call user code!!
+    log::debug!("Calling user code.");
     unsafe {
         vexStartup();
     }

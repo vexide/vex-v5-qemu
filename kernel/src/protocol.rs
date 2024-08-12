@@ -2,7 +2,7 @@ use alloc::{vec, vec::Vec};
 use bincode::error::{DecodeError, EncodeError};
 use embedded_io::{Read, ReadExactError, Write};
 use snafu::Snafu;
-use vex_v5_qemu_protocol::{GuestBoundPacket, HostBoundPacket};
+use vex_v5_qemu_protocol::{KernelBoundPacket, HostBoundPacket};
 
 use crate::peripherals::UART1;
 use crate::protocol;
@@ -27,7 +27,7 @@ pub fn send_packet(packet: HostBoundPacket) -> Result<(), ProtocolError> {
     Ok(())
 }
 
-pub fn recv_packet() -> Result<Option<GuestBoundPacket>, ProtocolError> {
+pub fn recv_packet() -> Result<Option<KernelBoundPacket>, ProtocolError> {
     let mut uart = UART1.lock();
 
     // Read packet length
