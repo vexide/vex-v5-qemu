@@ -1,10 +1,13 @@
 use std::{
-    io::{stdin, Read, Write},
+    io::{stderr, stdin, stdout, Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
 };
 
 use anyhow::Context;
+use vex_v5_qemu_protocol::{GuestBoundPacket, HostBoundPacket};
+
+pub mod protocol;
 
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
@@ -50,7 +53,10 @@ fn main() -> anyhow::Result<()> {
         .args(["-object", "memory-backend-ram,id=mem,size=256M"])
         .args([
             "-device",
-            &format!("loader,file={},addr=0x100000,cpu-num=0", opt.kernel.display()),
+            &format!(
+                "loader,file={},addr=0x100000,cpu-num=0",
+                opt.kernel.display()
+            ),
         ])
         .args([
             "-device",
@@ -65,21 +71,41 @@ fn main() -> anyhow::Result<()> {
         .args(["-serial", "chardev:char0"])
         .args(opt.qemu_args)
         .stdin(Stdio::piped())
-        .stdout(Stdio::inherit())
+        .stdout(Stdio::piped())
         .stderr(Stdio::inherit());
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
     let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
 
-    let mut child_stdin = qemu.stdin.take().unwrap();
-    let mut stdin = stdin();
-    let mut buf = [0u8; 1];
-    loop {
-        if stdin.read(&mut buf)? == 0 {
-            break;
+    let mut qemu_stdout = qemu.stdout.take().unwrap();
+    let mut qemu_stdin = qemu.stdin.take().unwrap();
+
+    while let Ok(packet) = protocol::recv_packet(&mut qemu_stdout) {
+        if let Some(packet) = &packet {
+            match packet {
+                HostBoundPacket::UserSerial(data) => {
+                    let mut stdout = stdout().lock();
+                    stdout.write_all(data).unwrap();
+                    stdout.flush().unwrap();
+                },
+                HostBoundPacket::KernelSerial(data) => {
+                    let mut stderr = stderr().lock();
+                    stderr.write_all(data).unwrap();
+                    stderr.flush().unwrap();
+                }
+                HostBoundPacket::CodeSignature(sig) => {
+                    println!("Got code signature: {:?}", sig);
+                }
+                HostBoundPacket::Handshake => {
+                    protocol::send_packet(&mut qemu_stdin, GuestBoundPacket::Handshake)?;
+                }
+                HostBoundPacket::ExitRequest(code) => {
+                    qemu.kill().unwrap();
+                    std::process::exit(*code);
+                }
+            }
         }
-        child_stdin.write_all(&buf)?;
     }
 
     qemu.wait().context("QEMU exited unexpectedly.")?;

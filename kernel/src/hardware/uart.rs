@@ -1,5 +1,7 @@
+use core::convert::Infallible;
+
+use embedded_io::{ErrorType, Read, Write};
 use snafu::Snafu;
-use vexide_core::io::{self, Read, Write};
 
 use crate::xil::{uart::*, XST_SUCCESS};
 
@@ -62,13 +64,6 @@ impl UartDriver {
         let status = unsafe { XUartPs_CfgInitialize(&mut driver, config, (*config).BaseAddress) };
         UartDriverError::try_from_xst_status(status)?;
 
-        // Adding the self-test causes linker errors (missing strlen, etc.)
-        // if self_test {
-        //     // SAFETY: The driver is fully initialized.
-        //     let status = unsafe { XUartPs_SelfTest(&mut driver) };
-        //     UartDriverError::try_from_xst_status(status)?;
-        // }
-
         Ok(Self { instance: driver })
     }
 
@@ -87,30 +82,26 @@ impl UartDriver {
 // threads (Doesn't access or set the name, doesn't use interrupt mode.)
 unsafe impl Send for UartDriver {}
 
+impl ErrorType for UartDriver {
+    type Error = Infallible;
+}
+
 impl Write for UartDriver {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let mut sent_count = 0;
-        while sent_count < buf.len() {
-            // SAFETY: The instance is fully initialized.
-            sent_count += unsafe { XUartPs_Send(&mut self.instance, &buf[sent_count], 1) as usize };
-        }
-        Ok(sent_count)
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        Ok(unsafe { XUartPs_Send(&mut self.instance, buf.as_ptr(), buf.len() as u32) as usize })
     }
 
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self) -> Result<(), Self::Error> {
         Ok(())
     }
 }
 
 impl Read for UartDriver {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let mut read_count = 0;
-        while read_count < buf.len() {
-            // SAFETY: The instance is fully initialized.
-            let num_read =
-                unsafe { XUartPs_Recv(&mut self.instance, &mut buf[read_count], 1) as usize };
-            read_count += num_read;
-        }
-        Ok(read_count)
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        Ok(
+            unsafe {
+                XUartPs_Recv(&mut self.instance, buf.as_mut_ptr(), buf.len() as u32) as usize
+            },
+        )
     }
 }

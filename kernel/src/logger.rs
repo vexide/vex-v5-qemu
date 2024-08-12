@@ -1,38 +1,35 @@
 //! Kernel Logger Implementation
 
-use alloc::boxed::Box;
-use log::{debug, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
-use vexide_core::io::Write;
+use alloc::format;
+use log::{max_level, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
 
-use crate::peripherals::UART1;
+use vex_v5_qemu_protocol::HostBoundPacket;
 
-pub struct KernelLogger {
-    level: LevelFilter,
-}
+use crate::protocol;
+
+pub struct KernelLogger;
 
 impl KernelLogger {
-    pub fn init(log_level: LevelFilter) -> Result<(), SetLoggerError> {
-        set_max_level(log_level);
-        set_logger(Box::leak(Self::new(log_level)))?;
-        debug!("Logging initialized");
-        Ok(())
-    }
+    pub fn init(&'static self, level: LevelFilter) -> Result<(), SetLoggerError> {
+        set_logger(self)?;
+        set_max_level(level);
 
-    pub fn new(log_level: LevelFilter) -> Box<Self> {
-        Box::new(Self { level: log_level })
+        Ok(())
     }
 }
 
 impl Log for KernelLogger {
     fn enabled(&self, metadata: &Metadata<'_>) -> bool {
-        metadata.level() <= self.level
+        metadata.level() <= max_level()
     }
 
     fn log(&self, record: &log::Record<'_>) {
         if self.enabled(record.metadata()) {
-            let mut uart = UART1.lock();
-
-            writeln!(uart, "[{}] {}", record.level(), record.args()).unwrap();
+            protocol::send_packet(HostBoundPacket::KernelSerial(
+                format!("[{}] {}", record.level(), record.args())
+                    .as_bytes()
+                    .to_vec(),
+            )).unwrap();
         }
     }
 

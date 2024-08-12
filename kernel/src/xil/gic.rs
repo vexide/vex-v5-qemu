@@ -2,7 +2,7 @@
 
 #![allow(non_camel_case_types)]
 
-use core::ffi::{c_char, c_uint, c_void};
+use core::ffi::{c_char, c_void};
 
 pub const XPAR_SCUGIC_0_DIST_BASEADDR: u32 = 0xF8F01000;
 
@@ -52,7 +52,7 @@ extern "C" {
     pub fn XScuGic_LookupConfig(BaseAddr: u32) -> *mut XScuGic_Config;
     // This should be `InstancePtr: *mut XScuGic`, but rust can't transmute function pointers making this difficult
     // to cast to a Xil_ExceptionHandler.
-    pub fn XScuGic_InterruptHandler(InstancePtr: *mut c_void);
+    pub fn XScuGic_InterruptHandler(InstancePtr: *mut XScuGic);
     pub fn XScuGic_Connect(
         InstancePtr: *mut XScuGic,
         Int_Id: u32,

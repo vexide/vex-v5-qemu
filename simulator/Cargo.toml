@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+tokio = { version = "1.23.0", features = ["full"] }
+miette = { version = "7.2.0", features = ["fancy"] }
 clap = { version = "4.5.1", features = ["derive"] }
-# memmap2 = "0.9.4"
-# snafu = "0.8.4"
 anyhow = "1.0.86"
+bincode = "2.0.0-rc.3"
+vex-v5-qemu-protocol = { path = "../protocol" }
+thiserror = "1.0.63"

@@ -4,42 +4,40 @@
 
 extern crate alloc;
 
+pub mod allocator;
 pub mod hardware;
 pub mod logger;
 pub mod panic;
 pub mod peripherals;
+pub mod protocol;
 pub mod sdk;
-pub mod utils;
+pub mod sync;
 pub mod vectors;
 pub mod xil;
 
-use core::arch::asm;
-
-use log::{info, LevelFilter};
+use log::LevelFilter;
 use logger::KernelLogger;
-
-pub type Mutex<T> = lock_api::Mutex<vexide_core::sync::RawMutex, T>;
+use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, GuestBoundPacket, HostBoundPacket};
 
 extern "C" {
-    // This will be needed if or when we need to read the program's code signature.
-    // #[link_name = "_user_memory_start"]
-    // static USER_MEMORY_START: *const ();
-
-    /// Location of the exception vector table.
-    #[link_name = "__text_start"]
-    static VECTORS_START: u32;
-
     /// Entrypoint of the user program (located at 0x03800020)
     #[link_name = "_vex_startup"]
     fn vexStartup();
+
+    // Start address of user program memory.
+    #[link_name = "_user_memory_start"]
+    static USER_MEMORY_START: *const ();
+
+    /// Location of the exception vector table.
+    #[link_name = "__vectors_start"]
+    static VECTORS_START: *const ();
 }
 
-/// Reset Vector
-///
-/// This function will be immediately executed when the CPU first starts,
-/// and is the entrypoint/bootloader to the simulator.
+static LOGGER: KernelLogger = KernelLogger;
+
 #[no_mangle]
-pub extern "C" fn reset() -> ! {
+pub extern "C" fn _start() -> ! {
     unsafe {
         // Install vector table for interrupt and exception handling.
         //
@@ -47,22 +45,24 @@ pub extern "C" fn reset() -> ! {
         // will assume that the vector table is located at 0x0.
         //
         // See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Exception-vectors-and-the-exception-base-address>
-        vectors::set_vbar(0x100000);
+        vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
 
         // Enable hardware floating-point instructions
         hardware::fpu::enable_vfp();
 
-        // Setup the stack pointer
-        asm!("ldr sp, =__stack_top");
-
-        // TODO: look into playing with L2 cache
-        // See: <https://git.m-labs.hk/M-Labs/zynq-rs/src/branch/master/experiments/src/main.rs
-
-        // Normally, startup code would clear .bss around here, but VEX
-        // doesn't do that so we won't either :D
-
-        vexide_core::allocator::vexos::init_heap();
+        // Initialize heap memory
+        allocator::init_heap();
     }
+
+    // Force-initialize all peripherals.
+    // If they fail to initialize, we want them to fail now rather than whenever they're first accessed.
+    GIC.force();
+    PRIVATE_TIMER.force();
+    WATCHDOG_TIMER.force();
+    UART1.force();
+
+    // Initialize UART kernel logger
+    LOGGER.init(LevelFilter::Debug).unwrap();
 
     // Setup private timer peripheral and register a tick interrupt handler using the GIC.
     //
@@ -70,9 +70,21 @@ pub extern "C" fn reset() -> ! {
     // [`vexSystemTimeGet`] as well for the purposes of ticking FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    // Setup kernel logger. This will also lazily initialize UART1 in the process.
-    KernelLogger::init(LevelFilter::Trace).unwrap();
-    info!("Kernel ready - starting user code with vexStartup()");
+    // Handshake with the host
+    protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
+    while protocol::recv_packet().expect("Failed to recieve handshake packet from host.")
+        != Some(GuestBoundPacket::Handshake)
+    {
+        core::hint::spin_loop();
+    }
+
+    // Send over codesignature information to host.
+    protocol::send_packet(HostBoundPacket::CodeSignature(CodeSignature::from(
+        unsafe {
+            core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
+        },
+    )))
+    .unwrap();
 
     // Call user code!!
     unsafe {

@@ -12,12 +12,10 @@ pub mod code_signature;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Encode, Decode)]
 pub enum HostBoundPacket {
     Handshake,
-    Serial {
-        channel: u32,
-        data: Vec<u8>,
-    },
+    UserSerial(Vec<u8>),
+    KernelSerial(Vec<u8>),
     CodeSignature(CodeSignature),
-    ExitRequest,
+    ExitRequest(i32),
 }
 
 /// A message sent from the host to the guest.

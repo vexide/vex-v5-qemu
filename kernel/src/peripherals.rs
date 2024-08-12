@@ -3,21 +3,22 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
-use vexide_core::sync::LazyLock;
-
 use crate::{
     hardware::{
         gic::{GenericInterruptController, GicError, InterruptTrigger},
         timers::{private::PrivateTimer, WatchdogTimer},
         uart::UartDriver,
     },
+    sync::{mutex::Mutex, LazyLock},
     xil::{
         gic::XPAR_SCUGIC_0_DIST_BASEADDR,
-        timer::{XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_IsExpired, XPAR_XSCUTIMER_0_BASEADDR},
-        uart::UART1_BASE_ADDR,
+        timer::{
+            XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_IsExpired,
+            XPAR_XSCUTIMER_0_BASEADDR,
+        },
+        uart::XPAR_XUARTPS_0_BASEADDR,
         wdt::XPAR_XSCUWDT_0_BASEADDR,
     },
-    Mutex,
 };
 
 /// Clock frequency of Cortex-A9 timers (in Hz).
@@ -28,28 +29,30 @@ pub const PERIPHCLK: u32 = 666666687 / 2;
 /// Base address of MMIO peripherals.
 pub const PERIPHBASE: u32 = 0xF8F00000;
 
-// SAFETY: This is the only place these devices are being initialized from.
-
 /// UART1 (Universal Asynchronous Receiver/Transmitter) stream 1
 pub static UART1: LazyLock<Mutex<UartDriver>> =
-    LazyLock::new(|| Mutex::new(unsafe { UartDriver::new(UART1_BASE_ADDR).unwrap() }));
+    LazyLock::new(|| unsafe { Mutex::new(UartDriver::new(XPAR_XUARTPS_0_BASEADDR).unwrap()) });
 
 /// Generic Interrupt Controller
-pub static GIC: LazyLock<Mutex<GenericInterruptController>> = LazyLock::new(|| {
-    Mutex::new(unsafe { GenericInterruptController::new(XPAR_SCUGIC_0_DIST_BASEADDR).unwrap() })
+pub static GIC: LazyLock<Mutex<GenericInterruptController>> = LazyLock::new(|| unsafe {
+    Mutex::new(GenericInterruptController::new(XPAR_SCUGIC_0_DIST_BASEADDR).unwrap())
 });
 
 /// Private Timer
 pub static PRIVATE_TIMER: LazyLock<Mutex<PrivateTimer>> =
-    LazyLock::new(|| Mutex::new(unsafe { PrivateTimer::new(XPAR_XSCUTIMER_0_BASEADDR).unwrap() }));
+    LazyLock::new(|| unsafe { Mutex::new(PrivateTimer::new(XPAR_XSCUTIMER_0_BASEADDR).unwrap()) });
 
 /// Watchdog Timer
 pub static WATCHDOG_TIMER: LazyLock<Mutex<WatchdogTimer>> =
-    LazyLock::new(|| Mutex::new(unsafe { WatchdogTimer::new(XPAR_XSCUWDT_0_BASEADDR).unwrap() }));
+    LazyLock::new(|| unsafe { Mutex::new(WatchdogTimer::new(XPAR_XSCUWDT_0_BASEADDR).unwrap()) });
 
+/// Low-resolution system timer.
+///
+/// This global is incremented every tick interrupt sent by the private timer
+/// peripheral. This occurs every millisecond in [`timer_interrupt_handler`] and
+/// is used by [`vexSystemTimeGet`]
 pub static SYSTEM_TIME: AtomicU32 = AtomicU32::new(0);
 
-/// Handles a timer interrupt
 /// Handles a timer interrupt
 pub extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
     let timer = timer as *mut XScuTimer;
@@ -76,8 +79,8 @@ pub extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
 /// Configures the Private Timer peripheral and registers an interrupt handler
 /// for timer ticks using the Generic Interrupt Controller (GIC).
 pub fn setup_private_timer() -> Result<(), GicError> {
-    let mut gic = GIC.lock();
     let mut timer = PRIVATE_TIMER.lock();
+    let mut gic = GIC.lock();
 
     // These two calls are very likely not necessary, but are a good sanity check to
     // ensure the timer wasn't previously configured.
