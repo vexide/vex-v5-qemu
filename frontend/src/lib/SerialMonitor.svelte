@@ -180,9 +180,14 @@
         background: var(--background-tertiary);
         border: none;
         border-top: 1px solid var(--interactive-primary);
-        transition: 150ms ease background;
+        transition: 150ms ease background, 150ms ease box-shadow;
         font-size: 14px;
         font-weight: 600;
+        outline: none;
+    }
+
+    .monitor-header:focus-visible {
+        box-shadow: inset 0 0 0 3px var(--accent-faded);
     }
 
     .monitor-header:hover {

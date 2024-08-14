@@ -13,6 +13,8 @@
         type TextLocation,
     } from "~/lib/payload";
 
+    export let programName = "";
+
     let canvas: HTMLCanvasElement | undefined;
     let ctx: CanvasRenderingContext2D | undefined;
 
@@ -203,7 +205,7 @@
 
 <div class="display">
     <header>
-        <span class="program-name">Program</span>
+        <span class="program-name">{programName}</span>
         <time> 0:00 </time>
         <div class="header-icons">
             <svg

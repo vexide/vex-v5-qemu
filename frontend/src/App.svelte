@@ -16,13 +16,13 @@
     import DevicesSidebar from "~/lib/DevicesSidebar.svelte";
     import Dialog from "~/lib/Dialog.svelte";
 
-    import drag from "~/lib/drag";
-
     import PauseIcon from "svelte-feathers/Pause.svelte";
     import PlayIcon from "svelte-feathers/Play.svelte";
     import RefreshCwIcon from "svelte-feathers/RefreshCw.svelte";
     import SettingsIcon from "svelte-feathers/Settings.svelte";
     import PowerIcon from "svelte-feathers/Power.svelte";
+
+    import path from "path-browserify-esm";
 
     class Session {
         binary: string;
@@ -168,7 +168,10 @@
         </ControlsHeader>
         <section class="display-view">
             {#if session?.running}
-                <Display bind:this={display} />
+                <Display
+                    programName={path.parse(session.binary).name}
+                    bind:this={display}
+                />
             {:else}
                 <Uploader on:upload={handleUpload} />
             {/if}

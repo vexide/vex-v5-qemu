@@ -26,6 +26,9 @@ importers:
       '@xterm/xterm':
         specifier: ^5.5.0
         version: 5.5.0
+      path-browserify-esm:
+        specifier: ^1.0.6
+        version: 1.0.6
       svelte-feathers:
         specifier: ^1.0.6
         version: 1.0.6(svelte@4.2.18)
@@ -598,6 +601,9 @@ packages:
 
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
+
+  path-browserify-esm@1.0.6:
+    resolution: {integrity: sha512-9nUwYvvu/yq1PYrUyYCihNWmpzacaRYF6gGbjLWErrZ4MRDWyfPN7RpE8E7tsw8eqBU/rr7mcoTXbS+Vih8uUA==}
 
   path-is-absolute@1.0.1:
     resolution: {integrity: sha512-AVbw3UJ2e9bq64vSaS9Am0fje1Pa8pbGqTTsmXfaIiMpnr5DlDhfJOuLj9Sf95ZPVDAUerDfEk88MPmPe7UCQg==}
@@ -1196,6 +1202,8 @@ snapshots:
   once@1.4.0:
     dependencies:
       wrappy: 1.0.2
+
+  path-browserify-esm@1.0.6: {}
 
   path-is-absolute@1.0.1: {}
 
