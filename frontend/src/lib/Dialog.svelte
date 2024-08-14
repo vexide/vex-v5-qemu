@@ -45,7 +45,7 @@
 		border: 1px solid var(--background-tertiary);
 		z-index: 9999;
 		box-shadow:
-			inset 0 1px 0 var(--background-quaternary),
+			inset 0 1px 0 var(--background-tertiary),
 			0px 2.8px 2.8px rgba(0, 0, 0, 0.056),
 			0px 6.7px 6.7px rgba(0, 0, 0, 0.081),
 			0px 12.5px 12.5px rgba(0, 0, 0, 0.1),
@@ -56,6 +56,7 @@
 		color: var(--foreground-secondary);
 		opacity: 0;
 		visibility: hidden;
+		will-change: transform;
 		transform: translate(-50%, -50%) scale(0.95) perspective(64px) rotateX(4deg);
 		transition: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	}
@@ -64,18 +65,19 @@
 		display: flex;
 		opacity: 1;
 		visibility: visible;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%) translateZ(0);
 	}
 
 	.dialog::backdrop {
-		background-color: var(--foreground-quaternary);
+		background-color: var(--background-primary);
 		opacity: 0;
 		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
 		transition: 250ms ease;
 	}
 
 	.dialog[open]::backdrop {
-		opacity: 1;
+		opacity: 0.8;
 	}
 
 	.dialog-header {

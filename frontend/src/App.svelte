@@ -2,17 +2,11 @@
     import { onDestroy, onMount, SvelteComponent } from "svelte";
 
     import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
-    import { resolveResource } from "@tauri-apps/api/path";
     import { trace, info, error, attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
     import { spawnQemu, killQemu } from "~/lib/invoke";
-
-    import PauseIcon from "svelte-feathers/Pause.svelte";
-    import PlayIcon from "svelte-feathers/Play.svelte";
-    import RefreshCwIcon from "svelte-feathers/RefreshCw.svelte";
-    import SettingsIcon from "svelte-feathers/Settings.svelte";
-    import PowerIcon from "svelte-feathers/Power.svelte";
+    import type { DragEnterPayload } from "./lib/payload";
 
     import Display from "~/lib/Display.svelte";
     import Button from "~/lib/Button.svelte";
@@ -20,7 +14,15 @@
     import SerialMonitor from "~/lib/SerialMonitor.svelte";
     import Uploader from "~/lib/Uploader.svelte";
     import DevicesSidebar from "~/lib/DevicesSidebar.svelte";
-    import type { DragEnterPayload } from "./lib/payload";
+    import Dialog from "~/lib/Dialog.svelte";
+
+    import drag from "~/lib/drag";
+
+    import PauseIcon from "svelte-feathers/Pause.svelte";
+    import PlayIcon from "svelte-feathers/Play.svelte";
+    import RefreshCwIcon from "svelte-feathers/RefreshCw.svelte";
+    import SettingsIcon from "svelte-feathers/Settings.svelte";
+    import PowerIcon from "svelte-feathers/Power.svelte";
 
     class Session {
         binary: string;
@@ -69,6 +71,9 @@
             }
         }
     }
+
+    let settingsDialogOpen = false;
+    let deviceDialogOpen = false;
 
     let monitor: SvelteComponent | undefined;
     let display: SvelteComponent | undefined;
@@ -121,7 +126,8 @@
             <svelte:fragment slot="left">
                 <Button
                     small
-                    title={(session?.paused ? "Unpause" : "Pause") + " execution"}
+                    title={(session?.paused ? "Unpause" : "Pause") +
+                        " execution"}
                     disabled={!session?.running}
                 >
                     <svelte:component
@@ -149,7 +155,14 @@
                     <PowerIcon size="16" />
                 </Button>
             </svelte:fragment>
-            <Button small slot="right" title="Open settings">
+            <Button
+                small
+                slot="right"
+                title="Open settings"
+                on:click={() => {
+                    settingsDialogOpen = true;
+                }}
+            >
                 <SettingsIcon size="16" />
             </Button>
         </ControlsHeader>
@@ -164,6 +177,16 @@
             <SerialMonitor bind:this={monitor} />
         {/if}
     </div>
+
+    <Dialog bind:open={settingsDialogOpen}>
+        <svelte:fragment slot="header">Settings</svelte:fragment>
+
+        todo
+
+        <svelte:fragment slot="footer">
+            <Button variant="accent" on:click={() => settingsDialogOpen = false}>Done</Button>
+        </svelte:fragment>
+    </Dialog>
 </main>
 
 <style>

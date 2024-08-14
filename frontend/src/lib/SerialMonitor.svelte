@@ -1,23 +1,39 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
 
     import { Terminal } from "@xterm/xterm";
-	import { FitAddon } from '@xterm/addon-fit';
+    import { FitAddon } from "@xterm/addon-fit";
 
     import TerminalIcon from "svelte-feathers/Terminal.svelte";
     import ExternalLinkIcon from "svelte-feathers/ExternalLink.svelte";
 
-    import '@xterm/xterm/css/xterm.css';
+    import drag from "./drag";
+
+    import "@xterm/xterm/css/xterm.css";
     import Button from "./Button.svelte";
 
     let terminal: Terminal | undefined;
     let fitAddon: FitAddon | undefined;
 
+    let terminalContainer: HTMLDivElement | undefined;
+
+    let height = "35vh";
+    let heightBeforeCollapse = height;
+    let holding = false;
+    let dragging = false;
+    let unreadMessages = 0;
+
+    const XTERM_DEFAULT_LINE_HEIGHT = 20;
     const observer = new ResizeObserver(() => {
         fitAddon?.fit();
     });
 
-    let terminalContainer: HTMLDivElement | undefined;
+    $: if (height != "0px") {
+        unreadMessages = 0;
+        console.log("unread");
+    }
 
     onMount(() => {
         fitAddon = new FitAddon();
@@ -40,33 +56,104 @@
         observer.disconnect();
     });
 
-	export function write(text: string) {
-		terminal?.write(text);
-	}
+    function roundStep(number: number, step: number, offset: number = 0) {
+        return Math.ceil((number - offset) / step) * step + offset;
+    }
 
-	export function clear() {
-		terminal?.clear();
-	}
+    function handleDrag(event: PointerEvent) {
+        if (!terminalContainer) return;
+
+        const containerRect = terminalContainer.getBoundingClientRect();
+        const newHeight =
+            Math.max(
+                roundStep(
+                    containerRect.bottom -
+                        event.clientY -
+                        (event?.target as HTMLElement).offsetHeight / 2,
+                    XTERM_DEFAULT_LINE_HEIGHT,
+                ),
+                0,
+            ) + "px";
+
+        if (height != newHeight) {
+            height = newHeight;
+        }
+    }
+
+    function toggleCollapse() {
+        if (height == "0px") {
+            height = heightBeforeCollapse;
+        } else {
+            heightBeforeCollapse = height;
+            height = "0px";
+        }
+    }
+
+    export function write(text: string) {
+        terminal?.write(text);
+
+        if (height == "0px") {
+            unreadMessages += 1;
+        }
+    }
+
+    export function clear() {
+        terminal?.clear();
+    }
 </script>
 
-<svelte:options accessors={true} />
-
 <section class="serial-monitor">
-    <header>
+    <button
+        class="monitor-header"
+        on:click={() => {
+            if (!dragging) toggleCollapse();
+        }}
+        on:pointerdown={() => (holding = true)}
+        on:pointerup={() => (holding = false)}
+        on:pointermove={() => {
+            if (holding) {
+                dragging = true;
+            } else {
+                dragging = false;
+            }
+        }}
+        use:drag={handleDrag}
+    >
         <TerminalIcon size="16" />
-        <strong>
-            Serial Monitor
-        </strong>
-        <Button title="Detach terminal" class="detach-button" small>
-            <ExternalLinkIcon size="16" />
-        </Button>
-    </header>
-    <div class="terminal-container" bind:this={terminalContainer}></div>
+        Serial Monitor
+        {#if unreadMessages}
+            <span class="unread-messages">
+                {unreadMessages}
+            </span>
+        {/if}
+    </button>
+    <Button title="Detach terminal" class="detach-button" small>
+        <ExternalLinkIcon size="16" />
+    </Button>
+    <div
+        class="terminal-container"
+        style:height
+        bind:this={terminalContainer}
+    ></div>
 </section>
 
 <style>
+    .serial-monitor {
+        position: relative;
+    }
+
+    .unread-messages {
+        background: var(--accent-primary);
+        color: var(--background-primary);
+        font-size: 12px;
+        padding: 1px 8px;
+        border-radius: 50px;
+        margin-left: 8px;
+    }
+
     .terminal-container {
         height: 35vh;
+        max-height: calc(100vh - 48px - 36px);
         overflow: hidden;
         background: #141415;
     }
@@ -83,28 +170,43 @@
         padding: 8px;
     }
 
-    .serial-monitor header {
+    .monitor-header {
         display: flex;
         align-items: center;
         width: 100%;
         height: 36px;
-        padding-inline: 16px 6px;
+        padding-inline: 16px;
         border-radius: 8px 8px 0 0;
         background: var(--background-tertiary);
+        border: none;
         border-top: 1px solid var(--interactive-primary);
-    }
-
-    .serial-monitor :global(.detach-button) {
-        padding: 6px 12px;
-    }
-
-    .serial-monitor header strong {
-        flex: 1 1 auto;
+        transition: 150ms ease background;
         font-size: 14px;
         font-weight: 600;
     }
 
-    .serial-monitor header > :global(svg) {
+    .monitor-header:hover {
+        background: var(--interactive-primary);
+        border-color: var(--interactive-secondary);
+    }
+
+    .monitor-header:active {
+        background: var(--interactive-secondary);
+        border-color: var(--interactive-tertiary);
+    }
+
+    .serial-monitor :global(.detach-button) {
+        position: absolute;
+        right: 6px;
+        top: 4.5px;
+        padding: 6px 12px;
+    }
+
+    .monitor-header:hover + :global(.detach-button) {
+        background-color: var(--interactive-secondary);
+    }
+
+    .monitor-header > :global(svg) {
         margin-right: 8px;
         color: var(--foreground-secondary);
     }
