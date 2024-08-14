@@ -22,8 +22,5 @@ pub enum HostBoundPacket {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Encode, Decode)]
 pub enum KernelBoundPacket {
     Handshake,
-    Serial {
-        channel: u32,
-        data: Vec<u8>,
-    },
+    UserSerial(Vec<u8>),
 }
