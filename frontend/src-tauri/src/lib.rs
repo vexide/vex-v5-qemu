@@ -1,4 +1,4 @@
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
 use tauri_plugin_log::TimezoneStrategy;
 use tauri_plugin_shell::process::CommandChild;
 use tokio::sync::Mutex;
@@ -24,6 +24,7 @@ const ESCAPES: [Option<&str>; 6] = [
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
                 .format(|out, message, record| {

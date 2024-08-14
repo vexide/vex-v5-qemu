@@ -42,7 +42,6 @@
 
 	export function write(text: string) {
 		terminal?.write(text);
-        console.log("Text");
 	}
 
 	export function clear() {

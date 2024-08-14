@@ -118,6 +118,7 @@ fn main() -> anyhow::Result<()> {
                     qemu.kill().unwrap();
                     std::process::exit(*code);
                 }
+                _ => {},
             }
         }
     }

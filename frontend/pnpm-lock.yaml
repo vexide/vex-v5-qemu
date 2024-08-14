@@ -11,6 +11,9 @@ importers:
       '@tauri-apps/api':
         specifier: 2.0.0-rc.0
         version: 2.0.0-rc.0
+      '@tauri-apps/plugin-dialog':
+        specifier: 2.0.0-rc.0
+        version: 2.0.0-rc.0
       '@tauri-apps/plugin-log':
         specifier: 2.0.0-rc.0
         version: 2.0.0-rc.0
@@ -51,6 +54,9 @@ importers:
       svelte-check:
         specifier: ^3.8.5
         version: 3.8.5(postcss@8.4.41)(svelte@4.2.18)
+      svelte-splitpanes:
+        specifier: ^8.0.5
+        version: 8.0.5(svelte@4.2.18)
       tslib:
         specifier: ^2.6.3
         version: 2.6.3
@@ -387,6 +393,9 @@ packages:
     engines: {node: '>= 10'}
     hasBin: true
 
+  '@tauri-apps/plugin-dialog@2.0.0-rc.0':
+    resolution: {integrity: sha512-DPOXYe8SQ6Radk/67EOdaomlxL7oF99JO/ZUaPp1IBEs3Wro7lhlz63CfdKIBfKIZTLJLzP1R7/EiPL/GTA3Bg==}
+
   '@tauri-apps/plugin-log@2.0.0-rc.0':
     resolution: {integrity: sha512-ztKfzUcq03dtr08vBu+xcwIEPusP6mCpuLAt6kpXEwG+HvYsC8e1/KFFokn3xvfwD+oBJ3UTL1h4kdM30GAqGw==}
 
@@ -486,6 +495,12 @@ packages:
     resolution: {integrity: sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw==}
     engines: {node: '>=12'}
     hasBin: true
+
+  esm-env-robust@0.0.3:
+    resolution: {integrity: sha512-90Gnuw2DALOqlL1581VxP3GHPUNHX9U+fQ+8FNcTTFClhY5gEggAAnJ3q1b2Oq23knRsjv8YpNeMRPaMLUymOA==}
+
+  esm-env@1.0.0:
+    resolution: {integrity: sha512-Cf6VksWPsTuW01vU9Mk/3vRue91Zevka5SjyNf3nEpokFRuqt/KjUQoGAwq9qMmhpLTHmXzSIrFRw8zxWzmFBA==}
 
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
@@ -706,6 +721,11 @@ packages:
 
   svelte-resize-observer@2.0.0:
     resolution: {integrity: sha512-hMG30MeUFiVhAeAGWoasBGNAFWa/K8mAIvbpjdaYRqNcU5nkxvjZYhzOhQ8rYbHSd2Hflk2s21yFR7CNKEHZpw==}
+
+  svelte-splitpanes@8.0.5:
+    resolution: {integrity: sha512-LUdNbuckYtGcBI5Us1ugYlw0fC6wnUEbUTgUY4TVLR/ZCsSrTw9Ftuf7NkM0tTRMCBG3ZmzPDfWuOlmSOXGU/A==}
+    peerDependencies:
+      svelte: ^4.2.18
 
   svelte@4.2.18:
     resolution: {integrity: sha512-d0FdzYIiAePqRJEb90WlJDkjUEx42xhivxN8muUBmfZnP+tzUgz12DJ2hRJi8sIHCME7jeK1PTMgKPSfTd8JrA==}
@@ -977,6 +997,10 @@ snapshots:
       '@tauri-apps/cli-win32-ia32-msvc': 2.0.0-rc.2
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-rc.2
 
+  '@tauri-apps/plugin-dialog@2.0.0-rc.0':
+    dependencies:
+      '@tauri-apps/api': 2.0.0-rc.0
+
   '@tauri-apps/plugin-log@2.0.0-rc.0':
     dependencies:
       '@tauri-apps/api': 2.0.0-rc.0
@@ -1089,6 +1113,12 @@ snapshots:
       '@esbuild/win32-arm64': 0.21.5
       '@esbuild/win32-ia32': 0.21.5
       '@esbuild/win32-x64': 0.21.5
+
+  esm-env-robust@0.0.3:
+    dependencies:
+      esm-env: 1.0.0
+
+  esm-env@1.0.0: {}
 
   estree-walker@3.0.3:
     dependencies:
@@ -1299,6 +1329,11 @@ snapshots:
   svelte-resize-observer@2.0.0:
     dependencies:
       resize-observer-polyfill: 1.5.1
+
+  svelte-splitpanes@8.0.5(svelte@4.2.18):
+    dependencies:
+      esm-env-robust: 0.0.3
+      svelte: 4.2.18
 
   svelte@4.2.18:
     dependencies:

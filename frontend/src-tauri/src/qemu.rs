@@ -2,17 +2,17 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use tauri::{Emitter, Manager, State};
-use tauri_plugin_shell::{
-    process::CommandEvent,
-    ShellExt,
-};
+use tauri_plugin_shell::{process::CommandEvent, ShellExt};
 use tokio::{
     io::{stderr, AsyncWriteExt},
     sync::Mutex,
 };
-use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
+use vex_v5_qemu_protocol::{display::TextMeasurement, HostBoundPacket, KernelBoundPacket};
 
-use crate::{protocol, AppState};
+use crate::{
+    protocol::{self, DisplayClearPayload, DisplayDrawPayload, DisplayScrollPayload},
+    AppState,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QemuOptions {
@@ -23,16 +23,14 @@ pub struct QemuOptions {
     qemu_args: Vec<String>,
 }
 
-/// Kills the currently running QEMU subprocess. Panics if none is running.
+/// Kills the currently running QEMU subprocess.
 #[tauri::command]
 pub fn kill_qemu(state: State<'_, Mutex<AppState>>) {
-    state
-        .blocking_lock()
-        .qemu_process
-        .take()
-        .unwrap()
-        .kill()
-        .unwrap();
+    let mut state = state.blocking_lock();
+
+    if let Some(qemu_process) = state.qemu_process.take() {
+        qemu_process.kill().ok();
+    }
 }
 
 /// Spawns a new QEMU subprocess.
@@ -141,6 +139,58 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
                             let process = state.lock().await.qemu_process.take().unwrap();
                             process.kill().unwrap();
                             log::debug!("Exit request completed. Code {code}.");
+                        }
+                        HostBoundPacket::DisplayDraw {
+                            command,
+                            color,
+                            clip_region,
+                        } => {
+                            app.emit(
+                                "display_draw",
+                                DisplayDrawPayload {
+                                    command,
+                                    color,
+                                    clip_region,
+                                },
+                            )
+                            .unwrap();
+                        }
+                        HostBoundPacket::DisplayErase { color, clip_region } => {
+                            app.emit("display_clear", DisplayClearPayload { color, clip_region })
+                                .unwrap();
+                        }
+                        HostBoundPacket::DisplayMeasureText { data: _, size: _ } => {
+                            protocol::send_packet(
+                                state.lock().await.qemu_process.as_mut().unwrap(),
+                                // TODO
+                                KernelBoundPacket::DisplayTextMeasurement(TextMeasurement {
+                                    width: 0,
+                                    height: 0,
+                                }),
+                            );
+                        }
+                        HostBoundPacket::DisplayScroll {
+                            location,
+                            lines,
+                            background,
+                            clip_region,
+                        } => {
+                            app.emit(
+                                "display_scroll",
+                                DisplayScrollPayload {
+                                    location,
+                                    lines,
+                                    background,
+                                    clip_region,
+                                },
+                            )
+                            .unwrap();
+                        }
+                        HostBoundPacket::DisplayRender => {
+                            app.emit("display_render", ()).unwrap();
+                        }
+                        HostBoundPacket::DisplayRenderMode(mode) => {
+                            app.emit("display_set_render_mode", mode).unwrap();
                         }
                     }
 

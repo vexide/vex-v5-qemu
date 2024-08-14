@@ -476,5 +476,13 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
 };
 
 pub extern "C" fn unshimmed_syscall() -> ! {
-    unimplemented!("Attempted to call unimplemented jumptable function!");
+    let x = 3;
+    log::debug!("{x}");
+    let mut pc: *const ();
+    let mut sp_value: u32;
+    unsafe {
+        core::arch::asm!("mov {}, sp", out(reg) sp_value);
+        core::arch::asm!("adr {}, .", out(reg) pc)
+    };
+    unimplemented!("Attempted to call unimplemented jumptable function! pc = {}, sp = {}", core::ptr::addr_of!(pc) as u32, sp_value);
 }
