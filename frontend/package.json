@@ -30,8 +30,7 @@
         "@tauri-apps/plugin-log": "2.0.0-rc.0",
         "@xterm/addon-fit": "^0.10.0",
         "@xterm/xterm": "^5.5.0",
-        "path-browserify-esm": "^1.0.6",
-        "svelte-feathers": "^1.0.6",
-        "svelte-resize-observer": "^2.0.0"
+        "@xyflow/svelte": "^0.1.14",
+        "svelte-feathers": "^1.0.6"
     }
 }

@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
 
@@ -19,8 +17,8 @@
 
     let terminalContainer: HTMLDivElement | undefined;
 
-    let height = "35vh";
-    let heightBeforeCollapse = height;
+    let height = "0px";
+    let heightBeforeCollapse = "35vh";
     let holding = false;
     let dragging = false;
     let unreadMessages = 0;
@@ -32,7 +30,6 @@
 
     $: if (height != "0px") {
         unreadMessages = 0;
-        console.log("unread");
     }
 
     onMount(() => {
@@ -152,7 +149,6 @@
     }
 
     .terminal-container {
-        height: 35vh;
         max-height: calc(100vh - 48px - 36px);
         overflow: hidden;
         background: #141415;

@@ -206,7 +206,7 @@
 <div class="display">
     <header>
         <span class="program-name">{programName}</span>
-        <time> 0:00 </time>
+        <time>0:00</time>
         <div class="header-icons">
             <svg
                 class="brain-icon"
@@ -257,6 +257,7 @@
 
 <style>
     .display {
+        contain: strict;
         display: flex;
         flex-direction: column;
         position: relative;
