@@ -11,11 +11,17 @@
     import RotationSensor from "./icons/RotationSensor.svelte";
     import Magnet from "./icons/Magnet.svelte";
     import GenericSerial from "./icons/GenericSerial.svelte";
+    import VisionSensor from "./icons/VisionSensor.svelte";
+    import AiVisionSensor from "./icons/AIVisionSensor.svelte";
+
 
     let width = 260;
-    let widthBeforeCollapsed = width;
+    let widthBeforeCollapse = width;
     let sidebar: HTMLElement | undefined;
     let collapsed = false;
+
+    const MAX_WIDTH = 400;
+    const COLLAPSE_BREAKPOINT = 185;
 
     function handleDragStart(event: DragEvent, nodeType: string) {
         if (!event.dataTransfer) {
@@ -35,20 +41,21 @@
 
     function toggleCollapse() {
         if (!collapsed) {
-            widthBeforeCollapsed = width;
+            widthBeforeCollapse = width;
             collapsed = true;
         } else {
-            width = widthBeforeCollapsed;
+            width = widthBeforeCollapse;
             collapsed = false;
         }
     }
 
     function adjustWidth(newWidth: number) {
-        if (newWidth < 185) {
+        if (newWidth < COLLAPSE_BREAKPOINT) {
+            widthBeforeCollapse = width;
             collapsed = true;
         } else {
+            width = Math.min(newWidth, MAX_WIDTH);
             collapsed = false;
-            width = newWidth;
         }
     }
 
@@ -56,7 +63,7 @@
         if (key == "ArrowLeft") {
             adjustWidth(width - 8);
         } else if (key == "ArrowRight") {
-            adjustWidth(width + 8);
+            adjustWidth(collapsed ? COLLAPSE_BREAKPOINT : width + 8);
         }
     }
 </script>
@@ -142,8 +149,41 @@
                 class="device"
                 on:dragstart={(event) => handleDragStart(event, "input")}
             >
+                <VisionSensor />
+                <span class="device-label">Vision Sensor</span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
+                <AiVisionSensor />
+                <span class="device-label">AI Vision Sensor</span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
                 <GenericSerial />
                 <span class="device-label">Serial Port</span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
+                <ADI />
+                <span class="device-label">ADI Expander</span>
             </Button>
         </li>
         <li>
@@ -201,7 +241,7 @@
         position: relative;
         flex: 0 0 auto;
         width: 260px;
-        max-width: 40%;
+        max-width: 400px;
         min-height: 0;
         height: 100%;
         background-color: var(--background-secondary);
