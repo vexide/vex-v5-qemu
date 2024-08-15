@@ -20,6 +20,7 @@
     <Handle
         id="connector"
         type="source"
+        isConnectable={!data.onboard}
         position={data.onboard ? Position.Right : Position.Bottom}
     />
     <div class="ports">
