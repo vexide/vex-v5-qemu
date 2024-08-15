@@ -6,7 +6,7 @@
         Position,
     } from "@xyflow/svelte";
     import { path } from "@tauri-apps/api";
-    import { session } from "~/lib/session";
+    import { session } from "~/lib/stores";
     import Display from "~/lib/Display.svelte";
     import { derived, type Readable } from "svelte/store";
 

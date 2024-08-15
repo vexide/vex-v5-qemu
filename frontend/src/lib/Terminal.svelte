@@ -9,11 +9,11 @@
     import ExternalLinkIcon from "svelte-feathers/ExternalLink.svelte";
 
     import drag from "./drag";
+    import { terminal } from "~/lib/stores";
 
     import "@xterm/xterm/css/xterm.css";
     import Button from "./Button.svelte";
 
-    let terminal: Terminal | undefined;
     let fitAddon: FitAddon | undefined;
 
     let terminalContainer: HTMLDivElement | undefined;
@@ -36,7 +36,7 @@
 
     onMount(() => {
         fitAddon = new FitAddon();
-        terminal = new Terminal({
+        $terminal = new Terminal({
             convertEol: true,
             theme: {
                 background: "#141415",
@@ -44,15 +44,22 @@
             fontFamily: "ui-monospace, Consolas, monospace",
         });
 
-        terminal.loadAddon(fitAddon);
-        terminal.loadAddon(new WebglAddon())
-        terminal.open(terminalContainer!);
+        $terminal.loadAddon(fitAddon);
+        $terminal.loadAddon(new WebglAddon())
+        $terminal.open(terminalContainer!);
+
+        $terminal?.onWriteParsed(() => {
+            if (height == "0px") {
+                unreadMessages++;
+            }
+        });
+
         observer.observe(terminalContainer!);
         fitAddon.fit();
     });
 
     onDestroy(() => {
-        terminal?.dispose();
+        $terminal?.dispose();
         observer.disconnect();
     });
 
@@ -88,18 +95,6 @@
             height = "0px";
         }
     }
-
-    export function write(text: string) {
-        terminal?.write(text);
-
-        if (height == "0px") {
-            unreadMessages += 1;
-        }
-    }
-
-    export function clear() {
-        terminal?.clear();
-    }
 </script>
 
 <section class="serial-monitor" bind:this={monitorElement}>
@@ -120,7 +115,7 @@
         use:drag={handleDrag}
     >
         <TerminalIcon size="16" />
-        Serial Monitor
+        Terminal
         {#if unreadMessages}
             <span class="unread-messages">
                 {unreadMessages}

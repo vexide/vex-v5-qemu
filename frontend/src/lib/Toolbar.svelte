@@ -13,8 +13,8 @@
         align-items: center;
         position: relative;
         flex: 0 0 auto;
-        height: 48px;
-        padding-inline: 10px;
+        height: 46px;
+        padding-inline: 8px;
         box-shadow: 0 0 8px var(--background-primary);
         background: var(--background-primary);
         border-bottom: 1px solid var(--interactive-primary);

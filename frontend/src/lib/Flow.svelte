@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Background, BackgroundVariant, Controls, MiniMap, SvelteFlow, useSvelteFlow, type Edge, type Node, type NodeTypes } from "@xyflow/svelte";
-    import { getContext } from "svelte";
     import type { Writable } from "svelte/store";
+    import { Background, BackgroundVariant, Controls, MiniMap, SvelteFlow, useSvelteFlow, type Edge, type Node, type NodeTypes } from "@xyflow/svelte";
 
-    const dndType = getContext("dnd") as Writable<string | null>;
+    import { dndType } from "~/lib/stores";
+
     const { screenToFlowPosition } = useSvelteFlow();
 
     export let nodeTypes: NodeTypes | undefined;
@@ -21,9 +21,7 @@
     function handleFlowDrop(event: DragEvent) {
         event.preventDefault();
 
-        if (!$dndType) {
-            return;
-        }
+        if (!$dndType) return;
 
         const position = screenToFlowPosition({
             x: event.clientX,
@@ -48,9 +46,7 @@
     {nodes}
     {edges}
     fitView
-    fitViewOptions={{
-        maxZoom: 1.0
-    }}
+    fitViewOptions={{ maxZoom: 1.0 }}
     on:dragover={handleFlowDragOver}
     on:drop={handleFlowDrop}
 >

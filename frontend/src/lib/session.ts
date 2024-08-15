@@ -1,7 +1,5 @@
-import { writable, type Writable } from "svelte/store";
-import { spawnQemu, killQemu } from "./invoke";
-
-export const session: Writable<Session | null> = writable(null);
+import { spawnQemu, killQemu } from "~/lib/invoke";
+import { terminal } from "~/lib/stores";
 
 class Session {
     binary: string;
@@ -30,12 +28,14 @@ class Session {
         if (this.running) {
             this.running = false;
             this.paused = false;
+            terminal.subscribe(t => t?.clear());
             killQemu();
         }
     }
 
     async reset() {
         if (this.running) {
+            terminal.subscribe(t => t?.clear());
             killQemu();
             spawnQemu({
                 gdb: false,

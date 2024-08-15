@@ -20,6 +20,7 @@
 	on:click
 	on:focus
 	on:blur
+	on:dragstart
 	{...$$restProps}
 >
 	<slot />

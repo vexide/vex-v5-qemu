@@ -1,12 +1,8 @@
 <script lang="ts">
     import {
-        getContext,
         onDestroy,
         onMount,
-        setContext,
-        SvelteComponent,
     } from "svelte";
-    import { writable, type Writable } from "svelte/store";
 
     import { listen, type UnlistenFn } from "@tauri-apps/api/event";
     import { trace, info, error, attachConsole } from "@tauri-apps/plugin-log";
@@ -14,17 +10,15 @@
 
     import {
         SvelteFlowProvider,
-        type Edge,
-        type Node,
     } from "@xyflow/svelte";
 
     import Button from "~/lib/Button.svelte";
-    import ControlsHeader from "~/lib/ControlsHeader.svelte";
-    import SerialMonitor from "~/lib/SerialMonitor.svelte";
+    import Toolbar from "~/lib/Toolbar.svelte";
     import Uploader from "~/lib/Uploader.svelte";
-    import DevicesSidebar from "~/lib/DevicesSidebar.svelte";
+    import Sidebar from "~/lib/Sidebar.svelte";
     import Dialog from "~/lib/Dialog.svelte";
-    import Session, { session } from "~/lib/session";
+    import Session from "~/lib/session";
+    import { terminal, session, nodes, edges } from "~/lib/stores";
 
     import {
         Pause,
@@ -32,7 +26,6 @@
         RefreshCw,
         Settings,
         Power,
-        Menu,
     } from "svelte-feathers";
 
     import "@xyflow/svelte/dist/style.css";
@@ -41,76 +34,24 @@
     import AdiNode from "./lib/nodes/AdiNode.svelte";
     import BatteryNode from "./lib/nodes/BatteryNode.svelte";
     import Flow from "./lib/Flow.svelte";
+    import Terminal from "~/lib/Terminal.svelte";
 
     let settingsDialogOpen = false;
-
-    let monitor: SvelteComponent | undefined;
 
     let detachConsole: UnlistenFn | undefined;
     let unlistenUserSerial: UnlistenFn | undefined;
 
     const decoder = new TextDecoder("UTF-8");
-
-    const dndType = writable<string | null>(null);
     const nodeTypes = {
         brain: BrainNode,
         adi: AdiNode,
         battery: BatteryNode,
     };
-    const nodes = writable<Node[]>([
-        {
-            id: "brain",
-            type: "brain",
-            data: {},
-            position: { x: 0, y: 0 },
-        },
-        {
-            id: "battery",
-            type: "battery",
-            data: {
-                capacity: 0,
-                temperature: 0,
-                current: 0,
-                voltage: 0,
-            },
-            position: { x: 590, y: 225 },
-        },
-        {
-            id: "onboard_adi",
-            type: "adi",
-            data: {
-                onboard: true,
-            },
-            position: { x: -100, y: 0 },
-        },
-    ]);
-    const edges = writable<Edge<any>[]>([
-        {
-            id: "battery_connection",
-            type: "default",
-            source: "battery",
-            target: "brain",
-            sourceHandle: "connector",
-            targetHandle: "battery_port",
-            deletable: false,
-        },
-        {
-            id: "onboard_adi_connection",
-            type: "default",
-            source: "onboard_adi",
-            target: "brain",
-            sourceHandle: "connector",
-            targetHandle: "onboard_adi_port",
-            deletable: false,
-        },
-    ]);
-
-    setContext("dnd", dndType);
 
     onMount(async () => {
         detachConsole = await attachConsole();
         unlistenUserSerial = await listen<number[]>("user_serial", (event) => {
-            monitor?.write(decoder.decode(new Uint8Array(event.payload)));
+            $terminal?.write(decoder.decode(new Uint8Array(event.payload)));
         });
     });
 
@@ -131,13 +72,25 @@
             $session.start();
         }
     }
+
+    function handleWindowKeyDown({ key, ctrlKey, metaKey }: KeyboardEvent) {
+        const ctrlOrMeta = ctrlKey || metaKey;
+
+        if (ctrlOrMeta && key == "r") {
+            $session?.reset();
+        } else if (ctrlOrMeta && key == ",") {
+            settingsDialogOpen = !settingsDialogOpen;
+        }
+    }
 </script>
+
+<svelte:window on:keydown={handleWindowKeyDown} />
 
 <SvelteFlowProvider>
     <main class="split-view">
-        <DevicesSidebar />
+        <Sidebar />
         <div class="app-left">
-            <ControlsHeader>
+            <Toolbar>
                 <svelte:fragment slot="left">
                     <Button
                         small
@@ -180,7 +133,7 @@
                 >
                     <Settings size="16" />
                 </Button>
-            </ControlsHeader>
+            </Toolbar>
             <section class="display-view">
                 {#if $session?.running}
                     <Flow
@@ -193,7 +146,7 @@
                 {/if}
             </section>
             {#if $session?.running}
-                <SerialMonitor bind:this={monitor} />
+                <Terminal />
             {/if}
         </div>
 
