@@ -21,4 +21,4 @@
 </script>
 
 Battery
-<Handle id="connector" type="source" position={Position.Left} />
+<Handle id="connector" type="source" isConnectable={false} position={Position.Left} />

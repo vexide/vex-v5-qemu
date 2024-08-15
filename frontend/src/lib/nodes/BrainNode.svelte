@@ -17,21 +17,17 @@
     export let data: NodeData;
     data;
 
-    const programName: Readable<string> = derived(
-        session,
-        ($session, set) => {
-            path.basename($session?.binary || "", ".bin")
-                .then(name => set(name));
+    const programName: Readable<string> = derived(session, ($session, set) => {
+        path.basename($session?.binary || "", ".bin").then((name) => set(name));
 
-            return () => {
-                set = () => {}
-            }
-        }
-    );
+        return () => {
+            set = () => {};
+        };
+    });
 </script>
 
 <div class="ports ports-top">
-    {#each {length: 10} as _, n}
+    {#each { length: 10 } as _, n}
         <Handle id="smart_port_{n + 1}" type="target" position={Position.Top} />
     {/each}
 </div>
@@ -39,14 +35,34 @@
 <Display programName={$programName} />
 
 <div class="ports ports-bottom">
-    {#each {length: 10} as _, n}
-        <Handle id="smart_port_{n + 11}" type="target" position={Position.Top} />
+    {#each { length: 10 } as _, n}
+        <Handle
+            id="smart_port_{n + 11}"
+            type="target"
+            position={Position.Top}
+        />
     {/each}
 </div>
 
-<Handle id="smart_port_21" style="top: 33.33%;" type="target" position={Position.Right} />
-<Handle id="battery_port" style="top: 66.66%;" type="target" position={Position.Right} />
-<Handle id="onboard_adi_port" type="target" position={Position.Left} />
+<Handle
+    id="smart_port_21"
+    style="top: 33.33%;"
+    type="target"
+    position={Position.Right}
+/>
+<Handle
+    id="battery_port"
+    style="top: 66.66%;"
+    type="target"
+    isConnectable={false}
+    position={Position.Right}
+/>
+<Handle
+    id="onboard_adi_port"
+    type="target"
+    isConnectable={false}
+    position={Position.Left}
+/>
 
 <style>
     :global(.svelte-flow__node-brain .display) {
