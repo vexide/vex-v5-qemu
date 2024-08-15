@@ -47,6 +47,10 @@
     {nodeTypes}
     {nodes}
     {edges}
+    fitView
+    fitViewOptions={{
+        maxZoom: 1.0
+    }}
     on:dragover={handleFlowDragOver}
     on:drop={handleFlowDrop}
 >

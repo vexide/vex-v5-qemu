@@ -26,11 +26,14 @@
     import Dialog from "~/lib/Dialog.svelte";
     import Session, { session } from "~/lib/session";
 
-    import PauseIcon from "svelte-feathers/Pause.svelte";
-    import PlayIcon from "svelte-feathers/Play.svelte";
-    import RefreshCwIcon from "svelte-feathers/RefreshCw.svelte";
-    import SettingsIcon from "svelte-feathers/Settings.svelte";
-    import PowerIcon from "svelte-feathers/Power.svelte";
+    import {
+        Pause,
+        Play,
+        RefreshCw,
+        Settings,
+        Power,
+        Menu,
+    } from "svelte-feathers";
 
     import "@xyflow/svelte/dist/style.css";
     import "~/styles/flow.css";
@@ -143,7 +146,7 @@
                         disabled={!$session?.running}
                     >
                         <svelte:component
-                            this={$session?.paused ? PlayIcon : PauseIcon}
+                            this={$session?.paused ? Play : Pause}
                             size="16"
                         />
                     </Button>
@@ -153,7 +156,7 @@
                         disabled={!$session?.running}
                         on:click={() => $session?.reset()}
                     >
-                        <RefreshCwIcon size="16" />
+                        <RefreshCw size="16" />
                     </Button>
                     <Button
                         small
@@ -164,7 +167,7 @@
                             $session = null;
                         }}
                     >
-                        <PowerIcon size="16" />
+                        <Power size="16" />
                     </Button>
                 </svelte:fragment>
                 <Button
@@ -175,7 +178,7 @@
                         settingsDialogOpen = true;
                     }}
                 >
-                    <SettingsIcon size="16" />
+                    <Settings size="16" />
                 </Button>
             </ControlsHeader>
             <section class="display-view">

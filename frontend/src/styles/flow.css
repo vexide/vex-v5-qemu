@@ -64,3 +64,9 @@
     --xy-handle-border-color: var(--accent-faded);
     box-shadow: var(--xy-node-boxshadow-selected);
 }
+
+.svelte-flow__minimap {
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
