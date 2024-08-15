@@ -29,15 +29,9 @@ importers:
       '@xyflow/svelte':
         specifier: ^0.1.14
         version: 0.1.14(postcss@8.4.41)(svelte@4.2.18)(typescript@5.5.4)
-      path-browserify-esm:
-        specifier: ^1.0.6
-        version: 1.0.6
       svelte-feathers:
         specifier: ^1.0.6
         version: 1.0.6(svelte@4.2.18)
-      svelte-resize-observer:
-        specifier: ^2.0.0
-        version: 2.0.0
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.1
@@ -51,6 +45,9 @@ importers:
       '@types/node':
         specifier: ^22.2.0
         version: 22.2.0
+      '@xterm/addon-webgl':
+        specifier: ^0.18.0
+        version: 0.18.0(@xterm/xterm@5.5.0)
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
@@ -450,6 +447,11 @@ packages:
     peerDependencies:
       '@xterm/xterm': ^5.0.0
 
+  '@xterm/addon-webgl@0.18.0':
+    resolution: {integrity: sha512-xCnfMBTI+/HKPdRnSOHaJDRqEpq2Ugy8LEj9GiY4J3zJObo3joylIFaMvzBwbYRg8zLtkO0KQaStCeSfoaI2/w==}
+    peerDependencies:
+      '@xterm/xterm': ^5.0.0
+
   '@xterm/xterm@5.5.0':
     resolution: {integrity: sha512-hqJHYaQb5OptNunnyAnkHyM8aCjZ1MEIDTQu1iIbbTD/xops91NB5yq1ZK/dC2JDbVWtF23zUtl9JE2NqwT87A==}
 
@@ -677,9 +679,6 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
-  path-browserify-esm@1.0.6:
-    resolution: {integrity: sha512-9nUwYvvu/yq1PYrUyYCihNWmpzacaRYF6gGbjLWErrZ4MRDWyfPN7RpE8E7tsw8eqBU/rr7mcoTXbS+Vih8uUA==}
-
   path-is-absolute@1.0.1:
     resolution: {integrity: sha512-AVbw3UJ2e9bq64vSaS9Am0fje1Pa8pbGqTTsmXfaIiMpnr5DlDhfJOuLj9Sf95ZPVDAUerDfEk88MPmPe7UCQg==}
     engines: {node: '>=0.10.0'}
@@ -712,9 +711,6 @@ packages:
   readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
-
-  resize-observer-polyfill@1.5.1:
-    resolution: {integrity: sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==}
 
   rimraf@2.7.1:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
@@ -798,9 +794,6 @@ packages:
         optional: true
       typescript:
         optional: true
-
-  svelte-resize-observer@2.0.0:
-    resolution: {integrity: sha512-hMG30MeUFiVhAeAGWoasBGNAFWa/K8mAIvbpjdaYRqNcU5nkxvjZYhzOhQ8rYbHSd2Hflk2s21yFR7CNKEHZpw==}
 
   svelte@4.2.18:
     resolution: {integrity: sha512-d0FdzYIiAePqRJEb90WlJDkjUEx42xhivxN8muUBmfZnP+tzUgz12DJ2hRJi8sIHCME7jeK1PTMgKPSfTd8JrA==}
@@ -1123,6 +1116,10 @@ snapshots:
     dependencies:
       '@xterm/xterm': 5.5.0
 
+  '@xterm/addon-webgl@0.18.0(@xterm/xterm@5.5.0)':
+    dependencies:
+      '@xterm/xterm': 5.5.0
+
   '@xterm/xterm@5.5.0': {}
 
   '@xyflow/svelte@0.1.14(postcss@8.4.41)(svelte@4.2.18)(typescript@5.5.4)':
@@ -1370,8 +1367,6 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  path-browserify-esm@1.0.6: {}
-
   path-is-absolute@1.0.1: {}
 
   periscopic@3.1.0:
@@ -1400,8 +1395,6 @@ snapshots:
   readdirp@3.6.0:
     dependencies:
       picomatch: 2.3.1
-
-  resize-observer-polyfill@1.5.1: {}
 
   rimraf@2.7.1:
     dependencies:
@@ -1492,10 +1485,6 @@ snapshots:
     optionalDependencies:
       postcss: 8.4.41
       typescript: 5.5.4
-
-  svelte-resize-observer@2.0.0:
-    dependencies:
-      resize-observer-polyfill: 1.5.1
 
   svelte@4.2.18:
     dependencies:

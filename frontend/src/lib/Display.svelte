@@ -257,7 +257,7 @@
 
 <style>
     .display {
-        contain: strict;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         position: relative;
@@ -265,7 +265,7 @@
         height: 272px;
         user-select: none;
         -webkit-user-select: none;
-        cursor: default;
+        cursor: inherit;
     }
 
     .display header {

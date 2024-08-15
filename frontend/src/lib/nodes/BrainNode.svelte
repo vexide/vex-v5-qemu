@@ -18,7 +18,9 @@
     data;
 
     const programName: Readable<string> = derived(session, ($session, set) => {
-        path.basename($session?.binary || "", ".bin").then((name) => set(name));
+        if ($session) {
+            path.basename($session.binary || "", ".bin").then((name) => set(name));
+        }
 
         return () => {
             set = () => {};

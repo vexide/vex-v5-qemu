@@ -3,6 +3,7 @@
 
     import { Terminal } from "@xterm/xterm";
     import { FitAddon } from "@xterm/addon-fit";
+    import { WebglAddon } from '@xterm/addon-webgl';
 
     import TerminalIcon from "svelte-feathers/Terminal.svelte";
     import ExternalLinkIcon from "svelte-feathers/ExternalLink.svelte";
@@ -16,6 +17,7 @@
     let fitAddon: FitAddon | undefined;
 
     let terminalContainer: HTMLDivElement | undefined;
+    let monitorElement: HTMLElement | undefined;
 
     let height = "0px";
     let heightBeforeCollapse = "35vh";
@@ -43,6 +45,7 @@
         });
 
         terminal.loadAddon(fitAddon);
+        terminal.loadAddon(new WebglAddon())
         terminal.open(terminalContainer!);
         observer.observe(terminalContainer!);
         fitAddon.fit();
@@ -58,13 +61,13 @@
     }
 
     function handleDrag(event: PointerEvent) {
-        if (!terminalContainer) return;
+        if (!monitorElement) return;
 
-        const containerRect = terminalContainer.getBoundingClientRect();
+        const monitorRect = monitorElement.getBoundingClientRect();
         const newHeight =
             Math.max(
                 roundStep(
-                    containerRect.bottom -
+                    monitorRect.bottom -
                         event.clientY -
                         (event?.target as HTMLElement).offsetHeight / 2,
                     XTERM_DEFAULT_LINE_HEIGHT,
@@ -99,7 +102,7 @@
     }
 </script>
 
-<section class="serial-monitor">
+<section class="serial-monitor" bind:this={monitorElement}>
     <button
         class="monitor-header"
         on:click={() => {
@@ -152,6 +155,10 @@
         max-height: calc(100vh - 48px - 36px);
         overflow: hidden;
         background: #141415;
+    }
+
+    :global(.terminal-container[style="height: 0px;"]) {
+        display: none;
     }
 
     .terminal-container :global(::-webkit-scrollbar) {

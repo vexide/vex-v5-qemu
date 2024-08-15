@@ -1,14 +1,22 @@
 <script lang="ts">
-    import { onDestroy, onMount, SvelteComponent } from "svelte";
-    import { writable, type Writable } from 'svelte/store';
+    import {
+        getContext,
+        onDestroy,
+        onMount,
+        setContext,
+        SvelteComponent,
+    } from "svelte";
+    import { writable, type Writable } from "svelte/store";
 
-    import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
+    import { listen, type UnlistenFn } from "@tauri-apps/api/event";
     import { trace, info, error, attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
-    import type { DragEnterPayload } from "~/lib/payload";
-
-    import { Background, BackgroundVariant, Controls, MiniMap, SvelteFlow, type Node } from '@xyflow/svelte';
+    import {
+        SvelteFlowProvider,
+        type Edge,
+        type Node,
+    } from "@xyflow/svelte";
 
     import Button from "~/lib/Button.svelte";
     import ControlsHeader from "~/lib/ControlsHeader.svelte";
@@ -24,11 +32,12 @@
     import SettingsIcon from "svelte-feathers/Settings.svelte";
     import PowerIcon from "svelte-feathers/Power.svelte";
 
-    import '@xyflow/svelte/dist/style.css';
+    import "@xyflow/svelte/dist/style.css";
     import "~/styles/flow.css";
     import BrainNode from "./lib/nodes/BrainNode.svelte";
     import AdiNode from "./lib/nodes/AdiNode.svelte";
     import BatteryNode from "./lib/nodes/BatteryNode.svelte";
+    import Flow from "./lib/Flow.svelte";
 
     let settingsDialogOpen = false;
 
@@ -36,10 +45,10 @@
 
     let detachConsole: UnlistenFn | undefined;
     let unlistenUserSerial: UnlistenFn | undefined;
-    let unlistenDragEnter: UnlistenFn | undefined;
 
     const decoder = new TextDecoder("UTF-8");
 
+    const dndType = writable<string | null>(null);
     const nodeTypes = {
         brain: BrainNode,
         adi: AdiNode,
@@ -50,7 +59,7 @@
             id: "brain",
             type: "brain",
             data: {},
-            position: { x: 0, y: 0 }
+            position: { x: 0, y: 0 },
         },
         {
             id: "battery",
@@ -61,7 +70,7 @@
                 current: 0,
                 voltage: 0,
             },
-            position: { x: 590, y: 225 }
+            position: { x: 590, y: 225 },
         },
         {
             id: "onboard_adi",
@@ -69,49 +78,43 @@
             data: {
                 onboard: true,
             },
-            position: { x: -100, y: 0 }
+            position: { x: -100, y: 0 },
         },
     ]);
-    const edges = writable([
+    const edges = writable<Edge<any>[]>([
         {
-            id: 'battery_connection',
-            type: 'default',
-            source: 'battery',
-            target: 'brain',
+            id: "battery_connection",
+            type: "default",
+            source: "battery",
+            target: "brain",
             sourceHandle: "connector",
             targetHandle: "battery_port",
             deletable: false,
         },
         {
-            id: 'onboard_adi_connection',
-            type: 'default',
-            source: 'onboard_adi',
-            target: 'brain',
+            id: "onboard_adi_connection",
+            type: "default",
+            source: "onboard_adi",
+            target: "brain",
             sourceHandle: "connector",
             targetHandle: "onboard_adi_port",
             deletable: false,
-        }
+        },
     ]);
+
+    setContext("dnd", dndType);
 
     onMount(async () => {
         detachConsole = await attachConsole();
         unlistenUserSerial = await listen<number[]>("user_serial", (event) => {
             monitor?.write(decoder.decode(new Uint8Array(event.payload)));
         });
-        unlistenDragEnter = await listen<DragEnterPayload>(
-            TauriEvent.DRAG_ENTER,
-            async (event) => {
-                $session = new Session(event.payload.paths[0]);
-                $session.start();
-            },
-        );
     });
 
     onDestroy(() => {
         $session?.stop();
         detachConsole?.();
         unlistenUserSerial?.();
-        unlistenDragEnter?.();
     });
 
     async function handleUpload() {
@@ -127,81 +130,84 @@
     }
 </script>
 
-<main class="split-view">
-    <DevicesSidebar />
-    <div class="app-left">
-        <ControlsHeader>
-            <svelte:fragment slot="left">
+<SvelteFlowProvider>
+    <main class="split-view">
+        <DevicesSidebar />
+        <div class="app-left">
+            <ControlsHeader>
+                <svelte:fragment slot="left">
+                    <Button
+                        small
+                        title={($session?.paused ? "Unpause" : "Pause") +
+                            " execution"}
+                        disabled={!$session?.running}
+                    >
+                        <svelte:component
+                            this={$session?.paused ? PlayIcon : PauseIcon}
+                            size="16"
+                        />
+                    </Button>
+                    <Button
+                        small
+                        title="Reset program"
+                        disabled={!$session?.running}
+                        on:click={() => $session?.reset()}
+                    >
+                        <RefreshCwIcon size="16" />
+                    </Button>
+                    <Button
+                        small
+                        title="Unload program"
+                        disabled={!$session?.running}
+                        on:click={() => {
+                            $session?.stop();
+                            $session = null;
+                        }}
+                    >
+                        <PowerIcon size="16" />
+                    </Button>
+                </svelte:fragment>
                 <Button
                     small
-                    title={($session?.paused ? "Unpause" : "Pause") +
-                        " execution"}
-                    disabled={!$session?.running}
-                >
-                    <svelte:component
-                        this={$session?.paused ? PlayIcon : PauseIcon}
-                        size="16"
-                    />
-                </Button>
-                <Button
-                    small
-                    title="Reset program"
-                    disabled={!$session?.running}
-                    on:click={() => $session?.reset()}
-                >
-                    <RefreshCwIcon size="16" />
-                </Button>
-                <Button
-                    small
-                    title="Unload program"
-                    disabled={!$session?.running}
+                    slot="right"
+                    title="Open settings"
                     on:click={() => {
-                        $session?.stop();
-                        $session = null;
+                        settingsDialogOpen = true;
                     }}
                 >
-                    <PowerIcon size="16" />
+                    <SettingsIcon size="16" />
                 </Button>
-            </svelte:fragment>
-            <Button
-                small
-                slot="right"
-                title="Open settings"
-                on:click={() => {
-                    settingsDialogOpen = true;
-                }}
-            >
-                <SettingsIcon size="16" />
-            </Button>
-        </ControlsHeader>
-        <section class="display-view">
+            </ControlsHeader>
+            <section class="display-view">
+                {#if $session?.running}
+                    <Flow
+                        {nodeTypes}
+                        {nodes}
+                        {edges}
+                    />
+                {:else}
+                    <Uploader on:upload={handleUpload} />
+                {/if}
+            </section>
             {#if $session?.running}
-                <SvelteFlow fitView fitViewOptions={{
-                    maxZoom: 1.0
-                }} {nodeTypes} {nodes} {edges}>
-                    <Background variant={BackgroundVariant.Lines} />
-                    <Controls />
-                    <MiniMap />
-                </SvelteFlow>
-            {:else}
-                <Uploader on:upload={handleUpload} />
+                <SerialMonitor bind:this={monitor} />
             {/if}
-        </section>
-        {#if $session?.running}
-            <SerialMonitor bind:this={monitor} />
-        {/if}
-    </div>
+        </div>
 
-    <Dialog bind:open={settingsDialogOpen}>
-        <svelte:fragment slot="header">Settings</svelte:fragment>
+        <Dialog bind:open={settingsDialogOpen}>
+            <svelte:fragment slot="header">Settings</svelte:fragment>
 
-        todo
+            todo
 
-        <svelte:fragment slot="footer">
-            <Button variant="accent" on:click={() => settingsDialogOpen = false}>Done</Button>
-        </svelte:fragment>
-    </Dialog>
-</main>
+            <svelte:fragment slot="footer">
+                <Button
+                    variant="accent"
+                    on:click={() => (settingsDialogOpen = false)}>Done</Button
+                >
+            </svelte:fragment>
+        </Dialog>
+    </main>
+</SvelteFlowProvider>
 
 <style>
     .split-view {

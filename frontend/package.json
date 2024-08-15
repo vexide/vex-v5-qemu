@@ -15,6 +15,7 @@
         "@tauri-apps/cli": "2.0.0-rc.2",
         "@tsconfig/svelte": "^5.0.4",
         "@types/node": "^22.2.0",
+        "@xterm/addon-webgl": "^0.18.0",
         "prettier": "^3.3.3",
         "prettier-plugin-svelte": "^3.2.6",
         "svelte": "^4.2.18",

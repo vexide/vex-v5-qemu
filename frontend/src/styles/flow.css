@@ -37,6 +37,7 @@
 .svelte-flow__handle {
     width: 10px;
     height: 10px;
+    transition: 150ms ease border-color;
 }
 
 .svelte-flow__node {
@@ -51,6 +52,11 @@
     color: var(--foreground-secondary);
     border-radius: 12px;
     padding: 16px;
+    transition: 150ms ease border-color, 150ms ease box-shadow;
+}
+
+.svelte-flow__node:hover {
+    border-color: var(--interactive-secondary);
 }
 
 .svelte-flow__node.selected,
