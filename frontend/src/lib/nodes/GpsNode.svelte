@@ -5,7 +5,11 @@
         type Node,
         Handle,
         Position,
+        useSvelteFlow,
     } from "@xyflow/svelte";
+    import drag from "../drag";
+
+    const { screenToFlowPosition } = useSvelteFlow();
 
     type NodeData = {
         capacity: number;
@@ -19,37 +23,44 @@
     export let data: NodeData;
 
     let position = { x: 150 / 2 - 11, y: 150 / 2 - 11 };
-    let draggable: HTMLDivElement;
     let draggableContainer: HTMLDivElement;
 
-    function down(e: MouseEvent) {
-        draggable.onmousemove = drag;
-    }
-    function up(e: MouseEvent) {
-        draggable.onmousemove = null;
-    }
-
-    function drag(e: MouseEvent) {
-        position = { x: position.x + e.movementX, y: position.y + e.movementY };
-        position = { x: Math.max(0, Math.min(150 - 22, position.x)), y: Math.max(0, Math.min(150 - 22, position.y)) };
-        console.log(e.movementX, e.movementY);
+    function moveDraggable(e: MouseEvent) {
+        let flowCoords = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        let boundingRect = draggableContainer.getBoundingClientRect();
+        let boundingCoords = screenToFlowPosition({
+            x: boundingRect.left,
+            y: boundingRect.top,
+        });
+        let relativeX = flowCoords.x - boundingCoords.x - 14;
+        let relativeY = flowCoords.y - boundingCoords.y - 14;
+        position = { x: relativeX, y: relativeY };
+        position = {
+            x:
+                Math.round(Math.max(0, Math.min(150 - 28, position.x)) * 10) /
+                10,
+            y:
+                Math.round(Math.max(0, Math.min(150 - 28, position.y)) * 10) /
+                10,
+        };
     }
 
     data;
 </script>
 
 GPS
-<div class="positions">
-    <p>x: {position.x}</p>
-    <p>y: {position.y}</p>
+<div class="coordinates">
+    <p class="coordinate">x: {position.x}</p>
+    <p class="coordinate">y: {position.y}</p>
 </div>
 <div bind:this={draggableContainer} class="position nodrag">
     <div
         class="draggable"
         style="left: {position.x}px; top: {position.y}px"
-        bind:this={draggable}
-        on:mouseup={up}
-        on:mousedown={down}
+        use:drag={(event) => {
+            if (!draggableContainer) return;
+            moveDraggable(event);
+        }}
     >
         <svg width="24px" height="24"
             ><circle
@@ -66,9 +77,14 @@ GPS
 <Handle id="connector" type="source" position={Position.Bottom} />
 
 <style>
-    .positions {
+    .coordinates {
         display: flex;
         gap: 10px;
+        align-items: center;
+        width: 100%;
+    }
+    .coordinate {
+        min-width: 70px;
     }
 
     .position {
