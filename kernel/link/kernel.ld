@@ -3,15 +3,15 @@ OUTPUT_FORMAT("elf32-littlearm")
 ENTRY(vectors)
 
 _mmu_map_start = 0x4000;
-_low_ro_memory_start = 0x100000;
+_low_rx_memory_start = 0x100000;
 _low_rw_memory_start = 0x1000000;
 _user_memory_start = 0x03800000;
 _jump_table_start = _user_memory_start - 0x4000;
 
 MEMORY {
-  mmu_map_mem : ORIGIN = _mmu_map_start, LENGTH =  _low_ro_memory_start - _mmu_map_start
-  low_ro_mem : ORIGIN = _low_ro_memory_start, LENGTH = _low_rw_memory_start - _low_ro_memory_start
-  low_rw_mem : ORIGIN = _low_rw_memory_start, LENGTH = _jump_table_start - _low_rw_memory_start
+  mmu_map_mem (r) : ORIGIN = _mmu_map_start, LENGTH =  _low_rx_memory_start - _mmu_map_start
+  low_rx_mem (rx) : ORIGIN = _low_rx_memory_start, LENGTH = _low_rw_memory_start - _low_rx_memory_start
+  low_rw_mem (rw) : ORIGIN = _low_rw_memory_start, LENGTH = _jump_table_start - _low_rw_memory_start
   jump_table_mem (rx) : ORIGIN = _jump_table_start, LENGTH = _user_memory_start - _jump_table_start
 }
 
@@ -34,15 +34,15 @@ SECTIONS {
     .vectors : {
         __vectors_start = .;
         KEEP(*(.vectors))
-    } > low_ro_mem
+    } > low_rx_mem
 
     .text : {
         *(.text .text*)
-    } > low_ro_mem
+    } > low_rx_mem
 
     .rodata : {
         *(.rodata*)
-    } > low_ro_mem
+    } > low_rx_mem
 
     .data : {
         *(.data*)
