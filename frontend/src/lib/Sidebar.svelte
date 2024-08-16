@@ -163,7 +163,7 @@
                 small
                 draggable
                 class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
+                on:dragstart={(event) => handleDragStart(event, "gps")}
             >
                 <Gps size="200px"/>
                 <span class="device-label">GPS Sensor</span>

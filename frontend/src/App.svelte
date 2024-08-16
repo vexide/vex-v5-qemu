@@ -35,6 +35,7 @@
     import BatteryNode from "./lib/nodes/BatteryNode.svelte";
     import Flow from "./lib/Flow.svelte";
     import Terminal from "~/lib/Terminal.svelte";
+    import GpsNode from "./lib/nodes/GpsNode.svelte";
 
     let settingsDialogOpen = false;
 
@@ -46,6 +47,7 @@
         brain: BrainNode,
         adi: AdiNode,
         battery: BatteryNode,
+        gps: GpsNode,
     };
 
     onMount(async () => {
