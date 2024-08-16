@@ -13,7 +13,6 @@
         overlays = [ (import rust-overlay) ];
       };
     in {
-
       devShells.x86_64-linux.default = let
         tauriLibraries = with pkgs; [
           webkitgtk_4_1

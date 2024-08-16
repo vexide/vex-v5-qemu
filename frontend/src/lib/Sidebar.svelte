@@ -13,6 +13,9 @@
     import GenericSerial from "./icons/GenericSerial.svelte";
     import VisionSensor from "./icons/VisionSensor.svelte";
     import AiVisionSensor from "./icons/AIVisionSensor.svelte";
+    import Potentiometer from "./icons/Potentiometer.svelte";
+    import Gps from "./icons/GPS.svelte";
+    import LineTracker from "./icons/LineTracker.svelte";
 
 
     let width = 260;
@@ -93,7 +96,18 @@
                 on:dragstart={(event) => handleDragStart(event, "input")}
             >
                 <Motor />
-                <span class="device-label">Motor</span>
+                <span class="device-label">Motor (11w)</span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
+                <Motor />
+                <span class="device-label">Motor (5.5w)</span>
             </Button>
         </li>
         <li>
@@ -127,8 +141,32 @@
                 class="device"
                 on:dragstart={(event) => handleDragStart(event, "input")}
             >
+                <Potentiometer />
+                <span class="device-label">
+                    ADI Potentiometer
+                </span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
                 <DistanceSensor />
                 <span class="device-label">Distance Sensor</span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
+                <Gps size="200px"/>
+                <span class="device-label">GPS Sensor</span>
             </Button>
         </li>
         <li>
@@ -162,6 +200,17 @@
             >
                 <AiVisionSensor />
                 <span class="device-label">AI Vision Sensor</span>
+            </Button>
+        </li>
+        <li>
+            <Button
+                small
+                draggable
+                class="device"
+                on:dragstart={(event) => handleDragStart(event, "input")}
+            >
+                <LineTracker />
+                <span class="device-label">ADI Line Tracker</span>
             </Button>
         </li>
         <li>
