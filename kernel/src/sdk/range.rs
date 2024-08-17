@@ -4,6 +4,6 @@
 
 use vex_sdk::*;
 
-pub fn vexDeviceRangeValueGet(device: V5_DeviceT) -> i32 {
+pub extern "C" fn vexDeviceRangeValueGet(device: V5_DeviceT) -> i32 {
     Default::default()
 }

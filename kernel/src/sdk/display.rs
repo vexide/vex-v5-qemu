@@ -194,22 +194,22 @@ impl Display {
     }
 }
 
-pub fn vexDisplayForegroundColor(col: u32) {
+pub extern "C" fn vexDisplayForegroundColor(col: u32) {
     DISPLAY.lock().set_foreground(Color(col));
 }
-pub fn vexDisplayBackgroundColor(col: u32) {
+pub extern "C" fn vexDisplayBackgroundColor(col: u32) {
     DISPLAY.lock().set_background(Color(col));
 }
-pub fn vexDisplayErase() {
+pub extern "C" fn vexDisplayErase() {
     DISPLAY.lock().erase().unwrap();
 }
-pub fn vexDisplayScroll(nStartLine: i32, nLines: i32) {
+pub extern "C" fn vexDisplayScroll(nStartLine: i32, nLines: i32) {
     DISPLAY
         .lock()
         .scroll(ScrollLocation::Line(nStartLine), nLines)
         .unwrap();
 }
-pub fn vexDisplayScrollRect(x1: i32, y1: i32, x2: i32, y2: i32, nLines: i32) {
+pub extern "C" fn vexDisplayScrollRect(x1: i32, y1: i32, x2: i32, y2: i32, nLines: i32) {
     DISPLAY
         .lock()
         .scroll(
@@ -245,7 +245,7 @@ pub unsafe fn vexDisplayCopyRect(
         )
         .unwrap();
 }
-pub fn vexDisplayPixelSet(x: u32, y: u32) {
+pub extern "C" fn vexDisplayPixelSet(x: u32, y: u32) {
     DISPLAY
         .lock()
         .fill_with_foreground(Shape::Rectangle {
@@ -260,7 +260,7 @@ pub fn vexDisplayPixelSet(x: u32, y: u32) {
         })
         .unwrap()
 }
-pub fn vexDisplayPixelClear(x: u32, y: u32) {
+pub extern "C" fn vexDisplayPixelClear(x: u32, y: u32) {
     DISPLAY
         .lock()
         .fill_with_background(Shape::Rectangle {
@@ -275,7 +275,7 @@ pub fn vexDisplayPixelClear(x: u32, y: u32) {
         })
         .unwrap()
 }
-pub fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
+pub extern "C" fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         // it's a line so we don't stroke
@@ -285,7 +285,7 @@ pub fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayLineClear(x1: i32, y1: i32, x2: i32, y2: i32) {
+pub extern "C" fn vexDisplayLineClear(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         .fill_with_background(Shape::Line {
@@ -294,7 +294,7 @@ pub fn vexDisplayLineClear(x1: i32, y1: i32, x2: i32, y2: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayRectDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
+pub extern "C" fn vexDisplayRectDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         .stroke_with_foreground(Shape::Rectangle {
@@ -303,7 +303,7 @@ pub fn vexDisplayRectDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayRectClear(x1: i32, y1: i32, x2: i32, y2: i32) {
+pub extern "C" fn vexDisplayRectClear(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         .fill_with_background(Shape::Rectangle {
@@ -312,7 +312,7 @@ pub fn vexDisplayRectClear(x1: i32, y1: i32, x2: i32, y2: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayRectFill(x1: i32, y1: i32, x2: i32, y2: i32) {
+pub extern "C" fn vexDisplayRectFill(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         .fill_with_foreground(Shape::Rectangle {
@@ -321,7 +321,7 @@ pub fn vexDisplayRectFill(x1: i32, y1: i32, x2: i32, y2: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayCircleDraw(xc: i32, yc: i32, radius: i32) {
+pub extern "C" fn vexDisplayCircleDraw(xc: i32, yc: i32, radius: i32) {
     DISPLAY
         .lock()
         .stroke_with_foreground(Shape::Circle {
@@ -330,7 +330,7 @@ pub fn vexDisplayCircleDraw(xc: i32, yc: i32, radius: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
+pub extern "C" fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
     DISPLAY
         .lock()
         .fill_with_background(Shape::Circle {
@@ -339,7 +339,7 @@ pub fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayCircleFill(xc: i32, yc: i32, radius: i32) {
+pub extern "C" fn vexDisplayCircleFill(xc: i32, yc: i32, radius: i32) {
     DISPLAY
         .lock()
         .fill_with_foreground(Shape::Circle {
@@ -348,12 +348,12 @@ pub fn vexDisplayCircleFill(xc: i32, yc: i32, radius: i32) {
         })
         .unwrap()
 }
-pub fn vexDisplayTextSize(n: u32, d: u32) {}
-pub fn vexDisplayFontNamedSet(pFontName: *const c_char) {}
-pub fn vexDisplayForegroundColorGet() -> u32 {
+pub extern "C" fn vexDisplayTextSize(n: u32, d: u32) {}
+pub extern "C" fn vexDisplayFontNamedSet(pFontName: *const c_char) {}
+pub extern "C" fn vexDisplayForegroundColorGet() -> u32 {
     DISPLAY.lock().foreground().0
 }
-pub fn vexDisplayBackgroundColorGet() -> u32 {
+pub extern "C" fn vexDisplayBackgroundColorGet() -> u32 {
     DISPLAY.lock().background().0
 }
 
@@ -390,30 +390,30 @@ pub unsafe fn vexDisplayStringHeightGet(pString: *const c_char) -> i32 {
         .unwrap()
         .height
 }
-pub fn vexDisplayPenSizeSet(width: u32) {}
-pub fn vexDisplayPenSizeGet() -> u32 {
+pub extern "C" fn vexDisplayPenSizeSet(width: u32) {}
+pub extern "C" fn vexDisplayPenSizeGet() -> u32 {
     Default::default()
 }
-pub fn vexDisplayClipRegionSet(x1: i32, y1: i32, x2: i32, y2: i32) {
+pub extern "C" fn vexDisplayClipRegionSet(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY.lock().set_clip_region(Rect {
         top_left: Point2 { x: x1, y: y1 },
         bottom_right: Point2 { x: x2, y: y2 },
     })
 }
-pub fn vexDisplayRender(bVsyncWait: bool, bRunScheduler: bool) {
+pub extern "C" fn vexDisplayRender(bVsyncWait: bool, bRunScheduler: bool) {
     protocol::send_packet(HostBoundPacket::DisplayRender).unwrap();
 }
-pub fn vexDisplayDoubleBufferDisable() {
+pub extern "C" fn vexDisplayDoubleBufferDisable() {
     protocol::send_packet(HostBoundPacket::DisplayRenderMode(
         DisplayRenderMode::Immediate,
     ))
     .unwrap();
 }
-pub fn vexDisplayClipRegionSetWithIndex(index: i32, x1: i32, y1: i32, x2: i32, y2: i32) {}
-pub fn vexImageBmpRead(ibuf: *const u8, oBuf: *mut v5_image, maxw: u32, maxh: u32) -> u32 {
+pub extern "C" fn vexDisplayClipRegionSetWithIndex(index: i32, x1: i32, y1: i32, x2: i32, y2: i32) {}
+pub extern "C" fn vexImageBmpRead(ibuf: *const u8, oBuf: *mut v5_image, maxw: u32, maxh: u32) -> u32 {
     Default::default()
 }
-pub fn vexImagePngRead(
+pub extern "C" fn vexImagePngRead(
     ibuf: *const u8,
     oBuf: *mut v5_image,
     maxw: u32,
@@ -422,7 +422,7 @@ pub fn vexImagePngRead(
 ) -> u32 {
     Default::default()
 }
-pub fn vexDisplayVPrintf(
+pub extern "C" fn vexDisplayVPrintf(
     xpos: i32,
     ypos: i32,
     bOpaque: i32,
@@ -430,12 +430,12 @@ pub fn vexDisplayVPrintf(
     args: VaList<'_, '_>,
 ) {
 }
-pub fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub fn vexDisplayVStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub fn vexDisplayVBigString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub fn vexDisplayVBigStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub fn vexDisplayVSmallStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {
+pub extern "C" fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub extern "C" fn vexDisplayVStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub extern "C" fn vexDisplayVBigString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub extern "C" fn vexDisplayVBigStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub extern "C" fn vexDisplayVSmallStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {
 }
-pub fn vexDisplayVCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub fn vexDisplayVBigCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {
+pub extern "C" fn vexDisplayVCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
+pub extern "C" fn vexDisplayVBigCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {
 }

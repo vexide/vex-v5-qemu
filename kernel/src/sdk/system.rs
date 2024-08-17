@@ -20,57 +20,57 @@ use crate::{
     xil::{gic::XSCUGIC_MAX_NUM_INTR_INPUTS, timer::XScuTimer, XST_FAILURE, XST_SUCCESS},
 };
 
-pub fn vexPrivateApiDisable(sig: u32) {}
-pub fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
-pub fn vexScratchMemoryPtr(ptr: *mut *mut core::ffi::c_void) -> i32 {
+pub extern "C" fn vexPrivateApiDisable(sig: u32) {}
+pub extern "C" fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
+pub extern "C" fn vexScratchMemoryPtr(ptr: *mut *mut core::ffi::c_void) -> i32 {
     Default::default()
 }
-pub fn vexScratchMemoryLock() -> bool {
+pub extern "C" fn vexScratchMemoryLock() -> bool {
     Default::default()
 }
-pub fn vexScratchMemoryUnock() {}
-pub fn vexSystemTimeGet() -> u32 {
+pub extern "C" fn vexScratchMemoryUnock() {}
+pub extern "C" fn vexSystemTimeGet() -> u32 {
     SYSTEM_TIME.load(Ordering::Acquire)
 }
-pub fn vexGettime() -> time {
+pub extern "C" fn vexGettime() -> time {
     Default::default()
 }
-pub fn vexGetdate() -> date {
+pub extern "C" fn vexGetdate() -> date {
     Default::default()
 }
-pub fn vexSystemMemoryDump() {}
-pub fn vexSystemDigitalIO(pin: u32, value: u32) {}
-pub fn vexSystemStartupOptions() -> u32 {
+pub extern "C" fn vexSystemMemoryDump() {}
+pub extern "C" fn vexSystemDigitalIO(pin: u32, value: u32) {}
+pub extern "C" fn vexSystemStartupOptions() -> u32 {
     Default::default()
 }
-pub fn vexSystemExitRequest() {
+pub extern "C" fn vexSystemExitRequest() {
     exit(0);
 }
-pub fn vexSystemHighResTimeGet() -> u64 {
+pub extern "C" fn vexSystemHighResTimeGet() -> u64 {
     global_timer_counter() / (PERIPHCLK as u64 / 1000000)
 }
-pub fn vexSystemPowerupTimeGet() -> u64 {
+pub extern "C" fn vexSystemPowerupTimeGet() -> u64 {
     // powerup time is the same as execution time in our case
     vexSystemHighResTimeGet()
 }
-pub fn vexSystemLinkAddrGet() -> u32 {
+pub extern "C" fn vexSystemLinkAddrGet() -> u32 {
     // no multi-file support yet
     0x0
 }
-pub fn vexSystemTimerGet(param_1: u32) -> u32 {
+pub extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()
 }
-pub fn vexSystemUsbStatus() -> u32 {
+pub extern "C" fn vexSystemUsbStatus() -> u32 {
     Default::default()
 }
-pub fn vexSystemTimerStop() {
+pub extern "C" fn vexSystemTimerStop() {
     let mut timer = PRIVATE_TIMER.lock();
     timer.set_interrupt_enabled(false);
     timer.stop();
 }
 
 /// Clears the timer interrupt status if the timer has expired.
-pub fn vexSystemTimerClearInterrupt() {
+pub extern "C" fn vexSystemTimerClearInterrupt() {
     // Realistically I think this should be a call to
     // [`PrivateTimer::clear_interrupt_status()`] and NOT the timer interrupt
     // handler (which also increments the time for vexSystemTimeGet),
@@ -80,7 +80,7 @@ pub fn vexSystemTimerClearInterrupt() {
 
 /// Reinitializes the timer interrupt with a given tick handler and priority for
 /// the private timer instance.
-pub fn vexSystemTimerReinitForRtos(
+pub extern "C" fn vexSystemTimerReinitForRtos(
     priority: u32,
     handler: extern "C" fn(data: *mut c_void),
 ) -> i32 {
@@ -113,7 +113,7 @@ pub fn vexSystemTimerReinitForRtos(
 }
 
 /// Handles an IRQ using the interrupt controller's handler table.
-pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
+pub extern "C" fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
     let mut gic = GIC.lock();
 
     // The ID of the interrupt is obtained by bitwise anding the ICCIAR value
@@ -135,7 +135,7 @@ pub fn vexSystemApplicationIRQHandler(ulICCIAR: u32) {
 static WDT_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 /// Initializes the CPU1 watchdog timer.
-pub fn vexSystemWatchdogReinitRtos() -> i32 {
+pub extern "C" fn vexSystemWatchdogReinitRtos() -> i32 {
     // Since the watchdog timer can only be initialized a single time, this function
     // should only ever be called once. In the event that it is called more than
     // once, we check and bail early by returning XST_FAILURE.
@@ -164,14 +164,29 @@ pub fn vexSystemWatchdogReinitRtos() -> i32 {
 
     XST_SUCCESS
 }
-pub fn vexSystemWatchdogGet() -> u32 {
+pub extern "C" fn vexSystemWatchdogGet() -> u32 {
     Default::default()
 }
-pub fn vexSystemBoot() {}
+pub extern "C" fn vexSystemBoot() {}
 
-pub fn vexSystemUndefinedException() {}
-pub fn vexSystemFIQInterrupt() {}
-pub fn vexSystemIQRQnterrupt() {}
-pub fn vexSystemSWInterrupt() {}
-pub fn vexSystemDataAbortInterrupt() {}
-pub fn vexSystemPrefetchAbortInterrupt() {}
+pub extern "C" fn vexSystemUndefinedException() {
+    log::error!("Undefined instruction exception");
+    // TODO: draw the funny red box to the screen
+}
+
+// These three are noops for now since to my knowledge
+// they aren't used or another handler takes its place
+// (in the case of IRQs XScuGic_InterruptHandler) is
+// registered on the exception table for IRQs.
+pub extern "C" fn vexSystemFIQInterrupt() {}
+pub extern "C" fn vexSystemIQRQnterrupt() {}
+pub extern "C" fn vexSystemSWInterrupt() {}
+
+pub extern "C" fn vexSystemDataAbortInterrupt() {
+    log::error!("Data abort exception");
+    // TODO: draw the funny red box to the screen
+}
+pub extern "C" fn vexSystemPrefetchAbortInterrupt() {
+    log::error!("Prefetch abort exception");
+    // TODO: draw the funny red box to the screen
+}

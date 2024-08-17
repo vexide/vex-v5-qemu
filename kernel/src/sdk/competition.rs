@@ -1,6 +1,6 @@
 //! Competition Control
 
-pub fn vexCompetitionStatus() -> u32 {
+pub extern "C" fn vexCompetitionStatus() -> u32 {
     Default::default()
 }
-pub fn vexCompetitionControl(data: u32) {}
+pub extern "C" fn vexCompetitionControl(data: u32) {}

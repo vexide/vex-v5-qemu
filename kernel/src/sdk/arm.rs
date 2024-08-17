@@ -3,7 +3,7 @@
 use core::ffi::c_double;
 use vex_sdk::*;
 
-pub fn vexDeviceArmMoveTipCommandLinearAdv(
+pub extern "C" fn vexDeviceArmMoveTipCommandLinearAdv(
     device: V5_DeviceT,
     position: *mut V5_DeviceArmTipPosition,
     j6_rotation: c_double,
@@ -11,7 +11,7 @@ pub fn vexDeviceArmMoveTipCommandLinearAdv(
     relative: bool,
 ) {
 }
-pub fn vexDeviceArmMoveTipCommandJointAdv(
+pub extern "C" fn vexDeviceArmMoveTipCommandJointAdv(
     device: V5_DeviceT,
     position: *mut V5_DeviceArmTipPosition,
     j6_rotation: c_double,
@@ -19,9 +19,9 @@ pub fn vexDeviceArmMoveTipCommandJointAdv(
     relative: bool,
 ) {
 }
-pub fn vexDeviceArmTipPositionGetAdv(device: V5_DeviceT, position: *mut V5_DeviceArmTipPosition) {}
-pub fn vexDeviceArmPoseSet(device: V5_DeviceT, pose: u8, velocity: u16) {}
-pub fn vexDeviceArmMoveTipCommandLinear(
+pub extern "C" fn vexDeviceArmTipPositionGetAdv(device: V5_DeviceT, position: *mut V5_DeviceArmTipPosition) {}
+pub extern "C" fn vexDeviceArmPoseSet(device: V5_DeviceT, pose: u8, velocity: u16) {}
+pub extern "C" fn vexDeviceArmMoveTipCommandLinear(
     device: V5_DeviceT,
     x: i32,
     y: i32,
@@ -33,7 +33,7 @@ pub fn vexDeviceArmMoveTipCommandLinear(
     relative: bool,
 ) {
 }
-pub fn vexDeviceArmMoveTipCommandJoint(
+pub extern "C" fn vexDeviceArmMoveTipCommandJoint(
     device: V5_DeviceT,
     x: i32,
     y: i32,
@@ -45,7 +45,7 @@ pub fn vexDeviceArmMoveTipCommandJoint(
     relative: bool,
 ) {
 }
-pub fn vexDeviceArmMoveJointsCommand(
+pub extern "C" fn vexDeviceArmMoveJointsCommand(
     device: V5_DeviceT,
     positions: *mut c_double,
     velocities: *mut u16,
@@ -57,48 +57,48 @@ pub fn vexDeviceArmMoveJointsCommand(
     relative: bool,
 ) {
 }
-pub fn vexDeviceArmSpinJoints(device: V5_DeviceT, velocities: *mut c_double) {}
-pub fn vexDeviceArmSetJointPositions(device: V5_DeviceT, new_positions: *mut c_double) {}
-pub fn vexDeviceArmPickUpCommand(device: V5_DeviceT) {}
-pub fn vexDeviceArmDropCommand(device: V5_DeviceT) {}
-pub fn vexDeviceArmMoveVoltsCommand(device: V5_DeviceT, voltages: *mut c_double) {}
-pub fn vexDeviceArmFullStop(device: V5_DeviceT, brakeMode: u8) {}
-pub fn vexDeviceArmEnableProfiler(device: V5_DeviceT, enable: u8) {}
-pub fn vexDeviceArmProfilerVelocitySet(
+pub extern "C" fn vexDeviceArmSpinJoints(device: V5_DeviceT, velocities: *mut c_double) {}
+pub extern "C" fn vexDeviceArmSetJointPositions(device: V5_DeviceT, new_positions: *mut c_double) {}
+pub extern "C" fn vexDeviceArmPickUpCommand(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmDropCommand(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmMoveVoltsCommand(device: V5_DeviceT, voltages: *mut c_double) {}
+pub extern "C" fn vexDeviceArmFullStop(device: V5_DeviceT, brakeMode: u8) {}
+pub extern "C" fn vexDeviceArmEnableProfiler(device: V5_DeviceT, enable: u8) {}
+pub extern "C" fn vexDeviceArmProfilerVelocitySet(
     device: V5_DeviceT,
     linear_velocity: u16,
     joint_velocity: u16,
 ) {
 }
-pub fn vexDeviceArmSaveZeroValues(device: V5_DeviceT) {}
-pub fn vexDeviceArmForceZeroCommand(device: V5_DeviceT) {}
-pub fn vexDeviceArmClearZeroValues(device: V5_DeviceT) {}
-pub fn vexDeviceArmBootload(device: V5_DeviceT) {}
-pub fn vexDeviceArmTipPositionGet(device: V5_DeviceT, x: *mut i32, y: *mut i32, z: *mut i32) {}
-pub fn vexDeviceArmJointInfoGet(
+pub extern "C" fn vexDeviceArmSaveZeroValues(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmForceZeroCommand(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmClearZeroValues(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmBootload(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmTipPositionGet(device: V5_DeviceT, x: *mut i32, y: *mut i32, z: *mut i32) {}
+pub extern "C" fn vexDeviceArmJointInfoGet(
     device: V5_DeviceT,
     positions: *mut c_double,
     velocities: *mut c_double,
     currents: *mut i32,
 ) {
 }
-pub fn vexDeviceArmJ6PositionGet(device: V5_DeviceT) -> c_double {
+pub extern "C" fn vexDeviceArmJ6PositionGet(device: V5_DeviceT) -> c_double {
     Default::default()
 }
-pub fn vexDeviceArmBatteryGet(device: V5_DeviceT) -> i32 {
+pub extern "C" fn vexDeviceArmBatteryGet(device: V5_DeviceT) -> i32 {
     Default::default()
 }
-pub fn vexDeviceArmServoFlagsGet(device: V5_DeviceT, servoID: u32) -> i32 {
+pub extern "C" fn vexDeviceArmServoFlagsGet(device: V5_DeviceT, servoID: u32) -> i32 {
     Default::default()
 }
-pub fn vexDeviceArmStatusGet(device: V5_DeviceT) -> u32 {
+pub extern "C" fn vexDeviceArmStatusGet(device: V5_DeviceT) -> u32 {
     Default::default()
 }
-pub fn vexDeviceArmDebugGet(device: V5_DeviceT, id: i32) -> u32 {
+pub extern "C" fn vexDeviceArmDebugGet(device: V5_DeviceT, id: i32) -> u32 {
     Default::default()
 }
-pub fn vexDeviceArmJointErrorsGet(device: V5_DeviceT, errors: *mut u8) {}
-pub fn vexDeviceArmJ6PositionSet(device: V5_DeviceT, position: i16) {}
-pub fn vexDeviceArmStopJointsCommand(device: V5_DeviceT, brakeModes: *mut i16) {}
-pub fn vexDeviceArmReboot(device: V5_DeviceT) {}
-pub fn vexDeviceArmTipOffsetSet(device: V5_DeviceT, x: i32, y: i32, z: i32) {}
+pub extern "C" fn vexDeviceArmJointErrorsGet(device: V5_DeviceT, errors: *mut u8) {}
+pub extern "C" fn vexDeviceArmJ6PositionSet(device: V5_DeviceT, position: i16) {}
+pub extern "C" fn vexDeviceArmStopJointsCommand(device: V5_DeviceT, brakeModes: *mut i16) {}
+pub extern "C" fn vexDeviceArmReboot(device: V5_DeviceT) {}
+pub extern "C" fn vexDeviceArmTipOffsetSet(device: V5_DeviceT, x: i32, y: i32, z: i32) {}

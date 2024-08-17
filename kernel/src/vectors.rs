@@ -8,7 +8,9 @@
 //! In most cases, these functions are copied off of Xilinx's `asm_vectors.s`
 //! file: <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
 
-use core::arch::{asm, global_asm};
+use core::{arch::{asm, global_asm}, ffi::c_void};
+
+use crate::{sdk::{vexSystemDataAbortInterrupt, vexSystemPrefetchAbortInterrupt, vexSystemUndefinedException}, xil::exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_DATA_ABORT_INT, XIL_EXCEPTION_ID_PREFETCH_ABORT_INT, XIL_EXCEPTION_ID_UNDEFINED_INT}};
 
 // The exception vector table.
 //
@@ -260,5 +262,47 @@ pub extern "C" fn fiq() -> ! {
             ",
             options(noreturn)
         )
+    }
+}
+
+/// VEX handles the user-facing part of exceptions through xilinx's own exception
+/// table API, so this function registers those on the table.
+///
+/// Those functions are what actually convey to the user that an exception occurs
+/// (for example vexSystemDataAbortInterrupt is responsible for drawing a red box
+/// to the screen).
+pub fn register_sdk_exception_handlers() {
+    #[inline]
+    pub extern "C" fn data_abort_handler_thunk(_: *mut c_void) {
+        vexSystemDataAbortInterrupt();
+        loop { core::hint::spin_loop(); }
+    }
+    #[inline]
+    pub extern "C" fn undefined_instruction_handler_thunk(_: *mut c_void) {
+        vexSystemUndefinedException();
+        loop { core::hint::spin_loop(); }
+    }
+    #[inline]
+    pub extern "C" fn prefetch_abort_handler_thunk(_: *mut c_void) {
+        vexSystemPrefetchAbortInterrupt();
+        loop { core::hint::spin_loop(); }
+    }
+
+    unsafe {
+        Xil_ExceptionRegisterHandler(
+            XIL_EXCEPTION_ID_DATA_ABORT_INT,
+            Some(data_abort_handler_thunk),
+            core::ptr::null_mut(),
+        );
+        Xil_ExceptionRegisterHandler(
+            XIL_EXCEPTION_ID_UNDEFINED_INT,
+            Some(undefined_instruction_handler_thunk),
+            core::ptr::null_mut(),
+        );
+        Xil_ExceptionRegisterHandler(
+            XIL_EXCEPTION_ID_PREFETCH_ABORT_INT,
+            Some(prefetch_abort_handler_thunk),
+            core::ptr::null_mut(),
+        );
     }
 }
