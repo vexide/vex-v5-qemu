@@ -17,7 +17,12 @@ use crate::{
         timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
     },
     protocol::exit,
-    xil::{gic::XSCUGIC_MAX_NUM_INTR_INPUTS, timer::XScuTimer, XST_FAILURE, XST_SUCCESS},
+    xil::{
+        exception::{DataAbortAddr, PrefetchAbortAddr, UndefinedExceptionAddr},
+        gic::XSCUGIC_MAX_NUM_INTR_INPUTS,
+        timer::XScuTimer,
+        XST_FAILURE, XST_SUCCESS,
+    },
 };
 
 pub extern "C" fn vexPrivateApiDisable(sig: u32) {}
@@ -170,7 +175,9 @@ pub extern "C" fn vexSystemWatchdogGet() -> u32 {
 pub extern "C" fn vexSystemBoot() {}
 
 pub extern "C" fn vexSystemUndefinedException() {
-    log::error!("Undefined instruction exception");
+    unsafe {
+        log::error!("Undefined instruction exception: {UndefinedExceptionAddr:#x}");
+    }
     // TODO: draw the funny red box to the screen
 }
 
@@ -183,10 +190,14 @@ pub extern "C" fn vexSystemIQRQnterrupt() {}
 pub extern "C" fn vexSystemSWInterrupt() {}
 
 pub extern "C" fn vexSystemDataAbortInterrupt() {
-    log::error!("Data abort exception");
-    // TODO: draw the funny red box to the screen
+    unsafe {
+        log::error!("Data abort exception: {DataAbortAddr:#x}");
+        // TODO: draw the funny red box to the screen
+    }
 }
 pub extern "C" fn vexSystemPrefetchAbortInterrupt() {
-    log::error!("Prefetch abort exception");
+    unsafe {
+        log::error!("Prefetch abort exception: {PrefetchAbortAddr:#x}");
+    }
     // TODO: draw the funny red box to the screen
 }
