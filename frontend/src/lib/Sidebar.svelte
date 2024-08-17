@@ -1,8 +1,11 @@
 <script lang="ts">
     import { Menu } from "svelte-feathers";
     import { dndType } from "~/lib/stores";
+
     import Button from "~/lib/Button.svelte";
+
     import drag from "~/lib/drag";
+
     import ADI from "./icons/ADI.svelte";
     import Motor from "./icons/Motor.svelte";
     import Controller from "./icons/Controller.svelte";
@@ -12,13 +15,15 @@
     import Magnet from "./icons/Magnet.svelte";
     import GenericSerial from "./icons/GenericSerial.svelte";
     import VisionSensor from "./icons/VisionSensor.svelte";
-    import AiVisionSensor from "./icons/AIVisionSensor.svelte";
+    import AIVisionSensor from "./icons/AIVisionSensor.svelte";
     import Potentiometer from "./icons/Potentiometer.svelte";
-    import Gps from "./icons/GPS.svelte";
+    import GPSSensor from "./icons/GPSSensor.svelte";
     import LineTracker from "./icons/LineTracker.svelte";
-
+    import DraggableDevice from "./DraggableDevice.svelte";
 
     let width = 260;
+    let scrollEdgeTop = false;
+    let scrollEdgeBottom = false;
     let widthBeforeCollapse = width;
     let sidebar: HTMLElement | undefined;
     let collapsed = false;
@@ -69,11 +74,90 @@
             adjustWidth(collapsed ? COLLAPSE_BREAKPOINT : width + 8);
         }
     }
+
+    function handleScroll(event: Event) {
+        const target = event.target as HTMLElement;
+        scrollEdgeTop = target.scrollTop < 8;
+        scrollEdgeBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 8;
+    }
+
+    const SMART_DEVICES = [
+        {
+            name: "Motor",
+            icon: Motor,
+            node: "motor",
+        },
+        {
+            name: "Controller",
+            icon: Controller,
+            node: "controller",
+        },
+        {
+            name: "Rotation Sensor",
+            icon: RotationSensor,
+            node: "rotation",
+        },
+        {
+            name: "Distance Sensor",
+            icon: DistanceSensor,
+            node: "distance",
+        },
+        {
+            name: "GPS Sensor",
+            icon: GPSSensor,
+            node: "gps",
+        },
+        {
+            name: "Optical Sensor",
+            icon: OpticalSensor,
+            node: "optical",
+        },
+        {
+            name: "Vision Sensor",
+            icon: VisionSensor,
+            node: "vision",
+        },
+        {
+            name: "AI Vision Sensor",
+            icon: AIVisionSensor,
+            node: "ai_vision",
+        },
+        {
+            name: "Serial Port",
+            icon: GenericSerial,
+            node: "serial",
+        },
+        {
+            name: "ADI Expander",
+            icon: ADI,
+            node: "adi",
+        },
+        {
+            name: "Electromagnet",
+            icon: Magnet,
+            node: "electromagnet",
+        },
+    ];
+
+    const ADI_DEVICES = [
+        {
+            name: "Potentiometer",
+            icon: Potentiometer,
+            node: "potentiometer",
+        },
+        {
+            name: "Line Tracker",
+            icon: LineTracker,
+            node: "line_tracker",
+        },
+    ];
 </script>
 
 <aside
     class="sidebar"
     class:collapsed
+    class:edge-top={scrollEdgeTop}
+    class:edge-bottom={scrollEdgeBottom}
     style:width="{width}px"
     bind:this={sidebar}
 >
@@ -87,166 +171,44 @@
             <Menu size="16" />
         </Button>
     </header>
-    <ul class="device-picker">
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <Motor />
-                <span class="device-label">Motor (11w)</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <Motor />
-                <span class="device-label">Motor (5.5w)</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <Controller />
-                <span class="device-label">Controller</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <RotationSensor />
-                <span class="device-label">
-                    Rotation Sensor
-                </span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <Potentiometer />
-                <span class="device-label">
-                    ADI Potentiometer
-                </span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <DistanceSensor />
-                <span class="device-label">Distance Sensor</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "gps")}
-            >
-                <Gps size="200px"/>
-                <span class="device-label">GPS Sensor</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <OpticalSensor />
-                <span class="device-label">Optical Sensor</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <VisionSensor />
-                <span class="device-label">Vision Sensor</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <AiVisionSensor />
-                <span class="device-label">AI Vision Sensor</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <LineTracker />
-                <span class="device-label">ADI Line Tracker</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <GenericSerial />
-                <span class="device-label">Serial Port</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <ADI />
-                <span class="device-label">ADI Expander</span>
-            </Button>
-        </li>
-        <li>
-            <Button
-                small
-                draggable
-                class="device"
-                on:dragstart={(event) => handleDragStart(event, "input")}
-            >
-                <Magnet />
-                <span class="device-label">Electromagnet</span>
-            </Button>
-        </li>
-    </ul>
+    <div
+        class="scroller"
+        on:scroll={handleScroll}
+    >
+        <ul class="device-category">
+            {#each SMART_DEVICES as device}
+                <li>
+                    <DraggableDevice
+                        name={device.name}
+                        on:dragstart={(e) => handleDragStart(e, device.node)}
+                    >
+                        <svelte:component
+                            this={device.icon}
+                            slot="icon"
+                            size="16"
+                        />
+                    </DraggableDevice>
+                </li>
+            {/each}
+        </ul>
+        <hr />
+        <ul class="device-category">
+            {#each ADI_DEVICES as device}
+                <li>
+                    <DraggableDevice
+                        name={device.name}
+                        on:dragstart={(e) => handleDragStart(e, device.node)}
+                    >
+                        <svelte:component
+                            this={device.icon}
+                            slot="icon"
+                            size="16"
+                        />
+                    </DraggableDevice>
+                </li>
+            {/each}
+        </ul>
+    </div>
     <!--
         svelte-ignore a11y-no-noninteractive-element-interactions a11y-no-noninteractive-tabindex
         (resize splitters are a special usecase, since they don't have a dedicated ARIA role, see https://github.com/w3c/aria/issues/1348)
@@ -288,6 +250,8 @@
 
     .sidebar {
         position: relative;
+        display: flex;
+        flex-direction: column;
         flex: 0 0 auto;
         width: 260px;
         max-width: 400px;
@@ -298,6 +262,7 @@
     }
 
     .sidebar header {
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -314,8 +279,50 @@
         font-family: var(--font-family-text);
     }
 
-    .device-picker {
+    .sidebar .scroller {
+        --scrollbar-color: var(--background-secondary);
+        position: relative;
         padding: 8px;
+        overflow: auto;
+        flex: 1 1 auto;
+    }
+
+    .sidebar .scroller::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sidebar::before,
+    .sidebar::after {
+        content: "";
+        z-index: 1;
+        pointer-events: none;
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 24px;
+        opacity: 1;
+        transition: 150ms ease;
+        background: var(--background-secondary);
+    }
+
+    .sidebar::before {
+        top: 46px;
+        mask: linear-gradient(black, transparent);
+        -webkit-mask: linear-gradient(black, transparent);
+    }
+
+    .sidebar::after {
+        bottom: 0;
+        mask: linear-gradient(transparent, black);
+        -webkit-mask: linear-gradient(transparent, black);
+    }
+
+    .sidebar.edge-top::before,
+    .sidebar.edge-bottom::after {
+        opacity: 0;
+    }
+
+    .device-category {
         margin: 0;
         display: flex;
         flex-direction: column;
@@ -323,7 +330,13 @@
         gap: 8px;
     }
 
-    .device-picker :global(.device) {
+    .sidebar hr {
+        margin-block: 16px;
+        border: none;
+        border-top: 1px solid var(--interactive-primary);
+    }
+
+    .device-category :global(.device) {
         width: 100%;
         gap: 8px;
         justify-content: flex-start;
@@ -334,14 +347,14 @@
         color: var(--foreground-primary);
     }
 
-    .device-picker :global(.device svg) {
-        color: var(--foreground-secondary);
-        width: 16px;
-        height: auto;
+    .device-category {
+        font-size: 16px;
+        margin: 0;
+        padding: 0;
     }
 
     .sidebar.collapsed header h1,
-    .sidebar.collapsed .device-label {
+    .sidebar.collapsed :global(.device-name) {
         display: none;
     }
 

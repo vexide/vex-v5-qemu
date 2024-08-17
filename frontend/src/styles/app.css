@@ -30,10 +30,12 @@
 	--interactive-secondary: hsl(var(--base-hue), 7%, 18%);
 	--interactive-tertiary: hsl(var(--base-hue), 7%, 24%);
 	--interactive-quarternary: hsl(var(--base-hue), 7%, 32%);
+
 }
 
 html,
 body {
+	--scrollbar-color: var(--background-primary);
 	background-color: var(--background-primary);
 	font-family: var(--font-family-text);
 	scroll-behavior: smooth;
@@ -52,15 +54,16 @@ body {
 	box-sizing: border-box;
 }
 
+
 ::-webkit-scrollbar {
 	inline-size: 8px;
 	block-size: 8px;
-	background-color: var(--background-primary);
+	background-color: var(--scrollbar-color);
 }
 
 ::-webkit-scrollbar-thumb {
 	border-radius: 8px;
-	border: 2px solid var(--background-primary);
+	border: 2px solid var(--scrollbar-color);
 	background-color: var(--interactive-secondary);
 }
 
