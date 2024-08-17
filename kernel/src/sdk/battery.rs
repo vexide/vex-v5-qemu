@@ -2,15 +2,15 @@
 
 use core::ffi::c_double;
 
-pub fn vexBatteryVoltageGet() -> i32 {
+pub extern "C" fn vexBatteryVoltageGet() -> i32 {
     Default::default()
 }
-pub fn vexBatteryCurrentGet() -> i32 {
+pub extern "C" fn vexBatteryCurrentGet() -> i32 {
     Default::default()
 }
-pub fn vexBatteryTemperatureGet() -> c_double {
+pub extern "C" fn vexBatteryTemperatureGet() -> c_double {
     Default::default()
 }
-pub fn vexBatteryCapacityGet() -> c_double {
+pub extern "C" fn vexBatteryCapacityGet() -> c_double {
     Default::default()
 }

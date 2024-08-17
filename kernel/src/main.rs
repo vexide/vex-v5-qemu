@@ -59,6 +59,9 @@ pub extern "C" fn _start() -> ! {
         // `vectors` module.
         vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
 
+        // Register SDK exception handlers for data/prefetch/undefined aborts.
+        vectors::register_sdk_exception_handlers();
+
         // Enable hardware floating-point instructions
         hardware::fpu::enable_vfp();
 
