@@ -15,6 +15,7 @@ export const nodes = writable<Node[]>([
         type: "brain",
         data: {},
         position: { x: 0, y: 0 },
+        deletable: false,
     },
     {
         id: "battery",
@@ -26,6 +27,7 @@ export const nodes = writable<Node[]>([
             voltage: 0,
         },
         position: { x: 590, y: 225 },
+        deletable: false,
     },
     {
         id: "onboard_adi",
@@ -34,6 +36,7 @@ export const nodes = writable<Node[]>([
             onboard: true,
         },
         position: { x: -100, y: 0 },
+        deletable: false,
     },
 ]);
 export const edges = writable<Edge<any>[]>([

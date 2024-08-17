@@ -77,8 +77,8 @@
 
     function handleScroll(event: Event) {
         const target = event.target as HTMLElement;
-        scrollEdgeTop = target.scrollTop < 8;
-        scrollEdgeBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 8;
+        scrollEdgeTop = target.scrollTop < 24;
+        scrollEdgeBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 24;
     }
 
     const SMART_DEVICES = [
