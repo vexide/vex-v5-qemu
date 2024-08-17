@@ -64,6 +64,9 @@ pub use task::*;
 pub use touch::*;
 pub use vision::*;
 
+const SYSTEM_VERSION: u32 = u32::from_be_bytes([1, 1, 4, 19]);
+const STDLIB_VERSION: u32 = 0; // only relevant for vexcode
+
 macro_rules! jump_table {
     ($table:ident, { $($offset:expr => $fun:ident,)* }) => {
         $(
@@ -471,6 +474,9 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x3dc => vexDeviceVisionLedColorGet,
         0x3e0 => vexDeviceVisionWifiModeSet,
         0x3e4 => vexDeviceVisionWifiModeGet,
+
+        0x1000 => SYSTEM_VERSION,
+        0x1004 => STDLIB_VERSION,
     });
     table
 };
