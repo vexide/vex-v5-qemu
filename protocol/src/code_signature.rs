@@ -29,15 +29,11 @@ impl From<vcodesig> for CodeSignature {
     fn from(vcodesig: vcodesig) -> Self {
         Self {
             magic: vcodesig.magic,
-            program_type: match vcodesig.r#type {
-                0 => ProgramType::User,
-                _ => unreachable!("Encountered unknown program type in code signature!"),
-            },
+            program_type: ProgramType::User,
             owner: match vcodesig.owner {
-                0 => ProgramOwner::System,
                 1 => ProgramOwner::Vex,
                 2 => ProgramOwner::Partner,
-                _ => unreachable!("Encountered unknown program owner in code signature!"),
+                _ => ProgramOwner::System,
             },
             flags: ProgramFlags::from_bits_retain(vcodesig.options),
         }
