@@ -360,7 +360,7 @@ pub extern "C" fn vexDisplayBackgroundColorGet() -> u32 {
 /// # Safety
 ///
 /// pString must satisfy the safety requirements outlined by [`CStr::from_ptr`].
-pub unsafe fn vexDisplayStringWidthGet(pString: *const c_char) -> i32 {
+pub unsafe extern "C" fn vexDisplayStringWidthGet(pString: *const c_char) -> i32 {
     DISPLAY
         .lock()
         .measure_text(
@@ -377,7 +377,7 @@ pub unsafe fn vexDisplayStringWidthGet(pString: *const c_char) -> i32 {
 /// # Safety
 ///
 /// pString must satisfy the safety requirements outlined by [`CStr::from_ptr`].
-pub unsafe fn vexDisplayStringHeightGet(pString: *const c_char) -> i32 {
+pub unsafe extern "C" fn vexDisplayStringHeightGet(pString: *const c_char) -> i32 {
     DISPLAY
         .lock()
         .measure_text(
