@@ -22,7 +22,7 @@
     import DraggableDevice from "./DraggableDevice.svelte";
 
     let width = 260;
-    let scrollEdgeTop = false;
+    let scrollEdgeTop = true;
     let scrollEdgeBottom = false;
     let widthBeforeCollapse = width;
     let sidebar: HTMLElement | undefined;
