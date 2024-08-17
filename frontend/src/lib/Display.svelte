@@ -55,7 +55,9 @@
                     ctx.lineWidth = 0;
                     ctx.stroke(path);
                 } else if ("CopyBuffer" in command) {
-                    const { CopyBuffer: { buffer, top_left, bottom_right, stride } } = command;
+                    const {
+                        CopyBuffer: { buffer, top_left, bottom_right, stride },
+                    } = command;
 
                     const data = new ImageData(
                         new Uint8ClampedArray(
@@ -69,13 +71,8 @@
                     console.log(data);
                     ctx.putImageData(data, top_left.x, top_left.y);
                 } else if ("Text" in command) {
-                    const {
-                        data,
-                        size,
-                        location,
-                        opaque,
-                        background,
-                    } = command.Text;
+                    const { data, size, location, opaque, background } =
+                        command.Text;
 
                     ctx.font = "13px Noto Mono";
                     ctx.letterSpacing = "1.5%";
@@ -89,7 +86,8 @@
                             coords.x,
                             coords.y,
                             metrics.width,
-                            metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
+                            metrics.fontBoundingBoxAscent +
+                                metrics.fontBoundingBoxDescent,
                         );
                     }
 
@@ -97,7 +95,7 @@
                     ctx.fillText(
                         data,
                         coords.x,
-                        coords.y + metrics.fontBoundingBoxAscent
+                        coords.y + metrics.fontBoundingBoxAscent,
                     );
                 }
             },

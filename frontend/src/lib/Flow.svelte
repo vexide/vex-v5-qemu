@@ -1,6 +1,16 @@
 <script lang="ts">
     import type { Writable } from "svelte/store";
-    import { Background, BackgroundVariant, Controls, MiniMap, SvelteFlow, useSvelteFlow, type Edge, type Node, type NodeTypes } from "@xyflow/svelte";
+    import {
+        Background,
+        BackgroundVariant,
+        Controls,
+        MiniMap,
+        SvelteFlow,
+        useSvelteFlow,
+        type Edge,
+        type Node,
+        type NodeTypes,
+    } from "@xyflow/svelte";
 
     import { dndType } from "~/lib/stores";
 

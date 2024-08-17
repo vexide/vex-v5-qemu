@@ -6,7 +6,8 @@ import { writable, type Writable } from "svelte/store";
 
 export const session: Writable<Session | null> = writable(null);
 export const terminal: Writable<Terminal | null> = writable(null);
-export const display: Writable<CanvasRenderingContext2D | null> = writable(null);
+export const display: Writable<CanvasRenderingContext2D | null> =
+    writable(null);
 
 export const dndType: Writable<string | null> = writable(null);
 export const nodes = writable<Node[]>([

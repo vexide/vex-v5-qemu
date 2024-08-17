@@ -28,14 +28,14 @@ class Session {
         if (this.running) {
             this.running = false;
             this.paused = false;
-            terminal.subscribe(t => t?.clear());
+            terminal.subscribe((t) => t?.clear());
             killQemu();
         }
     }
 
     async reset() {
         if (this.running) {
-            terminal.subscribe(t => t?.clear());
+            terminal.subscribe((t) => t?.clear());
             killQemu();
             spawnQemu({
                 gdb: false,

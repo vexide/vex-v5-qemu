@@ -53,6 +53,6 @@
 
     .uploader-actions {
         display: flex;
-        gap: 8px
+        gap: 8px;
     }
 </style>

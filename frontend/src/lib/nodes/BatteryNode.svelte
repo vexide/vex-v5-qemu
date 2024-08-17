@@ -8,10 +8,10 @@
     } from "@xyflow/svelte";
 
     type NodeData = {
-        capacity: number,
-        temperature: number,
-        current: number,
-        voltage: number,
+        capacity: number;
+        temperature: number;
+        current: number;
+        voltage: number;
     };
 
     type $$Props = NodeProps<Node<NodeData>>;
@@ -21,4 +21,9 @@
 </script>
 
 Battery
-<Handle id="connector" type="source" isConnectable={false} position={Position.Left} />
+<Handle
+    id="connector"
+    type="source"
+    isConnectable={false}
+    position={Position.Left}
+/>

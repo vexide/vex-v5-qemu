@@ -1,4 +1,4 @@
-use tauri::{Manager, WindowEvent};
+use tauri::Manager;
 use tauri_plugin_log::TimezoneStrategy;
 use tauri_plugin_shell::process::CommandChild;
 use tokio::sync::Mutex;

@@ -3,7 +3,7 @@
 
     import { Terminal } from "@xterm/xterm";
     import { FitAddon } from "@xterm/addon-fit";
-    import { WebglAddon } from '@xterm/addon-webgl';
+    import { WebglAddon } from "@xterm/addon-webgl";
 
     import TerminalIcon from "svelte-feathers/Terminal.svelte";
     import ExternalLinkIcon from "svelte-feathers/ExternalLink.svelte";
@@ -45,7 +45,7 @@
         });
 
         $terminal.loadAddon(fitAddon);
-        $terminal.loadAddon(new WebglAddon())
+        $terminal.loadAddon(new WebglAddon());
         $terminal.open(terminalContainer!);
 
         $terminal?.onWriteParsed(() => {
@@ -178,7 +178,9 @@
         background: var(--background-tertiary);
         border: none;
         border-top: 1px solid var(--interactive-primary);
-        transition: 150ms ease background, 150ms ease box-shadow;
+        transition:
+            150ms ease background,
+            150ms ease box-shadow;
         font-size: 14px;
         font-weight: 600;
         outline: none;

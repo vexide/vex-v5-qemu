@@ -14,5 +14,11 @@
         stroke="currentColor"
         stroke-width="2"
     />
-    <circle cx="13" cy="12" r="3" stroke="var(--accent-primary)" stroke-width="2" />
+    <circle
+        cx="13"
+        cy="12"
+        r="3"
+        stroke="var(--accent-primary)"
+        stroke-width="2"
+    />
 </svg>

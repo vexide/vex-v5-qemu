@@ -78,7 +78,8 @@
     function handleScroll(event: Event) {
         const target = event.target as HTMLElement;
         scrollEdgeTop = target.scrollTop < 24;
-        scrollEdgeBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 24;
+        scrollEdgeBottom =
+            target.scrollHeight - target.scrollTop - target.clientHeight < 24;
     }
 
     const SMART_DEVICES = [
@@ -171,10 +172,7 @@
             <Menu size="16" />
         </Button>
     </header>
-    <div
-        class="scroller"
-        on:scroll={handleScroll}
-    >
+    <div class="scroller" on:scroll={handleScroll}>
         <ul class="device-category">
             {#each SMART_DEVICES as device}
                 <li>

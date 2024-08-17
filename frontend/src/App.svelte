@@ -1,16 +1,11 @@
 <script lang="ts">
-    import {
-        onDestroy,
-        onMount,
-    } from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     import { listen, type UnlistenFn } from "@tauri-apps/api/event";
     import { trace, info, error, attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
-    import {
-        SvelteFlowProvider,
-    } from "@xyflow/svelte";
+    import { SvelteFlowProvider } from "@xyflow/svelte";
 
     import Button from "~/lib/Button.svelte";
     import Toolbar from "~/lib/Toolbar.svelte";
@@ -20,13 +15,7 @@
     import Session from "~/lib/session";
     import { terminal, session, nodes, edges } from "~/lib/stores";
 
-    import {
-        Pause,
-        Play,
-        RefreshCw,
-        Settings,
-        Power,
-    } from "svelte-feathers";
+    import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
 
     import "@xyflow/svelte/dist/style.css";
     import "~/styles/flow.css";
@@ -138,11 +127,7 @@
             </Toolbar>
             <section class="display-view">
                 {#if $session?.running}
-                    <Flow
-                        {nodeTypes}
-                        {nodes}
-                        {edges}
-                    />
+                    <Flow {nodeTypes} {nodes} {edges} />
                 {:else}
                     <Uploader on:upload={handleUpload} />
                 {/if}
