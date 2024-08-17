@@ -4,7 +4,7 @@
     export let name: string;
 </script>
 
-<Button small draggable class="draggable-device" on:dragstart>
+<Button small draggable class="draggable-device" title="{name} (double-click or drag)" on:dragstart>
     <slot name="icon" />
     <span class="device-name">{name}</span>
 </Button>

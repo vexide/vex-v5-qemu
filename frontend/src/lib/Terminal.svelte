@@ -6,13 +6,11 @@
     import { WebglAddon } from "@xterm/addon-webgl";
 
     import TerminalIcon from "svelte-feathers/Terminal.svelte";
-    import ExternalLinkIcon from "svelte-feathers/ExternalLink.svelte";
 
     import drag from "./drag";
     import { terminal } from "~/lib/stores";
 
     import "@xterm/xterm/css/xterm.css";
-    import Button from "./Button.svelte";
 
     let fitAddon: FitAddon | undefined;
 
@@ -122,9 +120,6 @@
             </span>
         {/if}
     </button>
-    <Button title="Detach terminal" class="detach-button" small>
-        <ExternalLinkIcon size="16" />
-    </Button>
     <div
         class="terminal-container"
         style:height
@@ -198,17 +193,6 @@
     .monitor-header:active {
         background: var(--interactive-secondary);
         border-color: var(--interactive-tertiary);
-    }
-
-    .serial-monitor :global(.detach-button) {
-        position: absolute;
-        right: 6px;
-        top: 4.5px;
-        padding: 6px 12px;
-    }
-
-    .monitor-header:hover + :global(.detach-button) {
-        background-color: var(--interactive-secondary);
     }
 
     .monitor-header > :global(svg) {
