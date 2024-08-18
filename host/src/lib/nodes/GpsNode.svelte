@@ -37,12 +37,11 @@
         position = { x: relativeX, y: relativeY };
         position = {
             x:
-                Math.round(Math.max(0, Math.min(150 - 28, position.x)) * 10) /
-                10,
+                Math.max(0, Math.min(150 - 28, position.x)),
             y:
-                Math.round(Math.max(0, Math.min(150 - 28, position.y)) * 10) /
-                10,
+                Math.max(0, Math.min(150 - 28, position.y)),
         };
+        console.log(position.x);
     }
 
     data;
@@ -50,8 +49,8 @@
 
 GPS
 <div class="coordinates">
-    <p class="coordinate">x: {position.x}</p>
-    <p class="coordinate">y: {position.y}</p>
+    <p class="coordinate">x: {Math.round(position.x * 10) / 10}</p>
+    <p class="coordinate">y: {Math.round(position.y * 10) / 10}</p>
 </div>
 <div bind:this={draggableContainer} class="position nodrag">
     <div
@@ -85,11 +84,11 @@ GPS
     .coordinates {
         display: flex;
         gap: 10px;
-        align-items: center;
         width: 100%;
     }
     .coordinate {
         min-width: 70px;
+        text-align: center;
     }
 
     .position {
