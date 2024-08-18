@@ -16,7 +16,7 @@ use crate::{
             XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_IsExpired,
             XPAR_XSCUTIMER_0_BASEADDR,
         },
-        uart::XPAR_XUARTPS_0_BASEADDR,
+        uart::XPAR_XUARTPS_1_BASEADDR,
         wdt::XPAR_XSCUWDT_0_BASEADDR,
     },
 };
@@ -31,7 +31,7 @@ pub const PERIPHBASE: u32 = 0xF8F00000;
 
 /// UART1 (Universal Asynchronous Receiver/Transmitter) stream 1
 pub static UART1: LazyLock<Mutex<UartDriver>> =
-    LazyLock::new(|| unsafe { Mutex::new(UartDriver::new(XPAR_XUARTPS_0_BASEADDR).unwrap()) });
+    LazyLock::new(|| unsafe { Mutex::new(UartDriver::new(XPAR_XUARTPS_1_BASEADDR).unwrap()) });
 
 /// Generic Interrupt Controller
 pub static GIC: LazyLock<Mutex<GenericInterruptController>> = LazyLock::new(|| unsafe {

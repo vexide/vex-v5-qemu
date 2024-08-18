@@ -14,7 +14,9 @@
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.linkedProjects": [
         "./kernel/Cargo.toml",
-        "./simulator/Cargo.toml"
+        "./protocol/Cargo.toml",
+        "./host/src-tauri/Cargo.toml",
+        "./host-cli/Cargo.toml"
     ],
     "files.trimTrailingWhitespace": true,
     "files.trimFinalNewlines": true,

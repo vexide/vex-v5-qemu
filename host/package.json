@@ -1,0 +1,37 @@
+{
+    "name": "simulator-host",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "format": "prettier --write .",
+        "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
+    },
+    "devDependencies": {
+        "@sveltejs/vite-plugin-svelte": "^3.1.1",
+        "@tauri-apps/cli": "2.0.0-rc.2",
+        "@tsconfig/svelte": "^5.0.4",
+        "@types/node": "^22.2.0",
+        "@xterm/addon-webgl": "^0.18.0",
+        "prettier": "^3.3.3",
+        "prettier-plugin-svelte": "^3.2.6",
+        "svelte": "^4.2.18",
+        "svelte-check": "^3.8.5",
+        "tslib": "^2.6.3",
+        "typescript": "^5.5.3",
+        "vite": "^5.4.0"
+    },
+    "dependencies": {
+        "@rich_harris/svelte-split-pane": "^1.1.3",
+        "@tauri-apps/api": "2.0.0-rc.0",
+        "@tauri-apps/plugin-dialog": "2.0.0-rc.0",
+        "@tauri-apps/plugin-log": "2.0.0-rc.0",
+        "@xterm/addon-fit": "^0.10.0",
+        "@xterm/xterm": "^5.5.0",
+        "@xyflow/svelte": "^0.1.14",
+        "svelte-feathers": "^1.0.6"
+    }
+}

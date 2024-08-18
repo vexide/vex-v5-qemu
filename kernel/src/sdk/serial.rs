@@ -21,7 +21,11 @@ pub extern "C" fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
 /// # Safety
 ///
 /// - `data` must be a valid pointer to a buffer of length `data_len`.
-pub unsafe extern "C" fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
+pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32) -> i32 {
+    if data_len == 0 {
+        return 0;
+    }
+
     if protocol::send_packet(HostBoundPacket::UserSerial(
         unsafe { slice::from_raw_parts(data, data_len as usize) }.to_vec(),
     ))
