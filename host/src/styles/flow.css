@@ -1,6 +1,6 @@
 .svelte-flow {
     --xy-edge-stroke: var(--accent-faded);
-    --xy-edge-stroke-width: 2px;
+    --xy-edge-stroke-width: 3px;
     --xy-edge-stroke-selected: var(--accent-primary);
     --xy-connectionline-stroke: var(--accent-primary);
     --xy-minimap-background-color: var(--background-secondary);
@@ -35,6 +35,7 @@
 }
 
 .svelte-flow__handle {
+    border-radius: 50px;
     width: 10px;
     height: 10px;
     transition: 150ms ease border-color;

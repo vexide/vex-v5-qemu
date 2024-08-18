@@ -1,13 +1,12 @@
 <script lang="ts">
     import {
-        NodeToolbar,
         type NodeProps,
         type Node,
-        Handle,
         Position,
         useSvelteFlow,
     } from "@xyflow/svelte";
     import drag from "../drag";
+    import SmartPortHandle from "../handles/SmartPortHandle.svelte";
 
     const { screenToFlowPosition } = useSvelteFlow();
 
@@ -18,9 +17,10 @@
         voltage: number;
     };
 
-    type $$Props = NodeProps<Node<NodeData>>;
+    type Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
+    export let id: Props["id"];
 
     let position = { x: 150 / 2 - 11, y: 150 / 2 - 11 };
     let draggableContainer: HTMLDivElement;
@@ -74,7 +74,12 @@ GPS
         >
     </div>
 </div>
-<Handle id="connector" type="source" position={Position.Bottom} />
+<SmartPortHandle
+    id="connector"
+    parentNode={id}
+    type="source"
+    position={Position.Bottom}
+/>
 
 <style>
     .coordinates {

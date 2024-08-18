@@ -4,18 +4,21 @@
         type Node,
         Handle,
         Position,
+        useHandleConnections,
     } from "@xyflow/svelte";
     import { path } from "@tauri-apps/api";
     import { session } from "~/lib/stores";
     import Display from "~/lib/Display.svelte";
-    import { derived, type Readable } from "svelte/store";
+    import { derived, get, type Readable } from "svelte/store";
+    import SmartPortHandle from "~/lib/handles/SmartPortHandle.svelte";
+    import AdiPortHandle from "../handles/AdiPortHandle.svelte";
 
-    type $$Props = NodeProps<Node<NodeData>>;
+    type Props = NodeProps<Node<NodeData>>;
 
     type NodeData = {};
 
     export let data: NodeData;
-    data;
+    export let id: Props["id"];
 
     const programName: Readable<string> = derived(session, ($session, set) => {
         if ($session) {
@@ -32,7 +35,7 @@
 
 <div class="ports ports-top">
     {#each { length: 10 } as _, n}
-        <Handle id="smart_port_{n + 1}" type="target" position={Position.Top} />
+        <SmartPortHandle id={`${n + 1}`} parentNode={id} type="target" position={Position.Top} />
     {/each}
 </div>
 
@@ -40,20 +43,18 @@
 
 <div class="ports ports-bottom">
     {#each { length: 10 } as _, n}
-        <Handle
-            id="smart_port_{n + 11}"
-            type="target"
-            position={Position.Top}
-        />
+        <SmartPortHandle id={`${n + 1}`} parentNode={id} type="target" position={Position.Bottom} />
     {/each}
 </div>
 
-<Handle
-    id="smart_port_21"
-    style="top: 33.33%;"
+<SmartPortHandle
+    id="21"
+    parentNode={id}
     type="target"
+    style="top: 33.33%;"
     position={Position.Right}
 />
+
 <Handle
     id="battery_port"
     style="top: 66.66%;"
@@ -61,10 +62,10 @@
     isConnectable={false}
     position={Position.Right}
 />
-<Handle
-    id="onboard_adi_port"
+<SmartPortHandle
+    id="onboard_adi"
+    parentNode={id}
     type="target"
-    isConnectable={false}
     position={Position.Left}
 />
 

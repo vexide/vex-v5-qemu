@@ -55,8 +55,8 @@ export const edges = writable<Edge<any>[]>([
         type: "default",
         source: "onboard_adi",
         target: "brain",
-        sourceHandle: "connector",
-        targetHandle: "onboard_adi_port",
+        sourceHandle: "smart_port_connector",
+        targetHandle: "smart_port_onboard_adi",
         deletable: false,
     },
 ]);

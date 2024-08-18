@@ -2,31 +2,34 @@
     import {
         type NodeProps,
         type Node,
-        Handle,
         Position,
     } from "@xyflow/svelte";
+    import SmartPortHandle from "~/lib/handles/SmartPortHandle.svelte";
+    import AdiPortHandle from "~/lib/handles/AdiPortHandle.svelte";
 
     type NodeData = {
         onboard: boolean;
     };
 
-    type $$Props = NodeProps<Node<NodeData>>;
+    type Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
+    export let id: Props["id"];
 </script>
 
 <div class="adi-inner" class:onboard={data.onboard}>
     ADI
-    <Handle
+    <SmartPortHandle
         id="connector"
+        parentNode={id}
         type="source"
-        isConnectable={!data.onboard}
         position={data.onboard ? Position.Right : Position.Bottom}
     />
     <div class="ports">
         {#each ["a", "b", "c", "d", "e", "f", "g", "h"] as port}
-            <Handle
-                id="adi_{port}"
+            <AdiPortHandle
+                id={port}
+                parentNode={id}
                 type="target"
                 position={data.onboard ? Position.Left : Position.Top}
             />
