@@ -275,17 +275,14 @@ pub fn register_sdk_exception_handlers() {
     #[inline]
     pub extern "C" fn data_abort_handler_thunk(_: *mut c_void) {
         vexSystemDataAbortInterrupt();
-        loop { core::hint::spin_loop(); }
     }
     #[inline]
     pub extern "C" fn undefined_instruction_handler_thunk(_: *mut c_void) {
         vexSystemUndefinedException();
-        loop { core::hint::spin_loop(); }
     }
     #[inline]
     pub extern "C" fn prefetch_abort_handler_thunk(_: *mut c_void) {
         vexSystemPrefetchAbortInterrupt();
-        loop { core::hint::spin_loop(); }
     }
 
     unsafe {
