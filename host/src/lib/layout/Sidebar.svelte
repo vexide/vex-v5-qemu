@@ -1,10 +1,9 @@
 <script lang="ts">
     import { Menu } from "svelte-feathers";
+
     import { dndType } from "~/lib/stores";
-
-    import Button from "~/lib/components/Button.svelte";
-
-    import drag from "~/lib/drag";
+    import { Button, DraggableDevice } from "~/lib/components";
+    import { drag } from "~/lib/actions";
 
     import {
         ADI,
@@ -21,7 +20,6 @@
         GPSSensor,
         LineTracker,
     } from "~/lib/icons";
-    import { DraggableDevice } from "~/lib/components";
 
     let width = 260;
     let scrollEdgeTop = true;

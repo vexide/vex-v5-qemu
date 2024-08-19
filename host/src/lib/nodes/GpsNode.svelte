@@ -5,7 +5,7 @@
         Position,
         useSvelteFlow,
     } from "@xyflow/svelte";
-    import drag from "~/lib/actions/drag";
+    import { drag } from "~/lib/actions";
     import { SmartPortHandle } from "~/lib/handles";
     import { GPSSensor } from "~/lib/icons";
     import { NodeBase } from "~/lib/components";

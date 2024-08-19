@@ -5,8 +5,8 @@
         Position,
         useSvelteFlow,
     } from "@xyflow/svelte";
-    import drag from "../drag";
-    import SmartPortHandle from "../handles/SmartPortHandle.svelte";
+    import { drag } from "~/lib/actions";
+    import { SmartPortHandle } from "~/lib/handles";
 
     const { screenToFlowPosition } = useSvelteFlow();
 
