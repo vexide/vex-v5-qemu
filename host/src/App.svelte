@@ -25,6 +25,7 @@
     import Flow from "./lib/Flow.svelte";
     import Terminal from "~/lib/Terminal.svelte";
     import GpsNode from "./lib/nodes/GpsNode.svelte";
+    import DistanceNode from "./lib/nodes/DistanceNode.svelte";
 
     let settingsDialogOpen = false;
 
@@ -37,6 +38,7 @@
         adi: AdiNode,
         battery: BatteryNode,
         gps: GpsNode,
+        distance: DistanceNode,
     };
 
     onMount(async () => {
