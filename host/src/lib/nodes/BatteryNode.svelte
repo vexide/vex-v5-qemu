@@ -6,8 +6,7 @@
         Position,
     } from "@xyflow/svelte";
     import { Battery } from "svelte-feathers";
-    import { Field, NumberInput } from "~/lib/components";
-    import NodeBase from "../components/NodeBase.svelte";
+    import { Field, NumberInput, NodeBase } from "~/lib/components";
 
     type NodeData = {
         capacity: number;
@@ -33,15 +32,15 @@
     <Battery slot="icon" size="16" />
 
     <Field label="Capacity">
-        <NumberInput label="Capacity" bind:value={data.capacity} />
+        <NumberInput bind:value={data.capacity} />
     </Field>
     <Field label="Temperature">
-        <NumberInput label="Temperature" bind:value={data.temperature} />
+        <NumberInput bind:value={data.temperature} />
     </Field>
     <Field label="Current">
-        <NumberInput label="Current" bind:value={data.current} />
+        <NumberInput bind:value={data.current} />
     </Field>
     <Field label="Voltage">
-        <NumberInput label="Voltage" bind:value={data.voltage} />
+        <NumberInput bind:value={data.voltage} />
     </Field>
 </NodeBase>

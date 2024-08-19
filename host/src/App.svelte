@@ -11,7 +11,13 @@
     import { terminal, session, nodes, edges } from "~/lib/stores";
     import { Button, Dialog } from "~/lib/components";
     import { Toolbar, Uploader, Sidebar, Flow, Terminal } from "~/lib/layout";
-    import { BrainNode, AdiNode, BatteryNode, GpsNode, DistanceNode } from "~/lib/nodes";
+    import {
+        BrainNode,
+        AdiNode,
+        BatteryNode,
+        GpsNode,
+        DistanceNode,
+    } from "~/lib/nodes";
 
     import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
 

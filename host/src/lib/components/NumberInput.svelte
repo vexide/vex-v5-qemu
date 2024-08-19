@@ -1,4 +1,8 @@
-<input class="number-input" type="number" {...$$restProps} />
+<script lang="ts">
+    export let value: any = "";
+</script>
+
+<input bind:value class="number-input" type="number" {...$$restProps} />
 
 <style>
     .number-input {

@@ -1,9 +1,11 @@
 <script>
     import { Check } from "svelte-feathers";
 
+    export let checked = false;
 </script>
+
 <div class="checkbox-wrapper">
-    <input class="checkbox" type="checkbox" {...$$restProps} />
+    <input bind:checked class="checkbox" type="checkbox" {...$$restProps} />
     <Check size="12" class="checkbox-symbol" />
 </div>
 

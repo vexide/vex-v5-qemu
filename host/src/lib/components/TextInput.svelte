@@ -1,4 +1,8 @@
-<input class="text-input" type="text" {...$$restProps} />
+<script lang="ts">
+    export let value: any = "";
+</script>
+
+<input bind:value class="text-input" type="text" {...$$restProps} />
 
 <style>
     .text-input {
