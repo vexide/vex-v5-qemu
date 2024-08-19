@@ -4,7 +4,7 @@
     export let checked = false;
 </script>
 
-<div class="checkbox-wrapper">
+<div class="checkbox-wrapper nodrag">
     <input bind:checked class="checkbox" type="checkbox" {...$$restProps} />
     <Check size="12" class="checkbox-symbol" />
 </div>

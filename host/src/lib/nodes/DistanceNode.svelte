@@ -58,10 +58,10 @@
     {#if objectVisible}
         <Divider />
         <Field label="Distance">
-            <NumberInput bind:value={distance} />
+            <NumberInput max="2000" min="20" step="50" bind:value={distance} />
         </Field>
         <Field label="Size">
-            <NumberInput bind:value={size} />
+            <NumberInput max="400" min="0" step="10" bind:value={size} />
         </Field>
     {/if}
     <div class="distance-visualizer nodrag" bind:this={visualizer}>

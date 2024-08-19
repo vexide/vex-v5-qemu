@@ -2,7 +2,7 @@
     export let value: any = "";
 </script>
 
-<input bind:value class="number-input" type="number" {...$$restProps} />
+<input bind:value class="number-input nodrag" type="number" {...$$restProps} />
 
 <style>
     .number-input {
