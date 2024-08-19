@@ -11,12 +11,12 @@
 
 <svelte:element
     this={href && !disabled ? "a" : "button"}
-    bind:this={ref}
     role={href && !disabled ? "button" : undefined}
     href={href && !disabled ? href : undefined}
     class="button variant-{variant} {className}"
     class:small
     {disabled}
+    bind:this={ref}
     on:click
     on:focus
     on:blur

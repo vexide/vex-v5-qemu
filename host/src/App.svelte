@@ -2,30 +2,21 @@
     import { onDestroy, onMount } from "svelte";
 
     import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-    import { trace, info, error, attachConsole } from "@tauri-apps/plugin-log";
+    import { attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
     import { SvelteFlowProvider } from "@xyflow/svelte";
 
-    import Button from "~/lib/Button.svelte";
-    import Toolbar from "~/lib/Toolbar.svelte";
-    import Uploader from "~/lib/Uploader.svelte";
-    import Sidebar from "~/lib/Sidebar.svelte";
-    import Dialog from "~/lib/Dialog.svelte";
     import Session from "~/lib/session";
     import { terminal, session, nodes, edges } from "~/lib/stores";
+    import { Button, Dialog } from "~/lib/components";
+    import { Toolbar, Uploader, Sidebar, Flow, Terminal } from "~/lib/layout";
+    import { BrainNode, AdiNode, BatteryNode, GpsNode, DistanceNode } from "~/lib/nodes";
 
     import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
 
     import "@xyflow/svelte/dist/style.css";
     import "~/styles/flow.css";
-    import BrainNode from "./lib/nodes/BrainNode.svelte";
-    import AdiNode from "./lib/nodes/AdiNode.svelte";
-    import BatteryNode from "./lib/nodes/BatteryNode.svelte";
-    import Flow from "./lib/Flow.svelte";
-    import Terminal from "~/lib/Terminal.svelte";
-    import GpsNode from "./lib/nodes/GpsNode.svelte";
-    import DistanceNode from "./lib/nodes/DistanceNode.svelte";
 
     let settingsDialogOpen = false;
 

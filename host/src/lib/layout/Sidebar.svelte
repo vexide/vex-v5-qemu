@@ -2,24 +2,26 @@
     import { Menu } from "svelte-feathers";
     import { dndType } from "~/lib/stores";
 
-    import Button from "~/lib/Button.svelte";
+    import Button from "~/lib/components/Button.svelte";
 
     import drag from "~/lib/drag";
 
-    import ADI from "./icons/ADI.svelte";
-    import Motor from "./icons/Motor.svelte";
-    import Controller from "./icons/Controller.svelte";
-    import DistanceSensor from "./icons/DistanceSensor.svelte";
-    import OpticalSensor from "./icons/OpticalSensor.svelte";
-    import RotationSensor from "./icons/RotationSensor.svelte";
-    import Magnet from "./icons/Magnet.svelte";
-    import GenericSerial from "./icons/GenericSerial.svelte";
-    import VisionSensor from "./icons/VisionSensor.svelte";
-    import AIVisionSensor from "./icons/AIVisionSensor.svelte";
-    import Potentiometer from "./icons/Potentiometer.svelte";
-    import GPSSensor from "./icons/GPSSensor.svelte";
-    import LineTracker from "./icons/LineTracker.svelte";
-    import DraggableDevice from "./DraggableDevice.svelte";
+    import {
+        ADI,
+        Motor,
+        Controller,
+        DistanceSensor,
+        OpticalSensor,
+        RotationSensor,
+        Magnet,
+        GenericSerial,
+        VisionSensor,
+        AIVisionSensor,
+        Potentiometer,
+        GPSSensor,
+        LineTracker,
+    } from "~/lib/icons";
+    import { DraggableDevice } from "~/lib/components";
 
     let width = 260;
     let scrollEdgeTop = true;

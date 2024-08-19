@@ -7,7 +7,7 @@
 
     import TerminalIcon from "svelte-feathers/Terminal.svelte";
 
-    import drag from "./drag";
+    import drag from "~/lib/drag";
     import { terminal } from "~/lib/stores";
 
     import "@xterm/xterm/css/xterm.css";

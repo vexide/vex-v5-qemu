@@ -4,21 +4,22 @@
         type Node,
         Handle,
         Position,
-        useHandleConnections,
     } from "@xyflow/svelte";
     import { path } from "@tauri-apps/api";
-    import { session } from "~/lib/stores";
-    import Display from "~/lib/Display.svelte";
-    import { derived, get, type Readable } from "svelte/store";
-    import SmartPortHandle from "~/lib/handles/SmartPortHandle.svelte";
-    import AdiPortHandle from "../handles/AdiPortHandle.svelte";
+    import { derived, type Readable } from "svelte/store";
 
-    type Props = NodeProps<Node<NodeData>>;
+    import { session } from "~/lib/stores";
+    import { SmartPortHandle } from "~/lib/handles";
+
+    import Display from "../layout/Display.svelte";
+
+    type $$Props = NodeProps<Node<NodeData>>;
 
     type NodeData = {};
 
     export let data: NodeData;
-    export let id: Props["id"];
+    data; // so svelte isnt annoying about unused exports
+    export let id: $$Props["id"];
 
     const programName: Readable<string> = derived(session, ($session, set) => {
         if ($session) {
@@ -35,7 +36,12 @@
 
 <div class="ports ports-top">
     {#each { length: 10 } as _, n}
-        <SmartPortHandle id={`${n + 1}`} parentNode={id} type="target" position={Position.Top} />
+        <SmartPortHandle
+            id={`${n + 1}`}
+            parentNode={id}
+            type="target"
+            position={Position.Top}
+        />
     {/each}
 </div>
 
@@ -43,7 +49,12 @@
 
 <div class="ports ports-bottom">
     {#each { length: 10 } as _, n}
-        <SmartPortHandle id={`${n + 1}`} parentNode={id} type="target" position={Position.Bottom} />
+        <SmartPortHandle
+            id={`${n + 1 + 10}`}
+            parentNode={id}
+            type="target"
+            position={Position.Bottom}
+        />
     {/each}
 </div>
 
@@ -70,6 +81,10 @@
 />
 
 <style>
+    :global(.svelte-flow__node-brain) {
+        padding: 16px;
+    }
+
     :global(.svelte-flow__node-brain .display) {
         border-radius: 4px;
     }

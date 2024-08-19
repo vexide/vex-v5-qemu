@@ -4,17 +4,16 @@
         type Node,
         Position,
     } from "@xyflow/svelte";
-    import SmartPortHandle from "~/lib/handles/SmartPortHandle.svelte";
-    import AdiPortHandle from "~/lib/handles/AdiPortHandle.svelte";
+    import { SmartPortHandle, AdiPortHandle } from "~/lib/handles";
 
     type NodeData = {
         onboard: boolean;
     };
 
-    type Props = NodeProps<Node<NodeData>>;
+    type $$Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
-    export let id: Props["id"];
+    export let id: $$Props["id"];
 </script>
 
 <div class="adi-inner" class:onboard={data.onboard}>
@@ -39,6 +38,7 @@
 
 <style>
     .adi-inner {
+        padding: 16px;
         width: 200px;
         display: flex;
         align-items: center;

@@ -12,10 +12,10 @@
 
     type NodeData = {};
 
-    type Props = NodeProps<Node<NodeData>>;
+    type $$Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
-    export let id: Props["id"];
+    export let id: $$Props["id"];
 
     let distance = 1000;
     let size = 200;

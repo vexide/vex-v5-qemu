@@ -52,7 +52,6 @@
     border: 1px solid var(--interactive-primary);
     color: var(--foreground-secondary);
     border-radius: 12px;
-    padding: 16px;
     transition:
         150ms ease border-color,
         150ms ease box-shadow;

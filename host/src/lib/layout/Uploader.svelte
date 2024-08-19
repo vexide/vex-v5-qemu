@@ -1,26 +1,23 @@
 <script>
     import { createEventDispatcher } from "svelte";
 
-    import PackageIcon from "svelte-feathers/Package.svelte";
-    import UploadIcon from "svelte-feathers/Upload.svelte";
-    import HelpCircleIcon from "svelte-feathers/HelpCircle.svelte";
-
-    import Button from "./Button.svelte";
+    import { Button } from "~/lib/components";
+    import { HelpCircle, Package, Upload } from "svelte-feathers";
 
     const dispatch = createEventDispatcher();
 </script>
 
 <div class="uploader">
-    <PackageIcon size="64" />
+    <Package size="64" />
     <h2>No Program Selected</h2>
     <p>Drag + drop or upload a program.bin file here.</p>
     <div class="uploader-actions">
         <Button variant="accent" on:click={() => dispatch("upload")}>
-            <UploadIcon size="16" />
+            <Upload size="16" />
             Upload
         </Button>
         <Button>
-            <HelpCircleIcon size="16" />
+            <HelpCircle size="16" />
             Help
         </Button>
     </div>

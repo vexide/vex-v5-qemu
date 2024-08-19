@@ -5,8 +5,10 @@
         Position,
         useSvelteFlow,
     } from "@xyflow/svelte";
-    import drag from "../drag";
-    import SmartPortHandle from "../handles/SmartPortHandle.svelte";
+    import drag from "~/lib/drag";
+    import { SmartPortHandle } from "~/lib/handles";
+    import { GPSSensor } from "~/lib/icons";
+    import { NodeBase } from "~/lib/components";
 
     const { screenToFlowPosition } = useSvelteFlow();
 
@@ -17,10 +19,10 @@
         voltage: number;
     };
 
-    type Props = NodeProps<Node<NodeData>>;
+    type $$Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
-    export let id: Props["id"];
+    export let id: $$Props["id"];
 
     let position = { x: 150 / 2 - 11, y: 150 / 2 - 11 };
     let draggableContainer: HTMLDivElement;
@@ -46,48 +48,48 @@
     data;
 </script>
 
-GPS
-<div class="coordinates">
-    <p class="coordinate">x: {Math.round(position.x * 10) / 10}</p>
-    <p class="coordinate">y: {Math.round(position.y * 10) / 10}</p>
-</div>
-<div bind:this={draggableContainer} class="position nodrag">
-    <div
-        class="draggable"
-        style="left: {position.x}px; top: {position.y}px"
-        use:drag={(event) => {
-            if (!draggableContainer) return;
-            moveDraggable(event);
-        }}
-    >
-        <svg width="24px" height="24"
-            ><circle
-                cx="12"
-                cy="12"
-                r="11"
-                stroke="currentColor"
-                fill="none"
-                stroke-width="2"
-            /></svg
-        >
+<NodeBase title="GPS Sensor">
+    <SmartPortHandle
+        slot="handle"
+        id="connector"
+        type="source"
+        parentNode={id}
+        position={Position.Left}
+    />
+    <GPSSensor slot="icon" size="16" />
+
+    <div class="coordinates">
+        <span>x: {Math.round(position.x * 10) / 10}</span>
+        <span>x: {Math.round(position.y * 10) / 10}</span>
     </div>
-</div>
-<SmartPortHandle
-    id="connector"
-    parentNode={id}
-    type="source"
-    position={Position.Bottom}
-/>
+    <div bind:this={draggableContainer} class="position nodrag">
+        <div
+            class="draggable"
+            style="left: {position.x}px; top: {position.y}px"
+            use:drag={(event) => {
+                if (!draggableContainer) return;
+                moveDraggable(event);
+            }}
+        >
+            <svg width="24px" height="24"
+                ><circle
+                    cx="12"
+                    cy="12"
+                    r="11"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="2"
+                /></svg
+            >
+        </div>
+    </div>
+</NodeBase>
 
 <style>
     .coordinates {
         display: flex;
         gap: 10px;
         width: 100%;
-    }
-    .coordinate {
-        min-width: 70px;
-        text-align: center;
     }
 
     .position {
@@ -97,10 +99,12 @@ GPS
         border-radius: 16px;
         border: var(--accent-primary) 2px solid;
     }
+
     .draggable {
         cursor: move;
         position: relative;
     }
+
     .draggable:hover {
         cursor: grabbing;
         color: var(--foreground-primary);
