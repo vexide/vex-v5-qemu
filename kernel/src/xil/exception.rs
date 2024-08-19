@@ -14,6 +14,15 @@ pub const XIL_EXCEPTION_ID_LAST: u32 = 6;
 pub type Xil_ExceptionHandler = Option<unsafe extern "C" fn(data: *mut c_void)>;
 
 extern "C" {
+    /// Address of instruction causing data abort
+    pub static DataAbortAddr: u32;
+
+    /// Address of instruction causing prefetch abort
+    pub static PrefetchAbortAddr: u32;
+
+    /// Address of instruction causing Undefined exception
+    pub static UndefinedExceptionAddr: u32;
+
     pub fn Xil_ExceptionRegisterHandler(
         Exception_id: u32,
         Handler: Xil_ExceptionHandler,

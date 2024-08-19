@@ -1,0 +1,34 @@
+[package]
+name = "app"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.70"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "lib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.0-rc.2", features = [] }
+
+[dependencies]
+tauri = { version = "2.0.0-rc.2", features = [] }
+tauri-plugin-shell = "2.0.0-beta.0"
+tauri-plugin-log = { version = "2.0.0-beta.0", features = ["colored"] }
+
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+tokio = { version = "1.39.2", features = ["full"] }
+
+vex-v5-qemu-protocol = { path = "../../protocol", features = ["serde"] }
+bincode = "2.0.0-rc.3"
+log = "0.4.22"
+time = { version = "0.3.36", features = ["formatting"] }
+tauri-plugin-dialog = "2.0.0-beta.0"

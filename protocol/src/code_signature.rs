@@ -7,12 +7,16 @@ use bincode::{
 use bitflags::bitflags;
 use vex_sdk::vcodesig;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Program Code Signature
 ///
 /// The first 16 bytes of a VEX user code binary contain a user code signature,
 /// containing some basic metadata and startup flags about the program. This
 /// signature must be at the start of the binary for booting to occur.
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Encode, Decode)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CodeSignature {
     pub magic: u32,
     pub program_type: ProgramType,
@@ -25,15 +29,11 @@ impl From<vcodesig> for CodeSignature {
     fn from(vcodesig: vcodesig) -> Self {
         Self {
             magic: vcodesig.magic,
-            program_type: match vcodesig.r#type {
-                0 => ProgramType::User,
-                _ => unreachable!("Encountered unknown program type in code signature!"),
-            },
+            program_type: ProgramType::User,
             owner: match vcodesig.owner {
-                0 => ProgramOwner::System,
                 1 => ProgramOwner::Vex,
                 2 => ProgramOwner::Partner,
-                _ => unreachable!("Encountered unknown program owner in code signature!"),
+                _ => ProgramOwner::System,
             },
             flags: ProgramFlags::from_bits_retain(vcodesig.options),
         }
@@ -44,6 +44,7 @@ impl From<vcodesig> for CodeSignature {
 #[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Encode, Decode)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ProgramType {
     /// User program binary.
     User = 0,
@@ -52,6 +53,7 @@ pub enum ProgramType {
 /// The owner (originator) of the user program
 #[repr(u32)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Encode, Decode)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ProgramOwner {
     /// Program is a system binary.
     System = 0,
@@ -70,6 +72,7 @@ bitflags! {
     /// aspects of program behavior when running under VEXos. This struct contains
     /// the flags with publicly documented behavior.
     #[derive(Debug, Clone, Eq, PartialEq, PartialOrd)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     pub struct ProgramFlags: u32 {
         /// Default graphics colors will be inverted.
         const INVERT_DEFAULT_GRAPHICS = 1 << 0;

@@ -59,8 +59,14 @@ pub extern "C" fn _start() -> ! {
         // `vectors` module.
         vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
 
+        // Register SDK exception handlers for data/prefetch/undefined aborts.
+        vectors::register_sdk_exception_handlers();
+
         // Enable hardware floating-point instructions
         hardware::fpu::enable_vfp();
+
+        // Enable MMU
+        hardware::mmu::enable_mmu();
 
         // Initialize heap memory
         allocator::init_heap();
@@ -110,6 +116,7 @@ pub extern "C" fn _start() -> ! {
     // This is located 32 bytes after the code signature at 0x03800020.
     log::debug!("Calling user code.");
     unsafe {
+        //*(0x400 as *mut u32) = 0 as _;
         vexStartup();
     }
 
