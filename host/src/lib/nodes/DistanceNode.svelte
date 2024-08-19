@@ -69,7 +69,7 @@
         {#if objectVisible}<NumberInput
                 max="2000"
                 min="20"
-                step="50"
+                step="10"
                 disabled={!objectVisible}
                 bind:value={distance}
             />{:else}<NumberInput disabled="true" value="9999" />{/if}
