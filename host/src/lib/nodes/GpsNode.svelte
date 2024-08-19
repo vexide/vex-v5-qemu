@@ -41,7 +41,6 @@
             y:
                 Math.max(0, Math.min(150 - 28, position.y)),
         };
-        console.log(position.x);
     }
 
     data;
