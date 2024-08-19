@@ -23,4 +23,9 @@
         border-color: var(--accent-faded);
         box-shadow: 0 0 0 2px var(--accent-faded);
     }
+
+    .number-input[disabled] {
+        color: var(--foreground-tertiary);
+        border-color: var(--background-tertiary);
+    }
 </style>

@@ -6,8 +6,14 @@
         useSvelteFlow,
     } from "@xyflow/svelte";
     import { drag } from "~/lib/actions";
-    import { SmartPortHandle } from "~/lib/handles"
-    import { Field, NumberInput, NodeBase, Checkbox, Divider } from "~/lib/components";
+    import { SmartPortHandle } from "~/lib/handles";
+    import {
+        Field,
+        NumberInput,
+        NodeBase,
+        Checkbox,
+        Divider,
+    } from "~/lib/components";
     import { DistanceSensor } from "~/lib/icons";
 
     const { screenToFlowPosition } = useSvelteFlow();
@@ -21,6 +27,9 @@
 
     let distance = 1000;
     let size = 200;
+
+    let shownDistance = distance;
+    let shownSize = size;
 
     let visualizer: HTMLDivElement;
 
@@ -55,15 +64,25 @@
     <Field label="Object">
         <Checkbox bind:checked={objectVisible} />
     </Field>
-    {#if objectVisible}
-        <Divider />
-        <Field label="Distance">
-            <NumberInput max="2000" min="20" step="50" bind:value={distance} />
-        </Field>
-        <Field label="Size">
-            <NumberInput max="400" min="0" step="10" bind:value={size} />
-        </Field>
-    {/if}
+    <Divider />
+    <Field label="Distance">
+        {#if objectVisible}<NumberInput
+                max="2000"
+                min="20"
+                step="50"
+                disabled={!objectVisible}
+                bind:value={distance}
+            />{:else}<NumberInput disabled="true" value="9999" />{/if}
+    </Field>
+    <Field label="Size">
+        {#if objectVisible}<NumberInput
+            max="400"
+            min="0"
+            step="10"
+            disabled={!objectVisible}
+            bind:value={size}
+        />{:else}<NumberInput disabled="true" value="-1" />{/if}
+    </Field>
     <div class="distance-visualizer nodrag" bind:this={visualizer}>
         <svg
             width="25"
@@ -79,13 +98,16 @@
             />
         </svg>
         <div
-            class="distance {objectVisible ? 'distance-object' : 'distance-no-object'}"
+            class="distance {objectVisible
+                ? 'distance-object'
+                : 'distance-no-object'}"
             style="width: {objectVisible ? (distance * 100) / 2000 : 125}px;"
         />
         {#if objectVisible}
             <div
                 class="object"
-                style="width: {(size * 50) / 400}px; height: {(size * 50) / 400}px;"
+                style="width: {(size * 50) / 400}px; height: {(size * 50) /
+                    400}px;"
                 use:drag={(event) => {
                     if (!visualizer || !objectVisible) return;
                     moveObject(event);
@@ -119,18 +141,18 @@
 
 <style>
     .distance-visualizer {
-       margin-top: 16px;
-       display: flex;
-       flex-direction: row;
-       min-width: 212px;
-       width: 100%;
-       height: 75px;
-       border: 2px solid var(--accent-primary);
-       border-radius: 16px;
-       align-items: center;
-       gap: 8px;
-       padding-inline: 8px;
-   }
+        margin-top: 16px;
+        display: flex;
+        flex-direction: row;
+        min-width: 212px;
+        width: 100%;
+        height: 75px;
+        border: 2px solid var(--accent-primary);
+        border-radius: 16px;
+        align-items: center;
+        gap: 8px;
+        padding-inline: 8px;
+    }
     .distance {
         border: solid 4px;
         border-radius: 4px;
