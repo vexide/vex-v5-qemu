@@ -30,36 +30,47 @@
             y: 0,
         });
         let relativeX = flowCoords.x - boundingCoords.x - 50;
-        distance = Math.round(Math.max(20, Math.min(2000, relativeX * 2000 / 100)));
+        distance = Math.round(
+            Math.max(20, Math.min(2000, (relativeX * 2000) / 100)),
+        );
     }
+
+    let objectVisible = true;
 
     data;
 </script>
 
 Distance
-<div class="input">
-    <label for="distance">Distance</label>
-    <input
-        class="nodrag"
-        type="number"
-        id="distance"
-        min="20"
-        max="2000"
-        step="50"
-        bind:value={distance}
-    />
+<div class="input nodrag">
+    <label for="object-detected">Object</label>
+    <input type="checkbox" id="object-detected" bind:checked={objectVisible} />
 </div>
-<div class="input">
-    <label for="size">Size</label>
-    <input
-        class="nodrag"
-        type="number"
-        id="size"
-        min="10"
-        max="400"
-        step="10"
-        bind:value={size}
-    />
+<br style="display: {objectVisible ? 'block' : 'none'};" />
+<div style="width: 100%; display: {objectVisible ? 'block' : 'none'};">
+    <div class="input nodrag">
+        <label for="distance">Distance</label>
+        <input
+            class="nodrag"
+            type="number"
+            id="distance"
+            min="20"
+            max="2000"
+            step="50"
+            bind:value={distance}
+        />
+    </div>
+    <div class="input nodrag">
+        <label for="size">Size</label>
+        <input
+            class="nodrag"
+            type="number"
+            id="size"
+            min="10"
+            max="400"
+            step="10"
+            bind:value={size}
+        />
+    </div>
 </div>
 <div class="distance-visualizer nodrag" bind:this={visualizer}>
     <svg
@@ -74,13 +85,43 @@ Distance
             stroke="currentColor"
             stroke-width="2"
         />
-
     </svg>
-    <div class="distance" style="width: {distance * 100/2000}px;" />
-    <div class="object" style="width: {size * 50/400}px; height: {size * 50/400}px;" use:drag={(event) => {
-        if (!visualizer) return;
-        moveObject(event);
-    }} />
+    <div
+        class="distance {objectVisible ? 'distance-object' : 'distance-no-object'}"
+        style="width: {objectVisible ? (distance * 100) / 2000 : 125}px;"
+    />
+    {#if objectVisible}
+        <div
+            class="object"
+            style="width: {(size * 50) / 400}px; height: {(size * 50) / 400}px;"
+            use:drag={(event) => {
+                if (!visualizer || !objectVisible) return;
+                moveObject(event);
+            }}
+        />
+    {:else}
+        <svg
+            width="25"
+            height="25"
+            viewBox="0 0 10 10"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="no-object"
+        >
+            <path
+                d="M1 1L9 9"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+            />
+            <path
+                d="M9 1L1 9"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+            />
+        </svg>
+    {/if}
 </div>
 
 <SmartPortHandle
@@ -111,11 +152,20 @@ Distance
         gap: 4px;
     }
     .distance {
-        height: 8px;
-        background-color: var(--accent-primary);
+        border: solid 4px;
         border-radius: 4px;
-        max-width: 100px;
     }
+    .distance-object {
+        max-width: 100px;
+        border-color: var(--accent-primary);
+        border-style: solid;
+    }
+    .distance-no-object {
+        border-color: var(--foreground-tertiary);
+        border-style: dashed;
+        width: 100%;
+    }
+
     .object {
         border: solid 5px var(--foreground-secondary);
         border-radius: 50%;
@@ -125,5 +175,8 @@ Distance
     }
     .object:hover {
         border-color: var(--foreground-primary);
+    }
+    .no-object {
+        color: var(--foreground-tertiary);
     }
 </style>
