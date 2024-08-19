@@ -17,8 +17,8 @@
     --xy-node-border-radius: 4px;
     --xy-handle-background-color: var(--background-tertiary);
     --xy-handle-border-color: var(--interactive-tertiary);
-    --xy-selection-background-color: var(--accent-primary);
-    --xy-selection-border: 1px dotted var(--accent-primary);
+    --xy-selection-background-color: hsla(var(--base-hue), 69%, 76%, 0.15);
+    --xy-selection-border: 2px dashed var(--accent-primary);
     --xy-controls-button-background-color: var(--interactive-primary);
     --xy-controls-button-background-color-hover: var(--interactive-secondary);
     --xy-controls-button-color: var(--foreground-secondary);
@@ -80,4 +80,8 @@
 
 .svelte-flow__minimap:hover {
     opacity: 1;
+}
+
+.svelte-flow__selection {
+    border-radius: 8px;
 }
