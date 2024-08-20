@@ -9,3 +9,4 @@ export { default as TextInput } from "./TextInput.svelte";
 export { default as NodeBase } from "./NodeBase.svelte";
 export { default as DraggableDevice } from "./DraggableDevice.svelte";
 export { default as Divider } from "./Divider.svelte";
+export { default as Slider } from "./Slider.svelte";
