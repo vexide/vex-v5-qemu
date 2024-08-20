@@ -5,6 +5,8 @@ use snafu::Snafu;
 
 use crate::xil::{uart::*, XST_SUCCESS};
 
+use super::mmu::HighMemUnlock;
+
 #[derive(Debug, Snafu)]
 pub enum UartDriverError {
     /// The UART device cannot be initialized with the given base address.
@@ -55,6 +57,7 @@ impl UartDriver {
     /// The caller must ensure that the UART driver is only initialized once for
     /// a given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, UartDriverError> {
+        let _unlock_mem = HighMemUnlock::new();
         // SAFETY: The driver is initialized before it is returned.
         let mut driver = unsafe { core::mem::zeroed() };
         let config = unsafe { XUartPs_LookupConfig(base_address) };
@@ -70,6 +73,7 @@ impl UartDriver {
     }
 
     pub fn set_baud_rate(&mut self, baud_rate: u32) -> Result<(), UartDriverError> {
+        let _unlock_mem = HighMemUnlock::new();
         // SAFETY: The instance is fully initialized.
         let status = unsafe { XUartPs_SetBaudRate(&mut self.instance, baud_rate) };
         UartDriverError::try_from_xst_status(status)
@@ -91,6 +95,7 @@ impl ErrorType for UartDriver {
 
 impl Write for UartDriver {
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        let _unlock_mem = HighMemUnlock::new();
         Ok(unsafe { XUartPs_Send(&mut self.instance, buf.as_ptr(), buf.len() as u32) as usize })
     }
 
@@ -101,6 +106,7 @@ impl Write for UartDriver {
 
 impl Read for UartDriver {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        let _unlock_mem = HighMemUnlock::new();
         Ok(
             unsafe {
                 XUartPs_Recv(&mut self.instance, buf.as_mut_ptr(), buf.len() as u32) as usize
