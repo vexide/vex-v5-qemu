@@ -34,13 +34,14 @@ struct Opt {
     /// and set up the virtual machine before running the robot code.
     /// This option defaults to a kernel designed to replicate the behavior
     /// of programs under VEXos.
-    #[clap(short, long, default_value = DEFAULT_KERNEL, env = "V5_SIM_KERNEL")]
+    #[clap(short, long, default_value = DEFAULT_KERNEL, env = "V5_SIM_KERNEL_PATH")]
     kernel: PathBuf,
 
     /// Override the QEMU executable to a custom version of `qemu-system-arm`.
     #[clap(short, long, default_value = "qemu-system-arm", env = "V5_SIM_QEMU")]
     qemu: PathBuf,
 
+    #[clap(env = "V5_SIM_BINARY_PATH")]
     binary: PathBuf,
 
     /// Extra arguments to pass to QEMU.
