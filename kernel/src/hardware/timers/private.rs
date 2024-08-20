@@ -11,6 +11,8 @@ use crate::xil::{
     XST_SUCCESS,
 };
 
+use crate::hardware::mmu::HighMemUnlock;
+
 #[derive(Debug, Snafu)]
 pub enum PrivateTimerError {
     /// The private timer cannot be initialized with the given base address.
@@ -35,6 +37,7 @@ impl PrivateTimer {
     ///
     /// This function must only be called once per given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, PrivateTimerError> {
+        let _unlock_mem = HighMemUnlock::new();
         // SAFETY: The timer is initialized before it is returned.
         let mut instance = unsafe { core::mem::zeroed() };
 
@@ -54,40 +57,47 @@ impl PrivateTimer {
     }
 
     pub fn load(&mut self, value: u32) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuTimer_LoadTimer(&mut self.instance, value);
         }
     }
 
     pub fn restart(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuTimer_RestartTimer(&mut self.instance);
         }
     }
 
     pub fn start(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuTimer_Start(&mut self.instance);
         }
     }
 
     pub fn stop(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuTimer_Stop(&mut self.instance);
         }
     }
 
     pub fn counter(&self) -> u32 {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuTimer_GetCounterValue(&self.instance) }
     }
 
     pub fn set_prescaler(&mut self, prescaler: u8) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuTimer_SetPrescaler(&mut self.instance, prescaler);
         }
     }
 
     pub fn set_auto_reload(&mut self, enable: bool) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             match enable {
                 true => XScuTimer_EnableAutoReload(&mut self.instance),
@@ -97,6 +107,7 @@ impl PrivateTimer {
     }
 
     pub fn set_interrupt_enabled(&mut self, enable: bool) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             match enable {
                 true => XScuTimer_EnableInterrupt(&mut self.instance),
@@ -106,10 +117,12 @@ impl PrivateTimer {
     }
 
     pub fn clear_interrupt_status(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuTimer_ClearInterruptStatus(&mut self.instance) }
     }
 
     pub fn is_expired(&self) -> bool {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuTimer_IsExpired(&self.instance) }
     }
 

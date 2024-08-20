@@ -1,5 +1,7 @@
 use crate::peripherals::PERIPHBASE;
 
+use crate::hardware::mmu::HighMemUnlock;
+
 const GLOBAL_TIMER_BASE_ADDRESS: u32 = PERIPHBASE + 0x0200;
 
 const GLOBAL_TIMER_COUNTER_REGISTER_LOW: u32 = GLOBAL_TIMER_BASE_ADDRESS /* + 0x00 */;
@@ -9,6 +11,7 @@ const GLOBAL_TIMER_COUNTER_REGISTER_HIGH: u32 = GLOBAL_TIMER_BASE_ADDRESS + 0x04
 // TODO: maybe turn this into a global, since there's much more to
 // this peripheral than just reading it.
 pub fn global_timer_counter() -> u64 {
+    let _unlock_mem = HighMemUnlock::new();
     let mut low: u32;
     let mut high: u32;
 

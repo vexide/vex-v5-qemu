@@ -17,7 +17,7 @@ static MMU_PAGES: [u32; 0x1000] = {
     }
 
     while i < 4096 {
-        table[i] = ((i as u32) << 20) | 0b0000110001001110;
+        table[i] = ((i as u32) << 20) | 0b1000110001001110;
         i += 1;
     }
 
@@ -36,14 +36,14 @@ impl HighMemUnlock {
                 "
                 @ Set domain 3 in Manager mode
                 mrc p15, 0, r0, c3, c0, 0
-                and r0, #0b11111111111111111111111111001111
-                orr r0, #0b100000
+                @ and r0, #0b11111111111111111111111111001111
+                orr r0, #0b110000
                 mcr p15, 0, r0, c3, c0, 0
                 ",
                 options(nomem, nostack)
             );
-            HighMemUnlock{}
         }
+        HighMemUnlock{}
     }
 }
 
@@ -88,7 +88,7 @@ pub fn enable_mmu() {
             @ Domain 1: MMU tables & Kernel RX memory
             @ Domain 2: Kernel RW & User memory
             @ Domain 3: MMIO memory
-            mov r0, #0b010101
+            mov r0, #0b110101
             mcr p15, 0, r0, c3, c0, 0
 
             @ MMU enable bit in SCTLR register

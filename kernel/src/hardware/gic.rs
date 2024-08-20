@@ -12,6 +12,8 @@ use crate::xil::{
     XST_SUCCESS,
 };
 
+use crate::hardware::mmu::HighMemUnlock;
+
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum InterruptTrigger {
@@ -61,6 +63,7 @@ impl GenericInterruptController {
     /// The caller must ensure that the GIC is only initialized once for a given
     /// base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, GicError> {
+        let _unlock_mem = HighMemUnlock::new();
         let config = unsafe { XScuGic_LookupConfig(base_address) };
         if config.is_null() {
             return InvalidBaseAddressSnafu { base_address }.fail();
@@ -100,6 +103,7 @@ impl GenericInterruptController {
     /// hell to cast argument types of function pointers.
     #[inline]
     unsafe extern "C" fn exception_handler(data: *mut c_void) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuGic_InterruptHandler(core::mem::transmute::<*mut c_void, *mut XScuGic>(data)) }
     }
 
@@ -123,6 +127,7 @@ impl GenericInterruptController {
         handler: unsafe extern "C" fn(argument: *mut c_void),
         argument: *mut c_void,
     ) -> Result<(), GicError> {
+        let _unlock_mem = HighMemUnlock::new();
         // SAFETY: `argument` is never dereferenced from libxil.
         match unsafe { XScuGic_Connect(&mut *self.instance, interrupt_id, Some(handler), argument) }
         {
@@ -144,6 +149,7 @@ impl GenericInterruptController {
 
     /// Removes an interrupt handler registered with [`Self::set_handler`].
     pub fn remove_handler(&mut self, interrupt_id: u32) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuGic_Disconnect(&mut *self.instance, interrupt_id) }
     }
 
@@ -153,6 +159,7 @@ impl GenericInterruptController {
     ///
     /// - `interrupt_id`: ID of the interrupt type to enable.
     pub fn enable_interrupt(&mut self, interrupt_id: u32) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuGic_Enable(&mut *self.instance, interrupt_id) }
     }
 
@@ -162,6 +169,7 @@ impl GenericInterruptController {
     ///
     /// - `interrupt_id`: ID of the interrupt type to disable.
     pub fn disable_interrupt(&mut self, interrupt_id: u32) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuGic_Disable(&mut *self.instance, interrupt_id) }
     }
 

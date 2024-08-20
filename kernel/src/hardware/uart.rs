@@ -5,7 +5,7 @@ use snafu::Snafu;
 
 use crate::xil::{uart::*, XST_SUCCESS};
 
-use super::mmu::HighMemUnlock;
+use crate::hardware::mmu::HighMemUnlock;
 
 #[derive(Debug, Snafu)]
 pub enum UartDriverError {

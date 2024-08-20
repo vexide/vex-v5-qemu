@@ -11,6 +11,8 @@ use crate::xil::{
     XST_SUCCESS,
 };
 
+use crate::hardware::mmu::HighMemUnlock;
+
 pub enum WatchdogTimerMode {
     Timer,
     Watchdog,
@@ -40,6 +42,7 @@ impl WatchdogTimer {
     ///
     /// This function must only be called once per given base address.
     pub unsafe fn new(base_address: u32) -> Result<Self, WatchdogTimerError> {
+        let _unlock_mem = HighMemUnlock::new();
         // SAFETY: The driver is initialized before it is returned.
         let mut instance = unsafe { core::mem::zeroed() };
 
@@ -59,30 +62,35 @@ impl WatchdogTimer {
     }
 
     pub fn load(&mut self, value: u32) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuWdt_LoadWdt(&mut self.instance, value);
         }
     }
 
     pub fn restart(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuWdt_RestartWdt(&mut self.instance);
         }
     }
 
     pub fn start(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuWdt_Start(&mut self.instance);
         }
     }
 
     pub fn stop(&mut self) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             XScuWdt_Stop(&mut self.instance);
         }
     }
 
     pub fn counter(&self) -> u32 {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             core::ptr::read_volatile(
                 (self.instance.Config.BaseAddr + XSCUWDT_COUNTER_OFFSET) as *const u32,
@@ -91,6 +99,7 @@ impl WatchdogTimer {
     }
 
     pub fn set_prescaler(&mut self, prescaler: u8) {
+        let _unlock_mem = HighMemUnlock::new();
         let mut control = unsafe { XScuWdt_GetControlReg(&self.instance) };
 
         control &= !XSCUWDT_CONTROL_PRESCALER_MASK;
@@ -102,6 +111,7 @@ impl WatchdogTimer {
     }
 
     pub fn set_auto_reload(&mut self, enable: bool) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             match enable {
                 true => XScuWdt_EnableAutoReload(&mut self.instance),
@@ -111,6 +121,7 @@ impl WatchdogTimer {
     }
 
     pub fn set_interrupt_enabled(&mut self, enable: bool) {
+        let _unlock_mem = HighMemUnlock::new();
         let mask = if enable { 0x00000004 } else { !0x00000004 };
 
         unsafe {
@@ -124,6 +135,7 @@ impl WatchdogTimer {
     }
 
     pub fn set_mode(&mut self, mode: WatchdogTimerMode) {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe {
             match mode {
                 WatchdogTimerMode::Timer => XScuWdt_SetTimerMode(&mut self.instance),
@@ -133,10 +145,12 @@ impl WatchdogTimer {
     }
 
     pub fn is_timer_expired(&self) -> bool {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuWdt_IsTimerExpired(&self.instance) }
     }
 
     pub fn is_watchdog_expired(&self) -> bool {
+        let _unlock_mem = HighMemUnlock::new();
         unsafe { XScuWdt_IsWdtExpired(&self.instance) }
     }
 
