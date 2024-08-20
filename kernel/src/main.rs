@@ -72,17 +72,9 @@ pub extern "C" fn _start() -> ! {
         allocator::init_heap();
     }
 
-    // Force-initialize all peripherals.
-    //
-    // If they fail to initialize, we want them to fail now rather than whenever
-    // they're first accessed.
-    GIC.force();
-    PRIVATE_TIMER.force();
+    // The watchdog timer isn't locked until vexSystemWatchdogReinitRtos, which could be
+    // a while into program execution so we'll force initialize it here.
     WATCHDOG_TIMER.force();
-    UART1.force();
-
-    // Initialize UART kernel logger
-    LOGGER.init(LevelFilter::Debug).unwrap();
 
     // Setup private timer peripheral and register a tick interrupt handler using
     // the GIC.
@@ -92,10 +84,19 @@ pub extern "C" fn _start() -> ! {
     // FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
+    // Configure UART1 to fire an interrupt when new data is received from the host.
+    peripherals::setup_uart1().unwrap();
+
+    // Initialize UART kernel logger
+    LOGGER.init(LevelFilter::Debug).unwrap();
+
     // Send/receive a handshake packet with the host to ensure that packet transfer
     // is viable.
     log::debug!("Handshaking with host...");
     protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
+    while !WAITING_FOR_HANDSHAKE {
+        core::hint::spin_loop();
+    }
     while protocol::recv_packet().expect("Failed to receive handshake packet from host.")
         != Some(KernelBoundPacket::Handshake)
     {
