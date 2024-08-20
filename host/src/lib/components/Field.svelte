@@ -13,6 +13,11 @@
         display: flex;
         justify-content: space-between;
         gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .field:last-child {
+        margin-bottom: 0;
     }
 
     .field.horizontal {
