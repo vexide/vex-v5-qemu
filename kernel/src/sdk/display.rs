@@ -12,7 +12,8 @@ use core::{
 use vex_sdk::*;
 use vex_v5_qemu_protocol::{
     display::{
-        Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation, TextMeasurement, TextSize
+        Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation,
+        TextMeasurement, TextSize,
     },
     geometry::{Point2, Rect},
     HostBoundPacket, KernelBoundPacket,
@@ -409,8 +410,14 @@ pub extern "C" fn vexDisplayDoubleBufferDisable() {
     ))
     .unwrap();
 }
-pub extern "C" fn vexDisplayClipRegionSetWithIndex(index: i32, x1: i32, y1: i32, x2: i32, y2: i32) {}
-pub extern "C" fn vexImageBmpRead(ibuf: *const u8, oBuf: *mut v5_image, maxw: u32, maxh: u32) -> u32 {
+pub extern "C" fn vexDisplayClipRegionSetWithIndex(index: i32, x1: i32, y1: i32, x2: i32, y2: i32) {
+}
+pub extern "C" fn vexImageBmpRead(
+    ibuf: *const u8,
+    oBuf: *mut v5_image,
+    maxw: u32,
+    maxh: u32,
+) -> u32 {
     Default::default()
 }
 pub extern "C" fn vexImagePngRead(
@@ -430,12 +437,44 @@ pub extern "C" fn vexDisplayVPrintf(
     args: VaList<'_, '_>,
 ) {
 }
-pub extern "C" fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub extern "C" fn vexDisplayVStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub extern "C" fn vexDisplayVBigString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub extern "C" fn vexDisplayVBigStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub extern "C" fn vexDisplayVSmallStringAt(xpos: i32, ypos: i32, format: *const c_char, args: VaList<'_, '_>) {
+pub extern "C" fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {
 }
-pub extern "C" fn vexDisplayVCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {}
-pub extern "C" fn vexDisplayVBigCenteredString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {
+pub extern "C" fn vexDisplayVStringAt(
+    xpos: i32,
+    ypos: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
+}
+pub extern "C" fn vexDisplayVBigString(
+    nLineNumber: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
+}
+pub extern "C" fn vexDisplayVBigStringAt(
+    xpos: i32,
+    ypos: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
+}
+pub extern "C" fn vexDisplayVSmallStringAt(
+    xpos: i32,
+    ypos: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
+}
+pub extern "C" fn vexDisplayVCenteredString(
+    nLineNumber: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
+}
+pub extern "C" fn vexDisplayVBigCenteredString(
+    nLineNumber: i32,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) {
 }

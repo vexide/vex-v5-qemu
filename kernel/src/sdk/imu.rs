@@ -10,7 +10,8 @@ pub extern "C" fn vexDeviceImuHeadingGet(device: V5_DeviceT) -> c_double {
 pub extern "C" fn vexDeviceImuDegreesGet(device: V5_DeviceT) -> c_double {
     Default::default()
 }
-pub extern "C" fn vexDeviceImuQuaternionGet(device: V5_DeviceT, data: *mut V5_DeviceImuQuaternion) {}
+pub extern "C" fn vexDeviceImuQuaternionGet(device: V5_DeviceT, data: *mut V5_DeviceImuQuaternion) {
+}
 pub extern "C" fn vexDeviceImuAttitudeGet(device: V5_DeviceT, data: *mut V5_DeviceImuAttitude) {}
 pub extern "C" fn vexDeviceImuRawGyroGet(device: V5_DeviceT, data: *mut V5_DeviceImuRaw) {}
 pub extern "C" fn vexDeviceImuRawAccelGet(device: V5_DeviceT, data: *mut V5_DeviceImuRaw) {}

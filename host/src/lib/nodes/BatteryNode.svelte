@@ -6,10 +6,7 @@
         Position,
     } from "@xyflow/svelte";
     import { Battery } from "svelte-feathers";
-    import { Field, NumberInput, NodeBase } from "~/lib/components";
-    import Slider from "../components/Slider.svelte";
-    import Tabs from "../components/Tabs.svelte";
-    import TabPanel from "../components/TabPanel.svelte";
+    import { Field, NumberInput, NodeBase, Tabs, TabPanel } from "~/lib/components";
 
     type NodeData = {
         capacity: number;

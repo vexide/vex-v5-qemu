@@ -13,13 +13,21 @@ pub extern "C" fn vexDeviceGenericRadioConnection(
 pub extern "C" fn vexDeviceGenericRadioWriteFree(device: V5_DeviceT) -> i32 {
     Default::default()
 }
-pub extern "C" fn vexDeviceGenericRadioTransmit(device: V5_DeviceT, data: *const u8, size: u16) -> i32 {
+pub extern "C" fn vexDeviceGenericRadioTransmit(
+    device: V5_DeviceT,
+    data: *const u8,
+    size: u16,
+) -> i32 {
     Default::default()
 }
 pub extern "C" fn vexDeviceGenericRadioReceiveAvail(device: V5_DeviceT) -> u32 {
     Default::default()
 }
-pub extern "C" fn vexDeviceGenericRadioReceive(device: V5_DeviceT, data: *mut u8, size: u16) -> i32 {
+pub extern "C" fn vexDeviceGenericRadioReceive(
+    device: V5_DeviceT,
+    data: *mut u8,
+    size: u16,
+) -> i32 {
     Default::default()
 }
 pub extern "C" fn vexDeviceGenericRadioLinkStatus(device: V5_DeviceT) -> bool {

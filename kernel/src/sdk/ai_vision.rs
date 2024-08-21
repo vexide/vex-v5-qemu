@@ -4,7 +4,11 @@ use core::ffi::c_double;
 
 use vex_sdk::*;
 
-pub extern "C" fn vexDeviceAiVisionClassNameGet(device: V5_DeviceT, id: i32, pName: *mut u8) -> i32 {
+pub extern "C" fn vexDeviceAiVisionClassNameGet(
+    device: V5_DeviceT,
+    id: i32,
+    pName: *mut u8,
+) -> i32 {
     Default::default()
 }
 pub extern "C" fn vexDeviceAiVisionCodeGet(
@@ -22,7 +26,11 @@ pub extern "C" fn vexDeviceAiVisionColorGet(
 ) -> bool {
     Default::default()
 }
-pub extern "C" fn vexDeviceAiVisionColorSet(device: V5_DeviceT, pColor: *mut V5_DeviceAiVisionColor) {}
+pub extern "C" fn vexDeviceAiVisionColorSet(
+    device: V5_DeviceT,
+    pColor: *mut V5_DeviceAiVisionColor,
+) {
+}
 pub extern "C" fn vexDeviceAiVisionModeGet(device: V5_DeviceT) -> u32 {
     Default::default()
 }
@@ -37,7 +45,12 @@ pub extern "C" fn vexDeviceAiVisionObjectGet(
 ) -> i32 {
     Default::default()
 }
-pub extern "C" fn vexDeviceAiVisionSensorSet(device: V5_DeviceT, brightness: c_double, contrast: c_double) {}
+pub extern "C" fn vexDeviceAiVisionSensorSet(
+    device: V5_DeviceT,
+    brightness: c_double,
+    contrast: c_double,
+) {
+}
 pub extern "C" fn vexDeviceAiVisionStatusGet(device: V5_DeviceT) -> u32 {
     Default::default()
 }

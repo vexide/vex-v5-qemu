@@ -10,8 +10,14 @@ pub extern "C" fn vexDeviceGpsHeadingGet(device: V5_DeviceT) -> c_double {
 pub extern "C" fn vexDeviceGpsDegreesGet(device: V5_DeviceT) -> c_double {
     Default::default()
 }
-pub extern "C" fn vexDeviceGpsQuaternionGet(device: V5_DeviceT, data: *mut V5_DeviceGpsQuaternion) {}
-pub extern "C" fn vexDeviceGpsAttitudeGet(device: V5_DeviceT, data: *mut V5_DeviceGpsAttitude, bRaw: bool) {}
+pub extern "C" fn vexDeviceGpsQuaternionGet(device: V5_DeviceT, data: *mut V5_DeviceGpsQuaternion) {
+}
+pub extern "C" fn vexDeviceGpsAttitudeGet(
+    device: V5_DeviceT,
+    data: *mut V5_DeviceGpsAttitude,
+    bRaw: bool,
+) {
+}
 pub extern "C" fn vexDeviceGpsRawGyroGet(device: V5_DeviceT, data: *mut V5_DeviceGpsRaw) {}
 pub extern "C" fn vexDeviceGpsRawAccelGet(device: V5_DeviceT, data: *mut V5_DeviceGpsRaw) {}
 pub extern "C" fn vexDeviceGpsStatusGet(device: V5_DeviceT) -> u32 {

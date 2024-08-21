@@ -16,7 +16,11 @@ pub extern "C" fn vexDeviceVisionObjectGet(
 ) -> i32 {
     Default::default()
 }
-pub extern "C" fn vexDeviceVisionSignatureSet(device: V5_DeviceT, signature: *mut V5_DeviceVisionSignature) {}
+pub extern "C" fn vexDeviceVisionSignatureSet(
+    device: V5_DeviceT,
+    signature: *mut V5_DeviceVisionSignature,
+) {
+}
 pub extern "C" fn vexDeviceVisionSignatureGet(
     device: V5_DeviceT,
     id: u32,

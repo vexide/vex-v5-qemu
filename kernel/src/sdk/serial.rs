@@ -48,7 +48,11 @@ pub extern "C" fn vexSerialWriteFree(channel: u32) -> i32 {
 pub extern "C" fn vex_vprintf(format: *const c_char, args: VaList<'_, '_>) -> i32 {
     -1
 }
-pub extern "C" fn vex_vsprintf(out: *mut c_char, format: *const c_char, args: VaList<'_, '_>) -> i32 {
+pub extern "C" fn vex_vsprintf(
+    out: *mut c_char,
+    format: *const c_char,
+    args: VaList<'_, '_>,
+) -> i32 {
     -1
 }
 pub extern "C" fn vex_vsnprintf(

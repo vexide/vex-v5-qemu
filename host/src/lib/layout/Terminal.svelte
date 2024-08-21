@@ -176,6 +176,7 @@
         transition:
             150ms ease background,
             150ms ease box-shadow;
+        font-family: inherit;
         font-size: 14px;
         font-weight: 600;
         outline: none;

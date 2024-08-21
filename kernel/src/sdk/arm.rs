@@ -19,7 +19,11 @@ pub extern "C" fn vexDeviceArmMoveTipCommandJointAdv(
     relative: bool,
 ) {
 }
-pub extern "C" fn vexDeviceArmTipPositionGetAdv(device: V5_DeviceT, position: *mut V5_DeviceArmTipPosition) {}
+pub extern "C" fn vexDeviceArmTipPositionGetAdv(
+    device: V5_DeviceT,
+    position: *mut V5_DeviceArmTipPosition,
+) {
+}
 pub extern "C" fn vexDeviceArmPoseSet(device: V5_DeviceT, pose: u8, velocity: u16) {}
 pub extern "C" fn vexDeviceArmMoveTipCommandLinear(
     device: V5_DeviceT,
@@ -74,7 +78,13 @@ pub extern "C" fn vexDeviceArmSaveZeroValues(device: V5_DeviceT) {}
 pub extern "C" fn vexDeviceArmForceZeroCommand(device: V5_DeviceT) {}
 pub extern "C" fn vexDeviceArmClearZeroValues(device: V5_DeviceT) {}
 pub extern "C" fn vexDeviceArmBootload(device: V5_DeviceT) {}
-pub extern "C" fn vexDeviceArmTipPositionGet(device: V5_DeviceT, x: *mut i32, y: *mut i32, z: *mut i32) {}
+pub extern "C" fn vexDeviceArmTipPositionGet(
+    device: V5_DeviceT,
+    x: *mut i32,
+    y: *mut i32,
+    z: *mut i32,
+) {
+}
 pub extern "C" fn vexDeviceArmJointInfoGet(
     device: V5_DeviceT,
     positions: *mut c_double,

@@ -1,14 +1,11 @@
-use bincode::{
-    de::{self, BorrowDecoder, Decoder},
-    enc::{self, Encoder},
-    error::{DecodeError, EncodeError},
-    BorrowDecode, Decode, Encode,
-};
+use bincode::{Decode, Encode};
 use bitflags::bitflags;
 use vex_sdk::vcodesig;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
+use crate::impl_bincode_bitflags;
 
 /// Program Code Signature
 ///
@@ -85,23 +82,4 @@ bitflags! {
     }
 }
 
-impl enc::Encode for ProgramFlags {
-    fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
-        Encode::encode(&self.bits(), encoder)?;
-        Ok(())
-    }
-}
-
-impl de::Decode for ProgramFlags {
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        Ok(Self::from_bits_retain(Decode::decode(decoder)?))
-    }
-}
-
-impl<'de> bincode::BorrowDecode<'de> for ProgramFlags {
-    fn borrow_decode<D: BorrowDecoder<'de>>(decoder: &mut D) -> Result<Self, DecodeError> {
-        Ok(Self::from_bits_retain(BorrowDecode::borrow_decode(
-            decoder,
-        )?))
-    }
-}
+impl_bincode_bitflags!(ProgramFlags);

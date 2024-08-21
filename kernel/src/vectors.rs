@@ -8,9 +8,20 @@
 //! In most cases, these functions are copied off of Xilinx's `asm_vectors.s`
 //! file: <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
 
-use core::{arch::{asm, global_asm}, ffi::c_void};
+use core::{
+    arch::{asm, global_asm},
+    ffi::c_void,
+};
 
-use crate::{sdk::{vexSystemDataAbortInterrupt, vexSystemPrefetchAbortInterrupt, vexSystemUndefinedException}, xil::exception::{Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_DATA_ABORT_INT, XIL_EXCEPTION_ID_PREFETCH_ABORT_INT, XIL_EXCEPTION_ID_UNDEFINED_INT}};
+use crate::{
+    sdk::{
+        vexSystemDataAbortInterrupt, vexSystemPrefetchAbortInterrupt, vexSystemUndefinedException,
+    },
+    xil::exception::{
+        Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_DATA_ABORT_INT,
+        XIL_EXCEPTION_ID_PREFETCH_ABORT_INT, XIL_EXCEPTION_ID_UNDEFINED_INT,
+    },
+};
 
 // The exception vector table.
 //
@@ -265,12 +276,12 @@ pub extern "C" fn fiq() -> ! {
     }
 }
 
-/// VEX handles the user-facing part of exceptions through xilinx's own exception
-/// table API, so this function registers those on the table.
+/// VEX handles the user-facing part of exceptions through xilinx's own
+/// exception table API, so this function registers those on the table.
 ///
-/// Those functions are what actually convey to the user that an exception occurs
-/// (for example vexSystemDataAbortInterrupt is responsible for drawing a red box
-/// to the screen).
+/// Those functions are what actually convey to the user that an exception
+/// occurs (for example vexSystemDataAbortInterrupt is responsible for drawing a
+/// red box to the screen).
 pub fn register_sdk_exception_handlers() {
     #[inline]
     pub extern "C" fn data_abort_handler_thunk(_: *mut c_void) {

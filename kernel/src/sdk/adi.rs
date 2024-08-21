@@ -1,8 +1,16 @@
 use core::ffi::c_double;
 use vex_sdk::*;
 
-pub extern "C" fn vexDeviceAdiPortConfigSet(device: V5_DeviceT, port: u32, config: V5_AdiPortConfiguration) {}
-pub extern "C" fn vexDeviceAdiPortConfigGet(device: V5_DeviceT, port: u32) -> V5_AdiPortConfiguration {
+pub extern "C" fn vexDeviceAdiPortConfigSet(
+    device: V5_DeviceT,
+    port: u32,
+    config: V5_AdiPortConfiguration,
+) {
+}
+pub extern "C" fn vexDeviceAdiPortConfigGet(
+    device: V5_DeviceT,
+    port: u32,
+) -> V5_AdiPortConfiguration {
     Default::default()
 }
 pub extern "C" fn vexDeviceAdiValueSet(device: V5_DeviceT, port: u32, value: i32) {}

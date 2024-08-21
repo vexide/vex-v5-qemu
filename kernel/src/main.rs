@@ -116,7 +116,6 @@ pub extern "C" fn _start() -> ! {
     // This is located 32 bytes after the code signature at 0x03800020.
     log::debug!("Calling user code.");
     unsafe {
-        //*(0x400 as *mut u32) = 0 as _;
         vexStartup();
     }
 

@@ -490,5 +490,9 @@ pub extern "C" fn unshimmed_syscall() -> ! {
         core::arch::asm!("mov {}, sp", out(reg) sp_value);
         core::arch::asm!("adr {}, .", out(reg) pc)
     };
-    unimplemented!("Attempted to call unimplemented jumptable function! pc = {}, sp = {}", core::ptr::addr_of!(pc) as u32, sp_value);
+    unimplemented!(
+        "Attempted to call unimplemented jumptable function! pc = {}, sp = {}",
+        core::ptr::addr_of!(pc) as u32,
+        sp_value
+    );
 }
