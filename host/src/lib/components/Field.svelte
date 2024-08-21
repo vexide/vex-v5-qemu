@@ -1,9 +1,12 @@
 <script lang="ts">
     export let layout: "horizontal" | "vertical" = "horizontal";
     export let label: string;
+
+    let field: HTMLLabelElement;
 </script>
 
-<label class="field {layout}">
+<label class="field {layout}" bind:this={field}>
+    <slot name="handle" class="handle" />
     <span class="field-label">{label}</span>
     <slot />
 </label>
@@ -11,8 +14,11 @@
 <style>
     .field {
         display: flex;
+        position: relative;
         justify-content: space-between;
+        width: calc(100% + 16px);
         gap: 16px;
+        padding-inline-end: 16px;
         margin-bottom: 8px;
     }
 

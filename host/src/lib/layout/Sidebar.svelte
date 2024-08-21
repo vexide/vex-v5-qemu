@@ -82,6 +82,15 @@
             target.scrollHeight - target.scrollTop - target.clientHeight < 24;
     }
 
+    const DATA_NODES =  [
+        {
+            name: "Value",
+            //FIXME: add icon
+            icon: Potentiometer,
+            node: "value",
+        }
+    ];
+
     const SMART_DEVICES = [
         {
             name: "Motor",
@@ -192,6 +201,23 @@
         <hr />
         <ul class="device-category">
             {#each ADI_DEVICES as device}
+                <li>
+                    <DraggableDevice
+                        name={device.name}
+                        on:dragstart={(e) => handleDragStart(e, device.node)}
+                    >
+                        <svelte:component
+                            this={device.icon}
+                            slot="icon"
+                            size="16"
+                        />
+                    </DraggableDevice>
+                </li>
+            {/each}
+        </ul>
+        <hr />
+        <ul class="device-category">
+            {#each DATA_NODES as device}
                 <li>
                     <DraggableDevice
                         name={device.name}

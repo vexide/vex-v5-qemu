@@ -17,6 +17,7 @@
         BatteryNode,
         GpsNode,
         DistanceNode,
+        ValueNode,
     } from "~/lib/nodes";
 
     import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
@@ -36,6 +37,7 @@
         battery: BatteryNode,
         gps: GpsNode,
         distance: DistanceNode,
+        value: ValueNode,
     };
 
     onMount(async () => {

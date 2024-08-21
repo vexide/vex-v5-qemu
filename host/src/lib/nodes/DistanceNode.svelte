@@ -6,7 +6,7 @@
         useSvelteFlow,
     } from "@xyflow/svelte";
     import { drag } from "~/lib/actions";
-    import { SmartPortHandle } from "~/lib/handles";
+    import { DataHandle, SmartPortHandle } from "~/lib/handles";
     import {
         Field,
         NumberInput,
@@ -66,6 +66,13 @@
     </Field>
     <Divider />
     <Field label="Distance">
+        <DataHandle
+            slot="handle"
+            id="distance"
+            position={Position.Right}
+            type="target"
+            parentNode={id}
+        />
         {#if objectVisible}<NumberInput
                 max="2000"
                 min="20"
@@ -75,13 +82,20 @@
             />{:else}<NumberInput disabled="true" value="9999" />{/if}
     </Field>
     <Field label="Size">
+        <DataHandle
+            slot="handle"
+            id="size"
+            position={Position.Right}
+            type="target"
+            parentNode={id}
+        />
         {#if objectVisible}<NumberInput
-            max="400"
-            min="0"
-            step="10"
-            disabled={!objectVisible}
-            bind:value={size}
-        />{:else}<NumberInput disabled="true" value="-1" />{/if}
+                max="400"
+                min="0"
+                step="10"
+                disabled={!objectVisible}
+                bind:value={size}
+            />{:else}<NumberInput disabled="true" value="-1" />{/if}
     </Field>
     <div class="distance-visualizer nodrag" bind:this={visualizer}>
         <svg
