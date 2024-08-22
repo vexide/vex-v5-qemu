@@ -19,6 +19,7 @@
         DistanceNode,
         ValueNode,
         MathNode,
+        TimeNode,
     } from "~/lib/nodes";
 
     import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
@@ -40,6 +41,7 @@
         distance: DistanceNode,
         value: ValueNode,
         math: MathNode,
+        time: TimeNode,
     };
 
     onMount(async () => {

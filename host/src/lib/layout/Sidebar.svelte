@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Hash, Menu, PlusCircle } from "svelte-feathers";
+    import { Clock, Hash, Menu, PlusCircle } from "svelte-feathers";
 
     import { dndType } from "~/lib/stores";
     import { Button, DraggableDevice } from "~/lib/components";
@@ -90,9 +90,13 @@
         },
         {
             name: "Math",
-            //FIXME: add icon
             icon: PlusCircle,
             node: "math",
+        },
+        {
+            name: "Time",
+            icon: Clock,
+            node: "time",
         }
     ];
 

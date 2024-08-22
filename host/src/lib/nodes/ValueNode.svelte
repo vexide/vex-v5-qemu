@@ -5,7 +5,14 @@
         Position,
         useSvelteFlow,
     } from "@xyflow/svelte";
-    import { Field, NumberInput, NodeBase } from "~/lib/components";
+    import {
+        Field,
+        NumberInput,
+        NodeBase,
+        Tabs,
+        TabPanel,
+        Select,
+    } from "~/lib/components";
     import { DataHandle } from "~/lib/handles";
     import { Hash } from "svelte-feathers";
 
@@ -23,11 +30,36 @@
     const { updateNodeData } = useSvelteFlow();
     $: updateNodeData(id, { value });
 
+    let currentTab = "value";
+
+    let constants = [
+        { value: "pi", label: "π" },
+        { value: "tao", label: "τ" },
+        { value: "e", label: "e" },
+    ];
+    let constant = constants[0].value;
+
+    $: {
+        if (currentTab === "constant") {
+            switch (constant) {
+                case "pi":
+                    value = Math.PI;
+                    break;
+                case "tao":
+                    value = 2 * Math.PI;
+                    break;
+                case "e":
+                    value = Math.E;
+                    break;
+            }
+        }
+    }
+
     data;
 </script>
 
 <NodeBase title="Value">
-    <Hash slot="icon" size="16"/>
+    <Hash slot="icon" size="16" />
     <DataHandle
         slot="handle"
         id="output"
@@ -35,7 +67,18 @@
         type="source"
         parentNode={id}
     />
-    <Field label="Value">
-        <NumberInput bind:value />
-    </Field>
+    <Tabs bind:selected={currentTab}>
+        <TabPanel label="Value" id="value">
+            <Field label="Value"><NumberInput bind:value /></Field>
+        </TabPanel>
+        <TabPanel label="Constant" id="constant">
+            <Field label="Constant"
+                ><Select bind:selected={constant}>
+                    {#each constants as { value, label }}
+                        <option {value}>{label}</option>
+                    {/each}
+                </Select></Field
+            >
+        </TabPanel>
+    </Tabs>
 </NodeBase>
