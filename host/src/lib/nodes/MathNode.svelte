@@ -7,6 +7,7 @@
         useNodesData,
         useHandleConnections,
     } from "@xyflow/svelte";
+    import { PlusCircle } from "svelte-feathers";
     import {
         Field,
         NumberInput,
@@ -95,6 +96,7 @@
 </script>
 
 <NodeBase title="Math">
+    <PlusCircle slot="icon" size="16"/>
     <DataHandle
         slot="handle"
         id="output"

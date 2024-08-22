@@ -7,6 +7,7 @@
     } from "@xyflow/svelte";
     import { Field, NumberInput, NodeBase } from "~/lib/components";
     import { DataHandle } from "~/lib/handles";
+    import { Hash } from "svelte-feathers";
 
     type NodeData = {
         value: number;
@@ -26,6 +27,7 @@
 </script>
 
 <NodeBase title="Value">
+    <Hash slot="icon" size="16"/>
     <DataHandle
         slot="handle"
         id="output"

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Menu } from "svelte-feathers";
+    import { Hash, Menu, PlusCircle } from "svelte-feathers";
 
     import { dndType } from "~/lib/stores";
     import { Button, DraggableDevice } from "~/lib/components";
@@ -85,14 +85,13 @@
     const DATA_NODES =  [
         {
             name: "Value",
-            //FIXME: add icon
-            icon: Potentiometer,
+            icon: Hash,
             node: "value",
         },
         {
             name: "Math",
             //FIXME: add icon
-            icon: Potentiometer,
+            icon: PlusCircle,
             node: "math",
         }
     ];
