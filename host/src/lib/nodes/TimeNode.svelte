@@ -6,13 +6,16 @@
         useSvelteFlow,
     } from "@xyflow/svelte";
     import {
+        Button,
         Field,
         NodeBase,
         NumberDisplay,
+        NumberInput,
+        Switch,
     } from "~/lib/components";
     import { DataHandle } from "~/lib/handles";
     import { Clock, Hash } from "svelte-feathers";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     type NodeData = {
         value: number;
@@ -28,15 +31,41 @@
     let start: number;
     let now: number;
 
+    const { setInterval, clearInterval } = window;
+
+    let updateRate = 100;
+
+    let timeInterval: number | undefined;
+    let updateInterval: number | undefined;
+
     onMount(() => {
         start = performance.now() / 1000;
 
-        setInterval(() => {
+        timeInterval = setInterval(() => {
             now = performance.now() / 1000;
-            updateNodeData(id, { value: now - start })
         }, 1);
+        updateInterval = setInterval(() => {
+            updateNodeData(id, { value: now - start });
+        }, 1000 / updateRate);
     });
 
+    function updateRateChanged(newRate: number) {
+        if (updateInterval && newRate) {
+            clearInterval(updateInterval);
+            updateRate = newRate;
+            updateInterval = setInterval(() => {
+                updateNodeData(id, { value: now - start });
+            }, 1000 / newRate);
+        }
+    }
+    $: updateRateChanged(updateRate);
+
+    onDestroy(() => {
+        clearInterval(timeInterval);
+        clearInterval(updateInterval);
+    });
+
+    let advanced = false;
 
     data;
 </script>
@@ -51,4 +80,8 @@
         parentNode={id}
     />
     <Field label="Seconds"><NumberDisplay value={now - start} /></Field>
+    <Field label="Advanced"><Switch bind:flipped={advanced}></Switch></Field>
+    {#if advanced}
+        <Field label="Update Rate (Hz)"><NumberInput bind:value={updateRate} min={1} max={1000}/></Field>
+    {/if}
 </NodeBase>

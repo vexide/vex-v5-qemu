@@ -36,6 +36,7 @@
           libsoup_3
           webkitgtk_4_1
           librsvg
+          glib-networking
         ];
       in pkgs.mkShell {
         buildInputs = with pkgs;
@@ -46,6 +47,7 @@
               extensions = [ "rust-src" "rust-analyzer" "clippy" ];
             })
           ] ++ tauriPackages;
+        GIO_MODULE_DIR = "${pkgs.glib-networking}/lib/gio/modules/";
         shellHook = ''
           export LD_LIBRARY_PATH=${
             pkgs.lib.makeLibraryPath tauriLibraries
