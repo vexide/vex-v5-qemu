@@ -91,8 +91,6 @@
         }
     }
 
-    $: console.log($rhsConnections);
-
     data;
 </script>
 
