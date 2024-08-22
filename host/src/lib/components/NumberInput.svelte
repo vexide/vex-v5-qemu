@@ -1,8 +1,13 @@
 <script lang="ts">
     export let value: any = "";
+
+    $: value = Math.max(min ?? -Infinity, Math.min(max ?? Infinity, value));
+
+    export let max: number | undefined = undefined;
+    export let min: number | undefined = undefined;
 </script>
 
-<input bind:value class="number-input nodrag" type="number" {...$$restProps} />
+<input bind:value max={max} min={min} class="number-input nodrag" type="number" {...$$restProps} />
 
 <style>
     .number-input {

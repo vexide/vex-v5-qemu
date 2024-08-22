@@ -89,8 +89,8 @@
             parentNode={id}
         />
         {#if objectVisible}<NumberInput
-                max="2000"
-                min="20"
+                max={2000}
+                min={20}
                 step="10"
                 disabled={!objectVisible && $distanceConnections.length > 0}
                 bind:value={distance}
@@ -105,8 +105,8 @@
             parentNode={id}
         />
         {#if objectVisible}<NumberInput
-                max="400"
-                min="0"
+                max={400}
+                min={0}
                 step="10"
                 disabled={!objectVisible && $sizeConnections.length > 0}
                 bind:value={size}
