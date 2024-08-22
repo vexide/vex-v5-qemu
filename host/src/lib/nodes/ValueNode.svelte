@@ -8,14 +8,19 @@
     import { Field, NumberInput, NodeBase } from "~/lib/components";
     import { DataHandle } from "~/lib/handles";
 
-    type NodeData = {};
+    type NodeData = {
+        value: number;
+    };
 
     type $$Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
     export let id: $$Props["id"];
 
-    export let value = 0;
+    let value = 0;
+
+    const { updateNodeData } = useSvelteFlow();
+    $: updateNodeData(id, { value });
 
     data;
 </script>
@@ -23,7 +28,7 @@
 <NodeBase title="Value">
     <DataHandle
         slot="handle"
-        id="distance"
+        id="output"
         position={Position.Left}
         type="source"
         parentNode={id}

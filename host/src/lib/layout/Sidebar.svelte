@@ -88,6 +88,12 @@
             //FIXME: add icon
             icon: Potentiometer,
             node: "value",
+        },
+        {
+            name: "Math",
+            //FIXME: add icon
+            icon: Potentiometer,
+            node: "math",
         }
     ];
 

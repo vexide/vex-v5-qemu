@@ -12,3 +12,4 @@ export { default as Divider } from "./Divider.svelte";
 export { default as Slider } from "./Slider.svelte";
 export { default as Tabs } from "./Tabs.svelte";
 export { default as TabPanel } from "./TabPanel.svelte";
+export { default as RadioGroup } from "./RadioGroup.svelte";

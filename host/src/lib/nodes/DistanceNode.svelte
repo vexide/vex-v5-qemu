@@ -4,6 +4,8 @@
         type Node,
         Position,
         useSvelteFlow,
+        useHandleConnections,
+        useNodesData,
     } from "@xyflow/svelte";
     import { drag } from "~/lib/actions";
     import { DataHandle, SmartPortHandle } from "~/lib/handles";
@@ -28,9 +30,6 @@
     let distance = 1000;
     let size = 200;
 
-    let shownDistance = distance;
-    let shownSize = size;
-
     let visualizer: HTMLDivElement;
 
     function moveObject(e: PointerEvent) {
@@ -47,6 +46,20 @@
     }
 
     let objectVisible = true;
+
+    const distanceConnections = useHandleConnections({ nodeId: id, type: "target", id: "data_distance"});
+    const sizeConnections = useHandleConnections({ nodeId: id, type: "target", id: "data_size"});
+    $: distanceData = useNodesData($distanceConnections[0]?.source);
+    $: sizeData = useNodesData($sizeConnections[0]?.source);
+
+    $: {
+        if ($distanceData) {
+            distance = $distanceData.data.value as number;
+        }
+        if ($sizeData) {
+            size = $sizeData.data.value as number;
+        }
+    }
 
     data;
 </script>
@@ -77,7 +90,7 @@
                 max="2000"
                 min="20"
                 step="10"
-                disabled={!objectVisible}
+                disabled={!objectVisible && $distanceConnections.length > 0}
                 bind:value={distance}
             />{:else}<NumberInput disabled="true" value="9999" />{/if}
     </Field>
@@ -93,7 +106,7 @@
                 max="400"
                 min="0"
                 step="10"
-                disabled={!objectVisible}
+                disabled={!objectVisible && $sizeConnections.length > 0}
                 bind:value={size}
             />{:else}<NumberInput disabled="true" value="-1" />{/if}
     </Field>

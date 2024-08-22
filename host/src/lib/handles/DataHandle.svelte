@@ -19,7 +19,7 @@
 <Handle
     id="data_{id}"
     class="data"
-    isConnectable={$connections.length === 0}
+    isConnectable={type === "source" || $connections.length === 0}
     isValidConnection={c => {
         const isSourceData = c.sourceHandle?.startsWith("data") ?? false;
         const isTargetData = c.targetHandle?.startsWith("data") ?? false;
