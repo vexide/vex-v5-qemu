@@ -32,6 +32,8 @@
 
     let visualizer: HTMLDivElement;
 
+    $: draggable = visualizer && objectVisible && $distanceConnections.length === 0;
+
     function moveObject(e: PointerEvent) {
         let flowCoords = screenToFlowPosition({ x: e.clientX, y: 0 });
         let boundingRect = visualizer.getBoundingClientRect();
@@ -135,8 +137,9 @@
                 class="object"
                 style="width: {(size * 50) / 400}px; height: {(size * 50) /
                     400}px;"
+                class:draggable
                 use:drag={(event) => {
-                    if (!visualizer || !objectVisible) return;
+                    if (!draggable) return;
                     moveObject(event);
                 }}
             />
@@ -198,11 +201,14 @@
     .object {
         border: solid 5px var(--foreground-secondary);
         border-radius: 50%;
-        cursor: move;
+        cursor: not-allowed;
         max-width: 50px;
         max-height: 50px;
     }
-    .object:hover {
+    .object.draggable {
+        cursor: move;
+    }
+    .object.draggable:hover {
         border-color: var(--foreground-primary);
     }
     .no-object {
