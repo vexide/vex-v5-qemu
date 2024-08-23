@@ -27,7 +27,7 @@ export const nodes = writable<Node[]>([
             current: 0,
             voltage: 0,
         },
-        position: { x: 590, y: 225 },
+        position: { x: 690, y: 292.5 },
         deletable: false,
     },
     {
@@ -36,7 +36,7 @@ export const nodes = writable<Node[]>([
         data: {
             onboard: true,
         },
-        position: { x: -100, y: 0 },
+        position: { x: -80, y: 124 },
         deletable: false,
     },
 ]);

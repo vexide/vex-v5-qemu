@@ -6,6 +6,7 @@
     --font-family-text: "Manrope", serif;
 
     --base-hue: 240deg;
+    --data-hue: calc(var(--base-hue) - 40deg);
 
     --accent-primary: hsl(var(--base-hue), 69%, 76%);
     --accent-faded: hsla(var(--base-hue), 69%, 76%, 50%);
@@ -25,6 +26,9 @@
     --interactive-secondary: hsl(var(--base-hue), 7%, 18%);
     --interactive-tertiary: hsl(var(--base-hue), 7%, 24%);
     --interactive-quarternary: hsl(var(--base-hue), 7%, 32%);
+
+    --data-primary: hsl(var(--data-hue), 69%, 76%);
+    --data-faded: hsla(var(--data-hue), 69%, 76%, 50%);
 }
 
 html,

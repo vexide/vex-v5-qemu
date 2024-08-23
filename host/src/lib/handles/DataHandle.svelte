@@ -36,7 +36,7 @@
 
 <Handle
     id="data_{id}"
-    class="data"
+    class="data-handle"
     isConnectable={type === "source" || $connections.length === 0}
     isValidConnection={c => {
         const isSourceData = c.sourceHandle?.startsWith("data") ?? false;
@@ -47,3 +47,9 @@
     {position}
     {type}
 />
+
+<style>
+    :global(.svelte-flow__handle.data-handle) {
+        border-color: var(--data-faded);
+    }
+</style>

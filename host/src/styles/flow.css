@@ -16,7 +16,7 @@
     --xy-node-boxshadow-selected: 0 0 0 2px var(--accent-faded);
     --xy-node-border-radius: 4px;
     --xy-handle-background-color: var(--background-tertiary);
-    --xy-handle-border-color: var(--interactive-tertiary);
+    --xy-handle-border-color: var(--accent-faded);
     --xy-selection-background-color: hsla(var(--base-hue), 69%, 76%, 0.15);
     --xy-selection-border: 1px solid var(--accent-faded);
     --xy-controls-button-background-color: var(--interactive-primary);
