@@ -19,6 +19,7 @@
         Potentiometer,
         GPSSensor,
         LineTracker,
+        LightSensor,
     } from "~/lib/icons";
 
     let width = 260;
@@ -169,6 +170,11 @@
             icon: LineTracker,
             node: "line_tracker",
         },
+        {
+            name: "Light Sensor",
+            icon: LightSensor,
+            node: "light_sensor",
+        }
     ];
 </script>
 

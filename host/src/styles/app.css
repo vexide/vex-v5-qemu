@@ -7,6 +7,7 @@
 
     --base-hue: 297deg;
     --data-hue: calc(var(--base-hue) - 40deg);
+    --adi-hue: calc(var(--base-hue) + 40deg);
 
     --accent-primary: oklch(69% 42% var(--base-hue));
     --accent-faded: oklch(69% 42% var(--base-hue) / 50%);
@@ -29,6 +30,8 @@
 
     --data-primary: oklch(69% 42% var(--data-hue));
     --data-faded: oklch(69% 42% var(--data-hue) / 50%);
+    --adi-primary: oklch(69% 42% var(--adi-hue));
+    --adi-faded: oklch(69% 42% var(--adi-hue) / 50%);
 }
 
 html,

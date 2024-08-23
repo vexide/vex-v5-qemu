@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Handle, useHandleConnections, type HandleProps } from "@xyflow/svelte";
+    import { Handle, useHandleConnections, type HandleProps, useEdges, useSvelteFlow } from "@xyflow/svelte";
 
     type Props = HandleProps
 
@@ -14,6 +14,19 @@
         id: `adi_port_${id}`,
         type,
     });
+
+    const { updateNodeData } = useSvelteFlow();
+
+    const edges = useEdges();
+    $: {
+        if (type === "source") {
+            let connection_edges = $connections
+                .map((c) => $edges.find((e) => e.id === c.edgeId))
+                .filter((e) => e);
+            connection_edges.map((e) => (e!.type = "adi"));
+            updateNodeData(parentNode, {});
+        }
+    }
 </script>
 
 <Handle
@@ -29,3 +42,9 @@
     {position}
     {type}
 />
+
+<style>
+    :global(.svelte-flow__handle.adi-port-handle) {
+        border-color: var(--adi-faded);
+    }
+</style>

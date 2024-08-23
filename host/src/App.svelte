@@ -26,8 +26,9 @@
         ValueNode,
         MathNode,
         TimeNode,
+        LightSensorNode,
     } from "~/lib/nodes";
-    import { DataEdge } from "~/lib/edges";
+    import { AdiEdge, DataEdge } from "~/lib/edges";
 
     import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
 
@@ -60,9 +61,11 @@
         value: ValueNode,
         math: MathNode,
         time: TimeNode,
+        light_sensor: LightSensorNode,
     };
     const edgeTypes = {
         data: DataEdge,
+        adi: AdiEdge,
     };
 
     onMount(async () => {

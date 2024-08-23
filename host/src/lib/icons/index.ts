@@ -6,6 +6,7 @@ export { default as DistanceSensor } from "./DistanceSensor.svelte";
 export { default as GenericSerial } from "./GenericSerial.svelte";
 export { default as GPSSensor } from "./GPSSensor.svelte";
 export { default as LineTracker } from "./LineTracker.svelte";
+export { default as LightSensor } from "./LightSensor.svelte";
 export { default as Magnet } from "./Magnet.svelte";
 export { default as Motor } from "./Motor.svelte";
 export { default as OpticalSensor } from "./OpticalSensor.svelte";
