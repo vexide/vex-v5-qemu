@@ -33,7 +33,7 @@
 
     const { setInterval, clearInterval } = window;
 
-    let updateRate = 100;
+    let updateRate = 60;
 
     let timeInterval: number | undefined;
     let updateInterval: number | undefined;
