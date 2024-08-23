@@ -21,6 +21,7 @@
         MathNode,
         TimeNode,
     } from "~/lib/nodes";
+    import { DataEdge } from "~/lib/edges";
 
     import { Pause, Play, RefreshCw, Settings, Power } from "svelte-feathers";
 
@@ -42,6 +43,9 @@
         value: ValueNode,
         math: MathNode,
         time: TimeNode,
+    };
+    const edgeTypes = {
+        data: DataEdge,
     };
 
     onMount(async () => {
@@ -132,7 +136,7 @@
             </Toolbar>
             <section class="display-view">
                 {#if $session?.running}
-                    <Flow {nodeTypes} {nodes} {edges} />
+                    <Flow {nodeTypes} {edgeTypes} {nodes} {edges} />
                 {:else}
                     <Uploader on:upload={handleUpload} />
                 {/if}

@@ -10,6 +10,7 @@
         type Edge,
         type Node,
         type NodeTypes,
+        type EdgeTypes,
     } from "@xyflow/svelte";
 
     import { dndType } from "~/lib/stores";
@@ -17,6 +18,7 @@
     const { screenToFlowPosition } = useSvelteFlow();
 
     export let nodeTypes: NodeTypes | undefined;
+    export let edgeTypes: EdgeTypes | undefined;
     export let nodes: Writable<Node[]>;
     export let edges: Writable<Edge[]>;
 
@@ -53,6 +55,7 @@
 
 <SvelteFlow
     {nodeTypes}
+    {edgeTypes}
     {nodes}
     {edges}
     fitView
