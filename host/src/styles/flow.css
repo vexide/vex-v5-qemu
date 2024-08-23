@@ -17,7 +17,7 @@
     --xy-node-border-radius: 4px;
     --xy-handle-background-color: var(--background-tertiary);
     --xy-handle-border-color: var(--accent-faded);
-    --xy-selection-background-color: hsla(var(--base-hue), 69%, 76%, 0.15);
+    --xy-selection-background-color: oklch(from var(--accent-primary) l c h / 0.15);
     --xy-selection-border: 1px solid var(--accent-faded);
     --xy-controls-button-background-color: var(--interactive-primary);
     --xy-controls-button-background-color-hover: var(--interactive-secondary);

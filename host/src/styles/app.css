@@ -5,30 +5,30 @@
 
     --font-family-text: "Manrope", serif;
 
-    --base-hue: 240deg;
+    --base-hue: 297deg;
     --data-hue: calc(var(--base-hue) - 40deg);
 
-    --accent-primary: hsl(var(--base-hue), 69%, 76%);
-    --accent-faded: hsla(var(--base-hue), 69%, 76%, 50%);
-    --accent-faded-secondary: hsla(var(--base-hue), 69%, 16%, 15%);
+    --accent-primary: oklch(69% 42% var(--base-hue));
+    --accent-faded: oklch(69% 42% var(--base-hue) / 50%);
+    --accent-faded-secondary: lcha(var(--base-hue) 69% 16% / 15%);
 
-    --background-primary: hsl(var(--base-hue), 2%, 8%);
-    --background-secondary: hsl(var(--base-hue), 4%, 9%);
-    --background-tertiary: hsl(var(--base-hue), 4%, 11%);
-    --background-danger: hsl(0deg 100% 68%);
+    --background-primary: oklch(18% 1% var(--base-hue));
+    --background-secondary: oklch(21% 1% var(--base-hue));
+    --background-tertiary: oklch(23% 2% var(--base-hue));
+    --background-danger: oklch(68% 100% 0deg);
 
-    --foreground-primary: hsl(var(--base-hue), 76%, 95%);
-    --foreground-secondary: hsl(var(--base-hue), 76%, 87%);
-    --foreground-tertiary: hsl(var(--base-hue), 18%, 64%);
-    --foreground-danger: hsl(0, 66%, 56%);
+    --foreground-primary: oklch(95% 10% var(--base-hue));
+    --foreground-secondary: oklch(87% 12% var(--base-hue));
+    --foreground-tertiary: oklch(64% 15% var(--base-hue));
+    --foreground-danger: oklch(56% 66% 0);
 
-    --interactive-primary: hsl(var(--base-hue), 7%, 15%);
-    --interactive-secondary: hsl(var(--base-hue), 7%, 18%);
-    --interactive-tertiary: hsl(var(--base-hue), 7%, 24%);
-    --interactive-quarternary: hsl(var(--base-hue), 7%, 32%);
+    --interactive-primary: oklch(25% 1% var(--base-hue));
+    --interactive-secondary: oklch(29% 1% var(--base-hue));
+    --interactive-tertiary: oklch(34% 1% var(--base-hue));
+    --interactive-quarternary: oklch(41% 1% var(--base-hue));
 
-    --data-primary: hsl(var(--data-hue), 69%, 76%);
-    --data-faded: hsla(var(--data-hue), 69%, 76%, 50%);
+    --data-primary: oklch(69% 42% var(--data-hue));
+    --data-faded: oklch(69% 42% var(--data-hue) / 50%);
 }
 
 html,

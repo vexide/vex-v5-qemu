@@ -9,7 +9,13 @@
 
     import Session from "~/lib/session";
     import { terminal, session, nodes, edges } from "~/lib/stores";
-    import { Button, Dialog } from "~/lib/components";
+    import {
+        Button,
+        Dialog,
+        Field,
+        NumberInput,
+        Slider,
+    } from "~/lib/components";
     import { Toolbar, Sidebar, Flow, Terminal } from "~/lib/layout";
     import {
         BrainNode,
@@ -29,6 +35,17 @@
     import "~/styles/flow.css";
 
     let settingsDialogOpen = false;
+
+    let hue: number = parseInt(window.localStorage.getItem("hue") ?? "297");
+    $: {
+        if (hue) {
+            document.documentElement.style.setProperty(
+                "--base-hue",
+                `${hue.toString()}deg`,
+            );
+            window.localStorage.setItem("hue", hue.toString());
+        }
+    }
 
     let detachConsole: UnlistenFn | undefined;
     let unlistenUserSerial: UnlistenFn | undefined;
@@ -143,7 +160,15 @@
         <Dialog bind:open={settingsDialogOpen}>
             <svelte:fragment slot="header">Settings</svelte:fragment>
 
-            todo
+            <Field label="Theme Hue" layout="vertical"
+                ><Slider
+                    layout="vertical"
+                    label="theme hue"
+                    min={0}
+                    max={360}
+                    bind:value={hue}
+                /></Field
+            >
 
             <svelte:fragment slot="footer">
                 <Button
