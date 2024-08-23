@@ -52,6 +52,7 @@
 
 {#if $selectedId === id}
     <div
+        class="tab-panel"
         aria-labelledby="tab-{uuid}-{id}"
         id="tabpanel-{uuid}-{id}"
         role="tabpanel"
@@ -59,3 +60,11 @@
         <slot />
     </div>
 {/if}
+
+<style>
+    .tab-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+</style>

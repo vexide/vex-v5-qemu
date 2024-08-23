@@ -18,7 +18,7 @@
 
 <Handle
     id="adi_port_{id}"
-    class="adi-port"
+    class="adi-port-handle"
     isConnectable={$connections.length === 0}
     isValidConnection={c => {
         const isSourceSmartport = c.sourceHandle?.startsWith("adi_port") ?? false;

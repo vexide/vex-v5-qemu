@@ -10,7 +10,7 @@
     import Session from "~/lib/session";
     import { terminal, session, nodes, edges } from "~/lib/stores";
     import { Button, Dialog } from "~/lib/components";
-    import { Toolbar, Uploader, Sidebar, Flow, Terminal } from "~/lib/layout";
+    import { Toolbar, Sidebar, Flow, Terminal } from "~/lib/layout";
     import {
         BrainNode,
         AdiNode,
@@ -135,15 +135,9 @@
                 </Button>
             </Toolbar>
             <section class="display-view">
-                {#if $session?.running}
-                    <Flow {nodeTypes} {edgeTypes} {nodes} {edges} />
-                {:else}
-                    <Uploader on:upload={handleUpload} />
-                {/if}
+                <Flow {nodeTypes} {edgeTypes} {nodes} {edges} />
             </section>
-            {#if $session?.running}
-                <Terminal />
-            {/if}
+            <Terminal />
         </div>
 
         <Dialog bind:open={settingsDialogOpen}>

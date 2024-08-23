@@ -37,7 +37,7 @@
             Math.abs(curr - n) < Math.abs(prev - n) ? curr : prev,
         );
     const valueToPercent = (value: number) =>
-        Math.round(((value - min) / (max - min)) * 100);
+        clamp(Math.round(((value - min) / (max - min)) * 100), 0, 100);
 
     function valueFromPosition(x: number) {
         if (!trackElement) return 0;
@@ -61,11 +61,13 @@
     }
 
     function handlePointerMove(event: PointerEvent) {
-        if (!dragging) return;
+        if (!dragging || disabled) return;
         value = valueFromPosition(event.clientX);
     }
 
     function handlePointerDown(event: PointerEvent) {
+        if (disabled) return;
+
         if (
             (event.pointerType === "mouse" && event.button === 2) ||
             (event.pointerType !== "mouse" && !event.isPrimary)
@@ -79,6 +81,8 @@
     }
 
     function handleKeyDown(event: KeyboardEvent) {
+        if (disabled) return;
+
         const { key } = event;
 
         // Finds the index of the closest marker to the current (non-updated) value
@@ -147,6 +151,7 @@
     <span
         class="slider-thumb"
         role="slider"
+        title={value.toString()}
         aria-label={label}
         aria-valuemin={min}
         aria-valuemax={max}
@@ -167,6 +172,10 @@
         align-items: center;
         height: 16px;
         cursor: ew-resize;
+    }
+
+    .slider.disabled {
+        opacity: 0.6;
     }
 
     .slider-track {

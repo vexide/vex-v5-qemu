@@ -18,7 +18,7 @@
     --xy-handle-background-color: var(--background-tertiary);
     --xy-handle-border-color: var(--interactive-tertiary);
     --xy-selection-background-color: hsla(var(--base-hue), 69%, 76%, 0.15);
-    --xy-selection-border: 2px dashed var(--accent-primary);
+    --xy-selection-border: 1px solid var(--accent-faded);
     --xy-controls-button-background-color: var(--interactive-primary);
     --xy-controls-button-background-color-hover: var(--interactive-secondary);
     --xy-controls-button-color: var(--foreground-secondary);

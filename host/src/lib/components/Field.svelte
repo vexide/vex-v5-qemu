@@ -19,11 +19,6 @@
         width: calc(100% + 16px);
         gap: 16px;
         padding-inline-end: 16px;
-        margin-bottom: 8px;
-    }
-
-    .field:last-child {
-        margin-bottom: 0;
     }
 
     .field.horizontal {

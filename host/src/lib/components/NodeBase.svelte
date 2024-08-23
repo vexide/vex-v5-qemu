@@ -36,7 +36,7 @@
         width: 100%;
         height: 36px;
         border-radius: 12px;
-        padding-inline: 16px 8px;
+        padding-inline: 16px 12px;
         background: var(--background-tertiary);
         color: var(--foreground-primary);
         border: none;

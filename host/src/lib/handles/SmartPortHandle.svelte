@@ -18,7 +18,7 @@
 
 <Handle
     id="smart_port_{id}"
-    class="smart-port"
+    class="smart-port-handle"
     isConnectable={$connections.length === 0}
     isValidConnection={c => {
         const isSourceSmartport = c.sourceHandle?.startsWith("smart_port") ?? false;
