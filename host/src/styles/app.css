@@ -4,8 +4,8 @@
     --font-family-text: "Manrope", serif;
     --base-hue: 280deg;
     --ui-hue: var(--base-hue);
-    --data-hue: calc(var(--base-hue) - 40deg);
-    --adi-hue: calc(var(--base-hue) + 40deg);
+    --data-hue: calc(var(--base-hue) - 50deg);
+    --adi-hue: calc(var(--base-hue) + 50deg);
     color-scheme: dark;
 }
 
@@ -21,7 +21,7 @@
     --background-tertiary: oklch(22% 1.5% var(--ui-hue, var(--base-hue)));
     --background-danger: oklch(68% 100% 0deg);
 
-    --foreground-primary: oklch(95% 24% var(--ui-hue, var(--base-hue)));
+    --foreground-primary: oklch(95% 15% var(--ui-hue, var(--base-hue)));
     --foreground-secondary: oklch(75% 15% var(--ui-hue, var(--base-hue)));
     --foreground-tertiary: oklch(60% 15% var(--ui-hue, var(--base-hue)));
     --foreground-danger: oklch(56% 66% 0);
