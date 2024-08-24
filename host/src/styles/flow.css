@@ -1,4 +1,7 @@
-.svelte-flow {
+.svelte-flow,
+.svelte-flow__node,
+.svelte-flow__edge,
+.svelte-flow__handle {
     --xy-edge-stroke: var(--accent-faded);
     --xy-edge-stroke-width: 3px;
     --xy-edge-stroke-selected: var(--accent-primary);
@@ -7,7 +10,7 @@
     --xy-minimap-mask-background-color: var(--background-tertiary);
     --xy-minimap-node-background-color: var(--interactive-primary);
     --xy-background-color: var(--background-primary);
-    --xy-background-pattern-color: var(--background-secondary);
+    --xy-background-pattern-color: var(--background-tertiary);
     --xy-node-color: var(--foreground-primary);
     --xy-node-border: none;
     --xy-node-background-color: var(--background-tertiary);
@@ -28,6 +31,10 @@
     --xy-edge-label-background-color: #ffffff;
     --xy-edge-label-color: inherit;
     --xy-resize-background-color: var(--accent-primary);
+}
+
+.svelte-flow__background rect {
+    opacity: 0.4;
 }
 
 .svelte-flow__attribution {

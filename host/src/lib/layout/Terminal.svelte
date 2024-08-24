@@ -37,7 +37,7 @@
         $terminal = new Terminal({
             convertEol: true,
             theme: {
-                background: "#141415",
+                background: "oklch(19% 1% 280deg)",
             },
             fontFamily: "ui-monospace, Consolas, monospace",
         });

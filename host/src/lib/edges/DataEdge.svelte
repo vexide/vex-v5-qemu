@@ -19,8 +19,6 @@
     export let markerEnd: $$Props["markerEnd"] = undefined;
     export let style: $$Props["style"] = undefined;
 
-    $: edgeClass = selected ? "data-edge-selected" : "data-edge";
-
     $: [edgePath] = getBezierPath({
         sourceX,
         sourceY,
@@ -31,13 +29,10 @@
     });
 </script>
 
-<BaseEdge path={edgePath} {markerEnd} {style} bind:class={edgeClass} />
+<BaseEdge path={edgePath} {markerEnd} {style} class="data-edge" />
 
 <style>
-    :global(.svelte-flow__edge .data-edge) {
-        stroke: var(--data-faded);
-    }
-    :global(.svelte-flow__edge .data-edge-selected) {
-        stroke: var(--data-primary) !important;
+    :global(.svelte-flow__edge:has(.data-edge)) {
+        --ui-hue: var(--data-hue);
     }
 </style>

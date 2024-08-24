@@ -50,6 +50,6 @@
 
 <style>
     :global(.svelte-flow__handle.data-handle) {
-        border-color: var(--data-faded);
+        --ui-hue: var(--data-hue);
     }
 </style>

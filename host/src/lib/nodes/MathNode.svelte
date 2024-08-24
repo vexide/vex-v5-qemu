@@ -217,3 +217,9 @@
         <NumberDisplay value={result} decimals={3} />
     </Field>
 </NodeBase>
+
+<style>
+    :global(.svelte-flow__node-math) {
+        --ui-hue: var(--data-hue);
+    }
+</style>

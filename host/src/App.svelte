@@ -37,7 +37,7 @@
 
     let settingsDialogOpen = false;
 
-    let hue: number = parseInt(window.localStorage.getItem("hue") ?? "297");
+    let hue: number = parseInt(window.localStorage.getItem("hue") ?? "280");
     $: {
         if (hue) {
             document.documentElement.style.setProperty(
@@ -45,6 +45,13 @@
                 `${hue.toString()}deg`,
             );
             window.localStorage.setItem("hue", hue.toString());
+
+            if ($terminal) {
+                $terminal.options.theme = {
+                    ...$terminal.options.theme,
+                    background: `oklch(19% 1% ${hue.toString()}deg)`,
+                };
+            }
         }
     }
 

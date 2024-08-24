@@ -1,37 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
 :root {
-    color-scheme: dark;
-
     --font-family-text: "Manrope", serif;
-
-    --base-hue: 297deg;
+    --base-hue: 280deg;
+    --ui-hue: var(--base-hue);
     --data-hue: calc(var(--base-hue) - 40deg);
     --adi-hue: calc(var(--base-hue) + 40deg);
+    color-scheme: dark;
+}
 
-    --accent-primary: oklch(69% 42% var(--base-hue));
-    --accent-faded: oklch(69% 42% var(--base-hue) / 50%);
-    --accent-faded-secondary: lcha(var(--base-hue) 69% 16% / 15%);
+:root,
+.svelte-flow__node,
+.svelte-flow__handle,
+.svelte-flow__edge {
+    --accent-primary: oklch(71.23% 0.122 var(--ui-hue));
+    --accent-faded: oklch(71.23% 0.122 var(--ui-hue) / 50%);
 
-    --background-primary: oklch(18% 1% var(--base-hue));
-    --background-secondary: oklch(21% 1% var(--base-hue));
-    --background-tertiary: oklch(23% 2% var(--base-hue));
+    --background-primary: oklch(19% 1% var(--ui-hue, var(--base-hue)));
+    --background-secondary: oklch(20% 1.25% var(--ui-hue, var(--base-hue)));
+    --background-tertiary: oklch(22% 1.5% var(--ui-hue, var(--base-hue)));
     --background-danger: oklch(68% 100% 0deg);
 
-    --foreground-primary: oklch(95% 10% var(--base-hue));
-    --foreground-secondary: oklch(87% 12% var(--base-hue));
-    --foreground-tertiary: oklch(64% 15% var(--base-hue));
+    --foreground-primary: oklch(95% 24% var(--ui-hue, var(--base-hue)));
+    --foreground-secondary: oklch(75% 15% var(--ui-hue, var(--base-hue)));
+    --foreground-tertiary: oklch(60% 15% var(--ui-hue, var(--base-hue)));
     --foreground-danger: oklch(56% 66% 0);
 
-    --interactive-primary: oklch(25% 1% var(--base-hue));
-    --interactive-secondary: oklch(29% 1% var(--base-hue));
-    --interactive-tertiary: oklch(34% 1% var(--base-hue));
-    --interactive-quarternary: oklch(41% 1% var(--base-hue));
-
-    --data-primary: oklch(69% 42% var(--data-hue));
-    --data-faded: oklch(69% 42% var(--data-hue) / 50%);
-    --adi-primary: oklch(69% 42% var(--adi-hue));
-    --adi-faded: oklch(69% 42% var(--adi-hue) / 50%);
+    --interactive-primary: oklch(25% 2% var(--ui-hue, var(--base-hue)));
+    --interactive-secondary: oklch(29% 3% var(--ui-hue, var(--base-hue)));
+    --interactive-tertiary: oklch(34% 4% var(--ui-hue, var(--base-hue)));
+    --interactive-quarternary: oklch(41% 5% var(--ui-hue, var(--base-hue)));
 }
 
 html,
