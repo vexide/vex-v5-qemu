@@ -37,6 +37,7 @@
 </div>
 
 <style>
+
     .adi-inner {
         padding: 16px;
         width: 200px;

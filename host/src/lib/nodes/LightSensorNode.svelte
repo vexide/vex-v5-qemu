@@ -64,3 +64,9 @@
     </Field>
     <Slider bind:value={brightness}  min={0} max={255} step={1} label="Darkness slider" />
 </NodeBase>
+
+<style>
+    :global(.svelte-flow__node-light_sensor) {
+        --ui-hue: var(--adi-hue);
+    }
+</style>

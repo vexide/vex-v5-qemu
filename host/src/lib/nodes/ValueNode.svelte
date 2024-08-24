@@ -82,3 +82,9 @@
         </TabPanel>
     </Tabs>
 </NodeBase>
+
+<style>
+    :global(.svelte-flow__node-value) {
+        --ui-hue: var(--data-hue);
+    }
+</style>

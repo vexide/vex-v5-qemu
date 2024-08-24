@@ -45,6 +45,6 @@
 
 <style>
     :global(.svelte-flow__handle.adi-port-handle) {
-        border-color: var(--adi-faded);
+        --ui-hue: var(--adi-hue);
     }
 </style>

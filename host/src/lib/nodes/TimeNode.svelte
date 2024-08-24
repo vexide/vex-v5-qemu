@@ -85,3 +85,9 @@
         <Field label="Update Rate (Hz)"><NumberInput bind:value={updateRate} min={1} max={1000}/></Field>
     {/if}
 </NodeBase>
+
+<style>
+    :global(.svelte-flow__node-time) {
+        --ui-hue: var(--data-hue);
+    }
+</style>

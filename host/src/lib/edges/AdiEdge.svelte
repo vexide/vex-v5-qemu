@@ -32,10 +32,7 @@
 <BaseEdge path={edgePath} {markerEnd} {style} bind:class={edgeClass} />
 
 <style>
-    :global(.svelte-flow__edge .adi-edge) {
-        stroke: var(--adi-faded);
-    }
-    :global(.svelte-flow__edge .adi-edge-selected) {
-        stroke: var(--adi-primary) !important;
+    :global(.svelte-flow__edge:has(.adi-edge)) {
+        --ui-hue: var(--adi-hue);
     }
 </style>
