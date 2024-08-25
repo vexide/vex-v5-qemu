@@ -31,12 +31,12 @@ pub fn main() -> miette::Result<()> {
         // Evaluate smart ports
         for (node, id) in smart_ports.iter() {
             let device = evaluate_smart_device(node, time);
-            println!("{id}: {:.2?}", device);
+            println!("{id}: {device:.2?}");
         }
         // Evaluate ADI ports
         for (node, id) in adi_ports.iter() {
             let device = evaluate_adi_device(node, time);
-            println!("{id}: {:.2?}", device);
+            println!("{id}: {device:.2?}");
         }
         let elapsed = start.elapsed();
         sleep(Duration::from_millis(10) - elapsed);
