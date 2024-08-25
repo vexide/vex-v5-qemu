@@ -1,8 +1,9 @@
 [brain]
 port_1 = "distance-node-0"
+adi_a = "light-node-0"
 
 [nodes.distance-node-0]
-data = { type = "Distance", data = { distance = 1000, size = 200 } }
+data = { type = "DistanceSensor", data = { distance = 1000, size = 200 } }
 [[nodes.distance-node-0.inputs]]
 source_id = "math-node-0"
 target_handle_id = "distance"
@@ -12,9 +13,20 @@ source_handle_id = "output"
 data = { type = "Value", data = { value = 10 } }
 
 [nodes.math-node-0]
-data = { type = "Math", data = { operation = "Add", rhs = 5 } }
+data = { type = "Math", data = { operation = "Add" } }
 
 [[nodes.math-node-0.inputs]]
 source_id = "value-node-0"
 target_handle_id = "lhs"
 source_handle_id = "output"
+
+[[nodes.math-node-0.inputs]]
+source_id = "time-node-0"
+target_handle_id = "rhs"
+source_handle_id = "output"
+
+[nodes.time-node-0]
+data = { type = "Time" }
+
+[nodes.light-node-0]
+data = { type = "LightSensor", data = { darkness = 127 } }

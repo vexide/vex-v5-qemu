@@ -9,14 +9,18 @@ use crate::{
 /// Represents a device node.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Device {
-    Distance { distance: f32, size: f32 },
+    DistanceSensor { distance: f32, size: f32 },
+    LightSensor { darkness: f32 },
 }
 impl From<Device> for NodeType {
     fn from(val: Device) -> Self {
         match val {
-            Device::Distance { distance, size } => NodeType::Distance {
+            Device::DistanceSensor { distance, size } => NodeType::DistanceSensor {
                 distance: Some(distance),
                 size: Some(size),
+            },
+            Device::LightSensor { darkness } => NodeType::LightSensor {
+                darkness: Some(darkness),
             },
         }
     }
@@ -38,7 +42,7 @@ pub enum InterpereterError {
     EvaluateError,
 }
 
-pub fn evaluate_data(node: &DataNode) -> f32 {
+pub fn evaluate_data(node: &DataNode, time: f32) -> f32 {
     match node {
         DataNode::Math {
             operation,
@@ -47,12 +51,12 @@ pub fn evaluate_data(node: &DataNode) -> f32 {
         } => {
             let lhs = match lhs {
                 DataInput::Value(value) => *value,
-                DataInput::DataNode(node) => evaluate_data(node)
+                DataInput::DataNode(node) => evaluate_data(node, time)
             };
 
             let rhs = match rhs {
                 DataInput::Value(value) => *value,
-                DataInput::DataNode(node) => evaluate_data(node),
+                DataInput::DataNode(node) => evaluate_data(node, time),
             };
 
             match operation {
@@ -63,39 +67,51 @@ pub fn evaluate_data(node: &DataNode) -> f32 {
             }
         }
         DataNode::Value(value) => *value,
+        DataNode::Time => time,
     }
 }
 
-pub fn evaluate_smart_device(node: &SmartDeviceNode) -> Device {
+pub fn evaluate_smart_device(node: &SmartDeviceNode, time: f32) -> Device {
     match node {
         SmartDeviceNode::Distance { distance, size } => {
             let distance = match distance {
                 DeviceInput::Value(value) => match value {
                     DataInput::Value(value) => *value,
-                    DataInput::DataNode(node) => evaluate_data(node),
+                    DataInput::DataNode(node) => evaluate_data(node, time),
                 },
             };
             let size = match size {
                 DeviceInput::Value(value) => match value {
                     DataInput::Value(value) => *value,
-                    DataInput::DataNode(node) => evaluate_data(node),
+                    DataInput::DataNode(node) => evaluate_data(node, time),
                 },
             };
 
-            Device::Distance { distance, size }
+            Device::DistanceSensor { distance, size }
         }
     }
 }
 
-fn evaluate_adi_device(_node: &AdiDeviceNode) -> Device {
-    todo!()
+pub fn evaluate_adi_device(node: &AdiDeviceNode, time: f32) -> Device {
+    match node {
+        AdiDeviceNode::Light { darkness } => {
+            let darkness = match darkness {
+                DeviceInput::Value(value) => match value {
+                    DataInput::Value(value) => *value,
+                    DataInput::DataNode(node) => evaluate_data(node, time),
+                },
+            };
+
+            Device::LightSensor { darkness }
+        }
+    }
 }
 
 /// Evaluates an AST and returns the output.
-pub fn evaluate(ast: &Node) -> InterpereterOutput {
+pub fn evaluate(ast: &Node, time: f32) -> InterpereterOutput {
     match ast {
-        Node::DataNode(node) => InterpereterOutput::Value(evaluate_data(node)),
-        Node::SmartDeviceNode(node) => InterpereterOutput::Device(evaluate_smart_device(node)),
-        Node::AdiDeviceNode(node) => InterpereterOutput::Device(evaluate_adi_device(node)),
+        Node::DataNode(node) => InterpereterOutput::Value(evaluate_data(node, time)),
+        Node::SmartDeviceNode(node) => InterpereterOutput::Device(evaluate_smart_device(node, time)),
+        Node::AdiDeviceNode(node) => InterpereterOutput::Device(evaluate_adi_device(node, time)),
     }
 }

@@ -73,6 +73,21 @@ impl Brain {
         .filter_map(|(i, port)| port.as_ref().map(|port| (i as u8, port)))
         .collect()
     }
+    pub fn adi_ports(&self) -> Vec<(char, &String)> {
+        [
+            ('a', &self.adi_a),
+            ('b', &self.adi_b),
+            ('c', &self.adi_c),
+            ('d', &self.adi_d),
+            ('e', &self.adi_e),
+            ('f', &self.adi_f),
+            ('g', &self.adi_g),
+            ('h', &self.adi_h),
+        ]
+        .into_iter()
+        .filter_map(|(i, port)| port.as_ref().map(|port| (i, port)))
+        .collect()
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -99,9 +114,12 @@ pub enum Operation {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(tag = "type", content = "data")]
 pub enum NodeType {
-    Distance {
+    DistanceSensor {
         distance: Option<f32>,
         size: Option<f32>,
+    },
+    LightSensor {
+        darkness: Option<f32>,
     },
     Value {
         value: f32,
@@ -111,6 +129,7 @@ pub enum NodeType {
         lhs: Option<f32>,
         rhs: Option<f32>,
     },
+    Time,
 }
 
 #[derive(Error, Diagnostic, Debug)]

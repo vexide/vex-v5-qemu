@@ -19,6 +19,7 @@ pub enum DataNode {
         rhs: DataInput,
     },
     Value(f32),
+    Time,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -237,7 +238,7 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
 
 
     match &node.data {
-        crate::parser::NodeType::Distance { distance, size } => {
+        crate::parser::NodeType::DistanceSensor { distance, size } => {
             let inputs = clean_inputs(id, &["distance", "size"], inputs)?;
             let distance =
                 handle_device_input(id, inputs.get("distance"), distance.unwrap_or_default())?;
@@ -267,15 +268,27 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
                 rhs,
             }))
         }
+        crate::parser::NodeType::LightSensor { darkness } => {
+            let inputs = clean_inputs(id, &["darkness"], inputs)?;
+            let darkness =
+                handle_device_input(id, inputs.get("darkness"), darkness.unwrap_or_default())?;
+
+            Ok(Node::AdiDeviceNode(AdiDeviceNode::Light { darkness }))
+        },
+        crate::parser::NodeType::Time => {
+            clean_inputs(id, &[], inputs)?;
+
+            Ok(Node::DataNode(DataNode::Time))
+        },
     }
 }
 
-pub fn node_graph_to_ast(graph: NodeGraph) -> Result<Brain, AstConversionError> {
+pub fn node_graph_to_ast(graph: &NodeGraph) -> Result<Brain, AstConversionError> {
     let _ids = graph.nodes.keys().collect::<Vec<_>>();
     let mut brain = crate::ast::Brain::new();
 
     for (port, source_id) in graph.brain.smart_ports() {
-        let source_node = build_ast(&graph, source_id)?;
+        let source_node = build_ast(graph, source_id)?;
         if let Node::SmartDeviceNode(source_node) = source_node {
             // This will never panic because we are iterating over the smart ports of the
             // brain
@@ -284,6 +297,29 @@ pub fn node_graph_to_ast(graph: NodeGraph) -> Result<Brain, AstConversionError> 
             return Err(AstConversionError::IncorrectNodeType {
                 node_id: source_id.clone(),
                 expected: "SmartDeviceNode".to_owned(),
+                found: "DataNode".to_owned(),
+            });
+        }
+    }
+
+    for (port, source_id) in graph.brain.adi_ports() {
+        let source_node = build_ast(graph, source_id)?;
+        if let Node::AdiDeviceNode(source_node) = source_node {
+            match port {
+                'a' => brain.adi_a = Some(source_node),
+                'b' => brain.adi_b = Some(source_node),
+                'c' => brain.adi_c = Some(source_node),
+                'd' => brain.adi_d = Some(source_node),
+                'e' => brain.adi_e = Some(source_node),
+                'f' => brain.adi_f = Some(source_node),
+                'g' => brain.adi_g = Some(source_node),
+                'h' => brain.adi_h = Some(source_node),
+                _ => unreachable!(),
+            }
+        } else {
+            return Err(AstConversionError::IncorrectNodeType {
+                node_id: source_id.clone(),
+                expected: "AdiDeviceNode".to_owned(),
                 found: "DataNode".to_owned(),
             });
         }
