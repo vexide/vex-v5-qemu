@@ -21,7 +21,6 @@ pub struct QemuConnectionInner {
     pub stdin: ChildStdin,
     pub stdout: ChildStdout,
     pub incoming_packets: Receiver<HostBoundPacket>,
-    pub task: JoinHandle<()>,
 }
 
 #[derive(Error, Diagnostic, Debug)]

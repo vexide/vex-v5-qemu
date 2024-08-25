@@ -67,46 +67,47 @@ impl Brain {
             stdout: child.stdout.take().unwrap(),
             child,
             incoming_packets: rx,
-            task: tokio::task::spawn({
-                let connection = self.connection.clone();
-                async move {
-                    while connection.inner.lock().await.as_mut().unwrap().child.id().is_some() {
-                        let mut lock = connection.inner.lock().await;
-                        let inner = lock.as_mut().unwrap();
-                        let stdout = &mut inner.stdout;
+        });
 
-                        let packet_size = stdout.read_u32_le().await.unwrap() as usize;
-                        let mut buf = vec![0; packet_size];
-                        stdout.read_exact(&mut buf).await.unwrap();
+        tokio::task::spawn({
+            let connection = self.connection.clone();
+            async move {
+                while connection.inner.lock().await.as_mut().unwrap().child.id().is_some() {
+                    let mut lock = connection.inner.lock().await;
+                    let inner = lock.as_mut().unwrap();
+                    let stdout = &mut inner.stdout;
 
-                        let packet = bincode::decode_from_slice(&buf, bincode::config::standard())
-                            .unwrap()
-                            .0;
+                    let packet_size = stdout.read_u32_le().await.unwrap() as usize;
+                    let mut buf = vec![0; packet_size];
+                    stdout.read_exact(&mut buf).await.unwrap();
 
-                        match packet {
-                            HostBoundPacket::UserSerial(data) => {
-                                let mut stdout = tokio::io::stdout();
+                    let packet = bincode::decode_from_slice(&buf, bincode::config::standard())
+                        .unwrap()
+                        .0;
 
-                                stdout.write_all(&data).await.unwrap();
-                                stdout.flush().await.unwrap();
-                            }
-                            HostBoundPacket::KernelSerial(data) => {
-                                let mut stderr = tokio::io::stderr();
+                    match packet {
+                        HostBoundPacket::UserSerial(data) => {
+                            let mut stdout = tokio::io::stdout();
 
-                                stderr.write_all(&data).await.unwrap();
-                                stderr.flush().await.unwrap();
-                            }
-                            HostBoundPacket::ExitRequest(code) => {
-                                log::info!("Kernel exited with code {code}.");
-                                inner.child.kill().await.unwrap();
-                            }
-                            _ => tx.send(packet).await.unwrap(),
+                            stdout.write_all(&data).await.unwrap();
+                            stdout.flush().await.unwrap();
                         }
-                    }
+                        HostBoundPacket::KernelSerial(data) => {
+                            let mut stderr = tokio::io::stderr();
 
-                    *connection.inner.lock().await = None;
+                            stderr.write_all(&data).await.unwrap();
+                            stderr.flush().await.unwrap();
+                        }
+                        HostBoundPacket::ExitRequest(code) => {
+                            log::info!("Kernel exited with code {code}.");
+                            inner.child.kill().await.unwrap();
+                        }
+                        _ => tx.send(packet).await.unwrap(),
+                    }
                 }
-            })
+
+                *connection.inner.lock().await = None;
+            }
         });
 
         Ok(())
