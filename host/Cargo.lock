@@ -119,6 +119,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "log"
+version = "0.4.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
+
+[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -375,24 +381,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f285bbc2b96fc4c7fae42ebe365dd2e9121e7002a58b1a9e0e4b1d14dba4d6d0"
 
 [[package]]
+name = "vex-v5-qemu-host"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cobs",
+ "log",
+ "miette",
+ "thiserror",
+ "tokio",
+ "vex-v5-qemu-protocol",
+]
+
+[[package]]
 name = "vex-v5-qemu-protocol"
 version = "0.0.1"
 dependencies = [
  "bincode",
  "bitflags",
  "vex-sdk",
-]
-
-[[package]]
-name = "vex-v5-sim-host"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cobs",
- "miette",
- "thiserror",
- "tokio",
- "vex-v5-qemu-protocol",
 ]
 
 [[package]]

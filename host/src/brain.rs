@@ -98,7 +98,8 @@ impl Brain {
                             stderr.flush().await.unwrap();
                         }
                         HostBoundPacket::ExitRequest(code) => {
-                            std::process::exit(code);
+                            log::info!("Kernel exited with code {code}.");
+                            inner.as_mut().unwrap().child.kill().await.unwrap();
                         }
                         _ => tx.send(packet).await.unwrap(),
                     }
