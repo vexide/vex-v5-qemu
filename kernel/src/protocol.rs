@@ -1,11 +1,11 @@
 use alloc::{vec, vec::Vec};
+
 use bincode::error::{DecodeError, EncodeError};
 use embedded_io::{Read, ReadExactError, Write};
 use snafu::Snafu;
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
-use crate::peripherals::UART1;
-use crate::protocol;
+use crate::{peripherals::UART1, protocol};
 
 #[derive(Debug, Snafu)]
 pub enum ProtocolError {
@@ -44,7 +44,6 @@ pub fn recv_packet() -> Result<Option<KernelBoundPacket>, ProtocolError> {
 
         u32::from_le_bytes(buf)
     };
-
 
     // Read packet payload
     let mut packet_bytes = vec![0; len as usize];

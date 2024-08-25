@@ -1,9 +1,8 @@
 use bincode::{Decode, Encode};
 use bitflags::bitflags;
-use vex_sdk::vcodesig;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use vex_sdk::vcodesig;
 
 use crate::impl_bincode_bitflags;
 

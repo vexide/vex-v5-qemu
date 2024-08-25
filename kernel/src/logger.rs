@@ -1,10 +1,9 @@
 //! Kernel Logger Implementation
 
+use alloc::format;
 use core::time::Duration;
 
-use alloc::format;
 use log::{max_level, set_logger, set_max_level, LevelFilter, Log, Metadata, SetLoggerError};
-
 use vex_v5_qemu_protocol::HostBoundPacket;
 
 use crate::{protocol, sdk::vexSystemHighResTimeGet};

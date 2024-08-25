@@ -10,9 +10,6 @@ unsafe_op_in_unsafe_fn = "deny"
 [workspace.lints.clippy]
 missing_const_for_fn = "warn"
 
-[lints]
-workspace = true
-
 [profile.dev]
 panic = "abort"
 

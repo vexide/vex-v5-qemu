@@ -3,24 +3,23 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+
 use battery::BatteryData;
 use bincode::{Decode, Encode};
 use code_signature::CodeSignature;
 use controller::{ControllerData, ControllerId};
+use display::{Color, DisplayRenderMode, DrawCommand, ScrollLocation};
 use geometry::Rect;
-use display::{Color, DrawCommand, DisplayRenderMode, ScrollLocation};
-
 use motor::{MotorFaults, MotorFlags};
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-pub mod code_signature;
-pub mod geometry;
-pub mod display;
-pub mod motor;
 pub mod battery;
+pub mod code_signature;
 pub mod controller;
+pub mod display;
+pub mod geometry;
+pub mod motor;
 
 /// A message sent from the guest to the host.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
@@ -86,7 +85,7 @@ pub enum DeviceData {
         temperature: f64,
         flags: MotorFlags,
         faults: MotorFaults,
-    }
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
@@ -97,24 +96,31 @@ pub enum DeviceCommand {}
 macro_rules! impl_bincode_bitflags {
     ($flags:ty) => {
         impl bincode::enc::Encode for $flags {
-            fn encode<E: ::bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+            fn encode<E: ::bincode::enc::Encoder>(
+                &self,
+                encoder: &mut E,
+            ) -> Result<(), bincode::error::EncodeError> {
                 bincode::Encode::encode(&self.bits(), encoder)?;
                 Ok(())
             }
         }
 
         impl bincode::de::Decode for $flags {
-            fn decode<D: bincode::de::Decoder>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+            fn decode<D: bincode::de::Decoder>(
+                decoder: &mut D,
+            ) -> Result<Self, bincode::error::DecodeError> {
                 Ok(Self::from_bits_retain(bincode::Decode::decode(decoder)?))
             }
         }
 
         impl<'de> bincode::BorrowDecode<'de> for $flags {
-            fn borrow_decode<D: bincode::de::BorrowDecoder<'de>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
-                Ok(Self::from_bits_retain(bincode::BorrowDecode::borrow_decode(
-                    decoder,
-                )?))
+            fn borrow_decode<D: bincode::de::BorrowDecoder<'de>>(
+                decoder: &mut D,
+            ) -> Result<Self, bincode::error::DecodeError> {
+                Ok(Self::from_bits_retain(
+                    bincode::BorrowDecode::borrow_decode(decoder)?,
+                ))
             }
         }
-    }
+    };
 }

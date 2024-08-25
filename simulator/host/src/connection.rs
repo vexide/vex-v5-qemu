@@ -1,13 +1,14 @@
+use std::sync::Arc;
+
 use bincode::error::{DecodeError, EncodeError};
 use miette::Diagnostic;
-use std::sync::Arc;
 use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
     process::{Child, ChildStdin, ChildStdout},
-    sync::{mpsc::Receiver, Mutex}, task::JoinHandle,
+    sync::{mpsc::Receiver, Mutex},
+    task::JoinHandle,
 };
-
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 #[derive(Clone, Default, Debug)]

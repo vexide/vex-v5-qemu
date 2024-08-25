@@ -1,5 +1,4 @@
 use bincode::{Decode, Encode};
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

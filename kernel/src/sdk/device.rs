@@ -5,9 +5,8 @@ use core::ffi::{c_double, c_int};
 use vex_sdk::*;
 use vex_v5_qemu_protocol::DeviceData;
 
-use crate::sync::Mutex;
-
 use super::BATTERY;
+use crate::sync::Mutex;
 
 pub static SMARTPORTS: [Mutex<SmartPort>; 21] = [
     Mutex::new(SmartPort::new(0)),

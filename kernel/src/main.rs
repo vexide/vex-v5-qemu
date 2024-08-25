@@ -101,9 +101,9 @@ pub extern "C" fn _start() -> ! {
     )))
     .unwrap();
 
-// Execute user program's entrypoint function.
-//
-// This is located 32 bytes after the code signature at 0x03800020.
+    // Execute user program's entrypoint function.
+    //
+    // This is located 32 bytes after the code signature at 0x03800020.
     log::debug!("Calling user code.");
     unsafe {
         vexStartup();

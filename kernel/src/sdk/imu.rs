@@ -1,6 +1,7 @@
 //! V5 Inertial Sensor
 
 use core::ffi::c_double;
+
 use vex_sdk::*;
 
 pub extern "C" fn vexDeviceImuReset(device: V5_DeviceT) {}
