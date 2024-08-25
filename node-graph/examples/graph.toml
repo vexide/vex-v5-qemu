@@ -1,0 +1,20 @@
+[brain]
+port_1 = "distance-node-0"
+
+[nodes.distance-node-0]
+data = { type = "Distance", data = { distance = 1000, size = 200 } }
+[[nodes.distance-node-0.inputs]]
+source_id = "math-node-0"
+target_handle_id = "distance"
+source_handle_id = "output"
+
+[nodes.value-node-0]
+data = { type = "Value", data = { value = 10 } }
+
+[nodes.math-node-0]
+data = { type = "Math", data = { operation = "Add", rhs = 5 } }
+
+[[nodes.math-node-0.inputs]]
+source_id = "value-node-0"
+target_handle_id = "lhs"
+source_handle_id = "output"
