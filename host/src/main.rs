@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use tokio::process::Command;
-use vex_v5_sim_host::brain::Brain;
+use vex_v5_qemu_host::brain::Brain;
 
 #[tokio::main]
 async fn main() {
@@ -16,6 +16,7 @@ async fn main() {
     let mut peripherals = brain.peripherals.take().unwrap();
 
     peripherals.battery.set_voltage(100).await.unwrap();
+
     loop {
         peripherals.battery.set_voltage(peripherals.battery.voltage() - 1).await.unwrap();
         tokio::time::sleep(Duration::from_millis(150)).await;

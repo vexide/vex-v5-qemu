@@ -1,5 +1,4 @@
 pub mod battery;
-pub mod motor;
 
 use battery::Battery;
 
