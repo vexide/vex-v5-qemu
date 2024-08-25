@@ -18,7 +18,7 @@ pub mod xil;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
-use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket, KernelBoundPacket};
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
 
 extern "C" {
     /// Entrypoint of the user program. (located at 0x03800020)
@@ -84,27 +84,8 @@ pub extern "C" fn _start() -> ! {
     // FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    // Configure UART1 to fire an interrupt when new data is received from the host.
-    peripherals::setup_uart1().unwrap();
-
-    // Initialize UART kernel logger
-    LOGGER.init(LevelFilter::Debug).unwrap();
-
-    // Send/receive a handshake packet with the host to ensure that packet transfer
-    // is viable.
-    log::debug!("Handshaking with host...");
-    protocol::send_packet(HostBoundPacket::Handshake).expect("Failed to handshake with host.");
-    while !WAITING_FOR_HANDSHAKE {
-        core::hint::spin_loop();
-    }
-    while protocol::recv_packet().expect("Failed to receive handshake packet from host.")
-        != Some(KernelBoundPacket::Handshake)
-    {
-        core::hint::spin_loop();
-    }
-
     // Send user code signature to host.
-    log::debug!("Handshake complete. Sending code signature to host.");
+    log::debug!("Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(CodeSignature::from(
         unsafe {
             core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
@@ -112,12 +93,11 @@ pub extern "C" fn _start() -> ! {
     )))
     .unwrap();
 
-    // Execute user program's entrypoint function.
-    //
-    // This is located 32 bytes after the code signature at 0x03800020.
+// Execute user program's entrypoint function.
+//
+// This is located 32 bytes after the code signature at 0x03800020.
     log::debug!("Calling user code.");
     unsafe {
-        //*(0x400 as *mut u32) = 0 as _;
         vexStartup();
     }
 

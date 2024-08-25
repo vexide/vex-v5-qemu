@@ -1,0 +1,93 @@
+.svelte-flow,
+.svelte-flow__node,
+.svelte-flow__edge,
+.svelte-flow__handle {
+    --xy-edge-stroke: var(--accent-faded);
+    --xy-edge-stroke-width: 3px;
+    --xy-edge-stroke-selected: var(--accent-primary);
+    --xy-connectionline-stroke: var(--accent-primary);
+    --xy-minimap-background-color: var(--background-secondary);
+    --xy-minimap-mask-background-color: var(--background-tertiary);
+    --xy-minimap-node-background-color: var(--interactive-primary);
+    --xy-background-color: var(--background-primary);
+    --xy-background-pattern-color: var(--background-tertiary);
+    --xy-node-color: var(--foreground-primary);
+    --xy-node-border: none;
+    --xy-node-background-color: var(--background-tertiary);
+    --xy-node-group-background-color: rgba(240, 240, 240, 0.25);
+    --xy-node-boxshadow-hover: 0 1px 4px 1px rgba(0, 0, 0, 0.08);
+    --xy-node-boxshadow-selected: 0 0 0 2px var(--accent-faded);
+    --xy-node-border-radius: 4px;
+    --xy-handle-background-color: var(--background-tertiary);
+    --xy-handle-border-color: var(--accent-faded);
+    --xy-selection-background-color: oklch(from var(--accent-primary) l c h / 0.15);
+    --xy-selection-border: 1px solid var(--accent-faded);
+    --xy-controls-button-background-color: var(--interactive-primary);
+    --xy-controls-button-background-color-hover: var(--interactive-secondary);
+    --xy-controls-button-color: var(--foreground-secondary);
+    --xy-controls-button-color-hover: var(--foreground-secondary);
+    --xy-controls-button-border-color: var(--interactive-secondary);
+    --xy-controls-box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
+    --xy-edge-label-background-color: #ffffff;
+    --xy-edge-label-color: inherit;
+    --xy-resize-background-color: var(--accent-primary);
+}
+
+.svelte-flow__background rect {
+    opacity: 0.4;
+}
+
+.svelte-flow__attribution {
+    display: none;
+}
+
+.svelte-flow__handle {
+    border-radius: 50px;
+    width: 10px;
+    height: 10px;
+    transition: 150ms ease border-color;
+}
+
+.svelte-flow__node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    background-color: var(--background-tertiary);
+    border: 1px solid var(--interactive-primary);
+    color: var(--foreground-secondary);
+    border-radius: 12px;
+    transition:
+        150ms ease border-color,
+        150ms ease box-shadow;
+}
+
+.svelte-flow__node:hover {
+    border-color: var(--interactive-secondary);
+}
+
+.svelte-flow__node.selected,
+.svelte-flow__node:focus-visible {
+    --xy-handle-border-color: var(--accent-faded);
+    box-shadow: var(--xy-node-boxshadow-selected);
+}
+
+.svelte-flow__minimap {
+    opacity: 0.8;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    transition: 150ms ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.svelte-flow__minimap:hover {
+    opacity: 1;
+}
+
+.svelte-flow__selection {
+    border-radius: 8px;
+}

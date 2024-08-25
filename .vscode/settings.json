@@ -15,8 +15,9 @@
     "rust-analyzer.linkedProjects": [
         "./kernel/Cargo.toml",
         "./protocol/Cargo.toml",
-        "./host/src-tauri/Cargo.toml",
-        "./host-cli/Cargo.toml"
+        "./client/src-tauri/Cargo.toml",
+        "./client-cli/Cargo.toml",
+        "./host/Cargo.toml",
     ],
     "files.trimTrailingWhitespace": true,
     "files.trimFinalNewlines": true,

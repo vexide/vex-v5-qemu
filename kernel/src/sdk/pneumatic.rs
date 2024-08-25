@@ -12,8 +12,18 @@ pub extern "C" fn vexDevicePneumaticActuationStatusGet(
     Default::default()
 }
 pub extern "C" fn vexDevicePneumaticCompressorSet(device: V5_DeviceT, bState: bool) {}
-pub extern "C" fn vexDevicePneumaticCtrlSet(device: V5_DeviceT, pCtrl: *mut V5_DevicePneumaticCtrl) {}
-pub extern "C" fn vexDevicePneumaticCylinderPwmSet(device: V5_DeviceT, id: u32, bState: bool, pwm: u8) {}
+pub extern "C" fn vexDevicePneumaticCtrlSet(
+    device: V5_DeviceT,
+    pCtrl: *mut V5_DevicePneumaticCtrl,
+) {
+}
+pub extern "C" fn vexDevicePneumaticCylinderPwmSet(
+    device: V5_DeviceT,
+    id: u32,
+    bState: bool,
+    pwm: u8,
+) {
+}
 pub extern "C" fn vexDevicePneumaticCylinderSet(device: V5_DeviceT, id: u32, bState: bool) {}
 pub extern "C" fn vexDevicePneumaticPwmGet(device: V5_DeviceT) -> u32 {
     Default::default()

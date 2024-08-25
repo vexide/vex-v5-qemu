@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+:root {
+    --font-family-text: "Manrope", serif;
+    --base-hue: 280deg;
+    --ui-hue: var(--base-hue);
+    --data-hue: calc(var(--base-hue) - 50deg);
+    --adi-hue: calc(var(--base-hue) + 50deg);
+    color-scheme: dark;
+}
+
+:root,
+.svelte-flow__node,
+.svelte-flow__handle,
+.svelte-flow__edge {
+    --accent-primary: oklch(71.23% 0.122 var(--ui-hue));
+    --accent-faded: oklch(71.23% 0.122 var(--ui-hue) / 50%);
+
+    --background-primary: oklch(19% 1% var(--ui-hue, var(--base-hue)));
+    --background-secondary: oklch(20% 1.25% var(--ui-hue, var(--base-hue)));
+    --background-tertiary: oklch(22% 1.5% var(--ui-hue, var(--base-hue)));
+    --background-danger: oklch(68% 100% 0deg);
+
+    --foreground-primary: oklch(95% 15% var(--ui-hue, var(--base-hue)));
+    --foreground-secondary: oklch(75% 15% var(--ui-hue, var(--base-hue)));
+    --foreground-tertiary: oklch(60% 15% var(--ui-hue, var(--base-hue)));
+    --foreground-danger: oklch(56% 66% 0);
+
+    --interactive-primary: oklch(25% 2% var(--ui-hue, var(--base-hue)));
+    --interactive-secondary: oklch(29% 3% var(--ui-hue, var(--base-hue)));
+    --interactive-tertiary: oklch(34% 4% var(--ui-hue, var(--base-hue)));
+    --interactive-quarternary: oklch(41% 5% var(--ui-hue, var(--base-hue)));
+}
+
+html,
+body {
+    --scrollbar-color: var(--background-primary);
+    background-color: var(--background-primary);
+    font-family: var(--font-family-text);
+    scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+    inline-size: 8px;
+    block-size: 8px;
+    background-color: var(--scrollbar-color);
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid var(--scrollbar-color);
+    background-color: var(--interactive-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--interactive-tertiary);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: var(--foreground-tertiary);
+}
+
+::-webkit-scrollbar-corner {
+    appearance: none;
+}
+
+#app {
+    display: flex;
+    height: 100%;
+}

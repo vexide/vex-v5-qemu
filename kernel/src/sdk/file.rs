@@ -7,7 +7,11 @@ use vex_sdk::*;
 pub extern "C" fn vexFileMountSD() -> FRESULT {
     Default::default()
 }
-pub extern "C" fn vexFileDirectoryGet(path: *const c_char, buffer: *mut c_char, len: u32) -> FRESULT {
+pub extern "C" fn vexFileDirectoryGet(
+    path: *const c_char,
+    buffer: *mut c_char,
+    len: u32,
+) -> FRESULT {
     Default::default()
 }
 pub extern "C" fn vexFileOpen(filename: *const c_char, mode: *const c_char) -> *mut FIL {

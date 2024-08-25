@@ -179,7 +179,9 @@ pub extern "C" fn vexSystemUndefinedException() {
         log::error!("Undefined instruction exception: {UndefinedExceptionAddr:#x}");
     }
     // TODO: draw the funny red box to the screen
-    loop { core::hint::spin_loop(); }
+    loop {
+        core::hint::spin_loop();
+    }
 }
 
 // These three are noops for now since to my knowledge
@@ -195,12 +197,16 @@ pub extern "C" fn vexSystemDataAbortInterrupt() {
         log::error!("Data abort exception: {DataAbortAddr:#x}");
     }
     // TODO: draw the funny red box to the screen
-    loop { core::hint::spin_loop(); }
+    loop {
+        core::hint::spin_loop();
+    }
 }
 pub extern "C" fn vexSystemPrefetchAbortInterrupt() {
     unsafe {
         log::error!("Prefetch abort exception: {PrefetchAbortAddr:#x}");
     }
     // TODO: draw the funny red box to the screen
-    loop { core::hint::spin_loop(); }
+    loop {
+        core::hint::spin_loop();
+    }
 }

@@ -76,8 +76,18 @@ pub extern "C" fn vexDeviceMotorTargetGet(device: V5_DeviceT) -> c_double {
     Default::default()
 }
 pub extern "C" fn vexDeviceMotorServoTargetSet(device: V5_DeviceT, position: c_double) {}
-pub extern "C" fn vexDeviceMotorAbsoluteTargetSet(device: V5_DeviceT, position: c_double, veloctiy: i32) {}
-pub extern "C" fn vexDeviceMotorRelativeTargetSet(device: V5_DeviceT, position: c_double, velocity: i32) {}
+pub extern "C" fn vexDeviceMotorAbsoluteTargetSet(
+    device: V5_DeviceT,
+    position: c_double,
+    veloctiy: i32,
+) {
+}
+pub extern "C" fn vexDeviceMotorRelativeTargetSet(
+    device: V5_DeviceT,
+    position: c_double,
+    velocity: i32,
+) {
+}
 pub extern "C" fn vexDeviceMotorFaultsGet(device: V5_DeviceT) -> u32 {
     Default::default()
 }
@@ -99,4 +109,9 @@ pub extern "C" fn vexDeviceMotorVoltageLimitGet(device: V5_DeviceT) -> i32 {
 pub extern "C" fn vexDeviceMotorVelocityUpdate(device: V5_DeviceT, velocity: i32) {}
 pub extern "C" fn vexDeviceMotorPositionPidSet(device: V5_DeviceT, pid: *mut V5_DeviceMotorPid) {}
 pub extern "C" fn vexDeviceMotorVelocityPidSet(device: V5_DeviceT, pid: *mut V5_DeviceMotorPid) {}
-pub extern "C" fn vexDeviceMotorExternalProfileSet(device: V5_DeviceT, position: c_double, velocity: i32) {}
+pub extern "C" fn vexDeviceMotorExternalProfileSet(
+    device: V5_DeviceT,
+    position: c_double,
+    velocity: i32,
+) {
+}

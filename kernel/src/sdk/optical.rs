@@ -29,7 +29,10 @@ pub extern "C" fn vexDeviceOpticalModeSet(device: V5_DeviceT, mode: u32) {}
 pub extern "C" fn vexDeviceOpticalModeGet(device: V5_DeviceT) -> u32 {
     Default::default()
 }
-pub extern "C" fn vexDeviceOpticalGestureGet(device: V5_DeviceT, pData: *mut V5_DeviceOpticalGesture) -> u32 {
+pub extern "C" fn vexDeviceOpticalGestureGet(
+    device: V5_DeviceT,
+    pData: *mut V5_DeviceOpticalGesture,
+) -> u32 {
     Default::default()
 }
 pub extern "C" fn vexDeviceOpticalGestureEnable(device: V5_DeviceT) {}

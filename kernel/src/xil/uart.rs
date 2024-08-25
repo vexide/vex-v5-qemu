@@ -444,7 +444,7 @@ pub struct XUartPs {
 ///
 /// The value read from the register.
 #[inline]
-pub unsafe fn XUartPs_GetChannelStatus(InstancePtr: *mut XUartPs) -> u32 {
+pub unsafe fn XUartPs_GetChannelStatus(InstancePtr: *const XUartPs) -> u32 {
     unsafe {
         ptr::read_volatile((((*InstancePtr).Config.BaseAddress) + XUARTPS_SR_OFFSET) as *const u32)
     }
@@ -460,7 +460,7 @@ pub unsafe fn XUartPs_GetChannelStatus(InstancePtr: *mut XUartPs) -> u32 {
 ///
 /// The value read from the register.
 #[inline]
-pub unsafe fn XUartPs_GetModeControl(InstancePtr: *mut XUartPs) -> u32 {
+pub unsafe fn XUartPs_GetModeControl(InstancePtr: *const XUartPs) -> u32 {
     unsafe {
         ptr::read_volatile((((*InstancePtr).Config.BaseAddress) + XUARTPS_CR_OFFSET) as *const u32)
     }
@@ -534,7 +534,7 @@ pub unsafe fn XUartPs_DisableUart(InstancePtr: *mut XUartPs) {
 /// - TRUE if a byte can be sent
 /// - FALSE if the Transmitter Fifo is not empty
 #[inline]
-pub unsafe fn XUartPs_IsTransmitEmpty(InstancePtr: *mut XUartPs) -> bool {
+pub unsafe fn XUartPs_IsTransmitEmpty(InstancePtr: *const XUartPs) -> bool {
     unsafe { (XUartPs_GetChannelStatus(InstancePtr) & XUARTPS_SR_TXEMPTY) == XUARTPS_SR_TXEMPTY }
 }
 

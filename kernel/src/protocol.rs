@@ -45,6 +45,7 @@ pub fn recv_packet() -> Result<Option<KernelBoundPacket>, ProtocolError> {
         u32::from_le_bytes(buf)
     };
 
+
     // Read packet payload
     let mut packet_bytes = vec![0; len as usize];
 
