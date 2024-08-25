@@ -78,6 +78,17 @@ impl UartDriver {
     pub fn raw_mut(&mut self) -> &mut XUartPs {
         &mut self.instance
     }
+
+    pub fn is_tx_empty(&self) -> bool {
+        unsafe { XUartPs_IsTransmitEmpty(&self.instance) }
+    }
+
+    pub fn is_rx_empty(&self) -> bool {
+        unsafe {
+            (XUartPs_GetChannelStatus(&self.instance) & XUARTPS_SR_RXEMPTY)
+            == XUARTPS_SR_RXEMPTY
+        }
+    }
 }
 
 // SAFETY: The UART driver does not access or store any raw pointers that could
@@ -91,7 +102,12 @@ impl ErrorType for UartDriver {
 
 impl Write for UartDriver {
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
-        Ok(unsafe { XUartPs_Send(&mut self.instance, buf.as_ptr(), buf.len() as u32) as usize })
+        let mut sent_count = 0;
+        while sent_count < buf.len() {
+            // SAFETY: The instance is fully initialized.
+            sent_count += unsafe { XUartPs_Send(&mut self.instance, &buf[sent_count], 1) as usize };
+        }
+        Ok(sent_count)
     }
 
     fn flush(&mut self) -> Result<(), Self::Error> {
@@ -101,10 +117,13 @@ impl Write for UartDriver {
 
 impl Read for UartDriver {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
-        Ok(
-            unsafe {
-                XUartPs_Recv(&mut self.instance, buf.as_mut_ptr(), buf.len() as u32) as usize
-            },
-        )
+        let mut read_count = 0;
+        while read_count < buf.len() {
+            // SAFETY: The instance is fully initialized.
+            let num_read =
+                unsafe { XUartPs_Recv(&mut self.instance, &mut buf[read_count], 1) as usize };
+            read_count += num_read;
+        }
+        Ok(read_count)
     }
 }

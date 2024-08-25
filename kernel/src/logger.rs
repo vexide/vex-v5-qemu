@@ -42,14 +42,14 @@ impl Log for KernelLogger {
         if self.enabled(record.metadata()) {
             let timestamp = Duration::from_micros(vexSystemHighResTimeGet());
             let mins = timestamp.as_secs() / 60;
-            let submin_secs = timestamp.as_millis() % 60;
+            let submin_secs = timestamp.as_secs() % 60;
 
             protocol::send_packet(HostBoundPacket::KernelSerial(
                 format!(
                     "{:02}:{:02}:{:02} {}[{}]\x1B[0m kernel: {}\n",
                     mins,
                     submin_secs,
-                    timestamp.as_millis(),
+                    timestamp.subsec_millis(),
                     ESCAPES[record.level() as usize].unwrap_or_default(),
                     record.level(),
                     record.args()
