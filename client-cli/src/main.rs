@@ -1,15 +1,13 @@
 use std::{
     io::{stderr, stdout, Write},
     path::PathBuf,
-    process::{Command, Stdio},
 };
 
 use anyhow::Context;
 use log::{debug, LevelFilter};
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
-use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
-
-pub mod protocol;
+use tokio::process::Command;
+use vex_v5_qemu_host::brain::Brain;
 
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
@@ -48,7 +46,8 @@ struct Opt {
     qemu_args: Vec<String>,
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
 
     TermLogger::init(
@@ -61,67 +60,19 @@ fn main() -> anyhow::Result<()> {
     )
     .unwrap();
 
-    let mut qemu = Command::new(opt.qemu);
-    qemu.args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
-        .args(["-cpu", "cortex-a9"])
-        .args(["-object", "memory-backend-ram,id=mem,size=256M"])
-        .args([
-            "-device",
-            &format!(
-                "loader,file={},addr=0x100000,cpu-num=0",
-                opt.kernel.display()
-            ),
-        ])
-        .args([
-            "-device",
-            &format!(
-                "loader,file={},force-raw=on,addr=0x03800000",
-                opt.binary.display()
-            ),
-        ])
-        .args(["-display", "none"])
-        .args(["-chardev", "stdio,id=char0"])
-        .args(["-serial", "null"])
-        .args(["-serial", "chardev:char0"])
-        .args(opt.qemu_args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::inherit());
+    let mut brain = Brain::new();
+    let mut peripherals = brain.peripherals.take().unwrap();
+
+    let mut qemu = Command::new("qemu-system-arm");
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
-    let mut qemu = qemu.spawn().context("Failed to start QEMU.")?;
 
-    let mut qemu_stdout = qemu.stdout.take().unwrap();
-    let mut qemu_stdin = qemu.stdin.take().unwrap();
-
-    while let Ok(packet) = protocol::recv_packet(&mut qemu_stdout) {
-        if let Some(packet) = &packet {
-            match packet {
-                HostBoundPacket::UserSerial(data) => {
-                    let mut stdout = stdout().lock();
-
-                    stdout.write_all(data).unwrap();
-                    stdout.flush().unwrap();
-                }
-                HostBoundPacket::KernelSerial(data) => {
-                    let mut stderr = stderr().lock();
-                    stderr.write_all(data).unwrap();
-                    stderr.flush().unwrap();
-                }
-                HostBoundPacket::CodeSignature(sig) => {
-                    debug!("Received code signature: {:?}", sig);
-                }
-                HostBoundPacket::ExitRequest(code) => {
-                    qemu.kill().unwrap();
-                    std::process::exit(*code);
-                }
-                _ => {},
-            }
-        }
-    }
-
-    qemu.wait().context("QEMU exited unexpectedly.")?;
+    brain
+        .run_program(qemu, opt.kernel, opt.binary)
+        .await
+        .context("Failed to start QEMU.")?;
+    brain.wait_for_exit().await?;
 
     Ok(())
 }

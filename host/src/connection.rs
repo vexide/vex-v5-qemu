@@ -5,7 +5,7 @@ use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
     process::{Child, ChildStdin, ChildStdout},
-    sync::{mpsc::Receiver, Mutex},
+    sync::{mpsc::Receiver, Mutex}, task::JoinHandle,
 };
 
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
@@ -21,6 +21,7 @@ pub struct QemuConnectionInner {
     pub stdin: ChildStdin,
     pub stdout: ChildStdout,
     pub incoming_packets: Receiver<HostBoundPacket>,
+    pub task: JoinHandle<()>,
 }
 
 #[derive(Error, Diagnostic, Debug)]
