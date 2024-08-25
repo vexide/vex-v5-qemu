@@ -3,6 +3,18 @@
     "private": true,
     "version": "0.0.0",
     "type": "module",
+    "author": "vexide",
+    "maintainers": [
+        {
+            "name": "doinkythederp",
+            "email": "doinkythederp@icloud.com"
+        },
+        {
+            "name": "Gavin Niederman",
+            "email": "gavinniederman@gmail.com"
+        },
+        "Tropical"
+    ],
     "scripts": {
         "dev": "vite",
         "build": "vite build",
