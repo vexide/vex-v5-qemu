@@ -2,6 +2,13 @@
 
 use core::ffi::{c_char, c_int, c_void};
 
+
+use vex_v5_qemu_protocol::KernelBoundPacket;
+
+use crate::{peripherals::UART1, protocol::recv_packet};
+
+use super::{BATTERY, SMARTPORTS};
+
 /// Adds a new simple task to the task scheduler.
 pub extern "C" fn vexTaskAdd(
     callback: unsafe extern "C" fn() -> c_int,
@@ -37,4 +44,26 @@ pub extern "C" fn vexBackgroundProcessing() {}
 ///
 /// This more importantly handles many device reads and flushes
 /// serial.
-pub extern "C" fn vexTasksRun() {}
+pub extern "C" fn vexTasksRun() {
+    while !UART1.lock().is_rx_empty() {
+        if let Some(packet) = recv_packet().unwrap() {
+            match packet {
+                KernelBoundPacket::BatteryUpdate { data, timestamp } => {
+                    let mut battery = BATTERY.lock();
+                    battery.data = Some(data);
+                    battery.timestamp = timestamp;
+                },
+                KernelBoundPacket::SmartPortUpdate { port_index, data, timestamp } => {
+                    if let Some(port) = SMARTPORTS.get(port_index as usize) {
+                        let mut port = port.lock();
+                        port.port_index = port_index;
+                        port.data = Some(data);
+                        port.timestamp = timestamp;
+                    }
+                },
+                KernelBoundPacket::ControllerUpdate { id, data, timestamp } => {},
+                _ => panic!("Unexpected kernel-bound packet {:?}", packet),
+            }
+        }
+    }
+}

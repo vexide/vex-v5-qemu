@@ -1,7 +1,7 @@
 //! Brain Display
 
 use alloc::{
-    string::{String, ToString},
+    string::String,
     vec::Vec,
 };
 use core::{
@@ -13,10 +13,10 @@ use vex_sdk::*;
 use vex_v5_qemu_protocol::{
     display::{
         Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation,
-        TextMeasurement, TextSize,
+        TextSize,
     },
     geometry::{Point2, Rect},
-    HostBoundPacket, KernelBoundPacket,
+    HostBoundPacket,
 };
 
 use crate::{
@@ -173,25 +173,6 @@ impl Display {
             color: self.foreground,
             clip_region: self.clip_region,
         })
-    }
-
-    pub fn measure_text(
-        &self,
-        data: String,
-        size: TextSize,
-    ) -> Result<TextMeasurement, ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayMeasureText { data, size })?;
-
-        loop {
-            if let Some(packet) = protocol::recv_packet()? {
-                match packet {
-                    KernelBoundPacket::DisplayTextMeasurement(measurement) => {
-                        return Ok(measurement)
-                    }
-                    _ => panic!("Unexpected packet reply to HostBoundPacket::DisplayMeasureText!"),
-                }
-            }
-        }
     }
 }
 
@@ -362,34 +343,14 @@ pub extern "C" fn vexDisplayBackgroundColorGet() -> u32 {
 ///
 /// pString must satisfy the safety requirements outlined by [`CStr::from_ptr`].
 pub unsafe extern "C" fn vexDisplayStringWidthGet(pString: *const c_char) -> i32 {
-    DISPLAY
-        .lock()
-        .measure_text(
-            unsafe { CStr::from_ptr(pString) }
-                .to_str()
-                .unwrap()
-                .to_string(),
-            TextSize::Normal,
-        )
-        .unwrap()
-        .width
+    (unsafe { CStr::from_ptr(pString) }.count_bytes() * 8) as _
 }
 
 /// # Safety
 ///
 /// pString must satisfy the safety requirements outlined by [`CStr::from_ptr`].
 pub unsafe extern "C" fn vexDisplayStringHeightGet(pString: *const c_char) -> i32 {
-    DISPLAY
-        .lock()
-        .measure_text(
-            unsafe { CStr::from_ptr(pString) }
-                .to_str()
-                .unwrap()
-                .to_string(),
-            TextSize::Normal,
-        )
-        .unwrap()
-        .height
+    15
 }
 pub extern "C" fn vexDisplayPenSizeSet(width: u32) {}
 pub extern "C" fn vexDisplayPenSizeGet() -> u32 {

@@ -100,6 +100,7 @@ fn main() -> anyhow::Result<()> {
             match packet {
                 HostBoundPacket::UserSerial(data) => {
                     let mut stdout = stdout().lock();
+
                     stdout.write_all(data).unwrap();
                     stdout.flush().unwrap();
                 }
@@ -110,10 +111,6 @@ fn main() -> anyhow::Result<()> {
                 }
                 HostBoundPacket::CodeSignature(sig) => {
                     debug!("Received code signature: {:?}", sig);
-                }
-                HostBoundPacket::Handshake => {
-                    debug!("Received handshake. Sending response packet back.");
-                    protocol::send_packet(&mut qemu_stdin, KernelBoundPacket::Handshake)?;
                 }
                 HostBoundPacket::ExitRequest(code) => {
                     qemu.kill().unwrap();

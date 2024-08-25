@@ -7,7 +7,7 @@ use tokio::{
     io::{stderr, AsyncWriteExt},
     sync::Mutex,
 };
-use vex_v5_qemu_protocol::{display::TextMeasurement, HostBoundPacket, KernelBoundPacket};
+use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
 use crate::{
     protocol::{self, DisplayClearPayload, DisplayDrawPayload, DisplayScrollPayload},
@@ -128,13 +128,6 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
                         HostBoundPacket::CodeSignature(sig) => {
                             log::debug!("Received code signature: {:?}", sig);
                         }
-                        HostBoundPacket::Handshake => {
-                            log::debug!("Received handshake. Sending response packet back.");
-                            protocol::send_packet(
-                                state.lock().await.qemu_process.as_mut().unwrap(),
-                                KernelBoundPacket::Handshake,
-                            );
-                        }
                         HostBoundPacket::ExitRequest(code) => {
                             let process = state.lock().await.qemu_process.take().unwrap();
                             process.kill().unwrap();
@@ -158,16 +151,6 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
                         HostBoundPacket::DisplayErase { color, clip_region } => {
                             app.emit("display_clear", DisplayClearPayload { color, clip_region })
                                 .unwrap();
-                        }
-                        HostBoundPacket::DisplayMeasureText { data: _, size: _ } => {
-                            protocol::send_packet(
-                                state.lock().await.qemu_process.as_mut().unwrap(),
-                                // TODO
-                                KernelBoundPacket::DisplayTextMeasurement(TextMeasurement {
-                                    width: 0,
-                                    height: 0,
-                                }),
-                            );
                         }
                         HostBoundPacket::DisplayScroll {
                             location,

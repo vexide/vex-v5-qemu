@@ -23,8 +23,10 @@ use crate::{
 
 /// Clock frequency of Cortex-A9 timers (in Hz).
 ///
-/// This is half the CPU frequency (which is 666.6MHz).
-pub const PERIPHCLK: u32 = 666666687 / 2;
+/// On a real CPU, this is expected to be around 333333344Hz, but
+/// it appears the QEMU is simulating a 100Mhz clock instead. Not
+/// sure why...
+pub const PERIPHCLK: u32 = 100000000;
 
 /// Base address of MMIO peripherals.
 pub const PERIPHBASE: u32 = 0xF8F00000;

@@ -482,8 +482,6 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
 };
 
 pub extern "C" fn unshimmed_syscall() -> ! {
-    let x = 3;
-    log::debug!("{x}");
     let mut pc: *const ();
     let mut sp_value: u32;
     unsafe {

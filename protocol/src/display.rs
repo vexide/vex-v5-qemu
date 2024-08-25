@@ -70,13 +70,6 @@ pub enum DisplayRenderMode {
     DoubleBuffered,
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct TextMeasurement {
-    pub width: i32,
-    pub height: i32,
-}
-
 /// A shape that can be drawn to the robot LCD screen.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
