@@ -5,7 +5,7 @@ use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
     process::{Child, ChildStdin, ChildStdout},
-    sync::{mpsc::Receiver, Mutex},
+    sync::{mpsc::Receiver, Mutex}, task::JoinHandle,
 };
 
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};

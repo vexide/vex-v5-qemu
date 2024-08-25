@@ -186,6 +186,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 
 [[package]]
+name = "cobs"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67ba02a97a2bd10f4b59b25c7973101c79642302776489e030cd13cdab09ed15"
+
+[[package]]
 name = "colorchoice"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -501,7 +507,7 @@ dependencies = [
  "simplelog",
  "thiserror",
  "tokio",
- "vex-v5-qemu-protocol",
+ "vex-v5-qemu-host",
 ]
 
 [[package]]
@@ -649,9 +655,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.39.2"
+version = "1.39.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daa4fb1bc778bd6f04cbfc4bb2d06a7396a8f299dc33ea1900cedaa316f467b1"
+checksum = "9babc99b9923bfa4804bd74722ff02c0381021eafa4db9949217e3be8e84fff5"
 dependencies = [
  "backtrace",
  "bytes",
@@ -705,6 +711,19 @@ name = "vex-sdk"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f285bbc2b96fc4c7fae42ebe365dd2e9121e7002a58b1a9e0e4b1d14dba4d6d0"
+
+[[package]]
+name = "vex-v5-qemu-host"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cobs",
+ "log",
+ "miette",
+ "thiserror",
+ "tokio",
+ "vex-v5-qemu-protocol",
+]
 
 [[package]]
 name = "vex-v5-qemu-protocol"

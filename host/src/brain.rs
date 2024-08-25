@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf, process::Stdio};
+use std::{io, path::PathBuf, process::{ExitStatus, Stdio}};
 
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -32,8 +32,8 @@ impl Brain {
     pub async fn run_program(
         &mut self,
         mut qemu_command: Command,
-        program: PathBuf,
         kernel: PathBuf,
+        binary: PathBuf,
     ) -> io::Result<()> {
         qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
@@ -47,7 +47,7 @@ impl Brain {
                 "-device",
                 &format!(
                     "loader,file={},force-raw=on,addr=0x03800000",
-                    program.display()
+                    binary.display()
                 ),
             ])
             .args(["-display", "none"])
@@ -72,9 +72,10 @@ impl Brain {
         tokio::task::spawn({
             let connection = self.connection.clone();
             async move {
-                loop {
-                    let mut inner = connection.inner.lock().await;
-                    let stdout = &mut inner.as_mut().unwrap().stdout;
+                while connection.inner.lock().await.as_mut().unwrap().child.id().is_some() {
+                    let mut lock = connection.inner.lock().await;
+                    let inner = lock.as_mut().unwrap();
+                    let stdout = &mut inner.stdout;
 
                     let packet_size = stdout.read_u32_le().await.unwrap() as usize;
                     let mut buf = vec![0; packet_size];
@@ -99,22 +100,25 @@ impl Brain {
                         }
                         HostBoundPacket::ExitRequest(code) => {
                             log::info!("Kernel exited with code {code}.");
-                            inner.as_mut().unwrap().child.kill().await.unwrap();
+                            inner.child.kill().await.unwrap();
                         }
                         _ => tx.send(packet).await.unwrap(),
                     }
                 }
+
+                *connection.inner.lock().await = None;
             }
         });
 
         Ok(())
     }
 
-    pub async fn wait_for_exit(&mut self) -> io::Result<()> {
-        if let Some(connection) = self.connection.inner.lock().await.as_mut() {
-            connection.child.wait().await?;
+    pub async fn wait_for_exit(&mut self) -> io::Result<Option<ExitStatus>> {
+        while let Some(connection) = self.connection.inner.lock().await.as_mut() {
+            if let Some(status) = connection.child.try_wait()? {
+                return Ok(Some(status));
+            }
         }
-
-        Ok(())
+        Ok(None)
     }
 }
