@@ -236,7 +236,6 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
         inputs.insert(input.target_handle_id.clone(), source_node);
     }
 
-
     match &node.data {
         crate::parser::NodeType::DistanceSensor { distance, size } => {
             let inputs = clean_inputs(id, &["distance", "size"], inputs)?;
@@ -274,12 +273,12 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
                 handle_device_input(id, inputs.get("darkness"), darkness.unwrap_or_default())?;
 
             Ok(Node::AdiDeviceNode(AdiDeviceNode::Light { darkness }))
-        },
+        }
         crate::parser::NodeType::Time => {
             clean_inputs(id, &[], inputs)?;
 
             Ok(Node::DataNode(DataNode::Time))
-        },
+        }
     }
 }
 

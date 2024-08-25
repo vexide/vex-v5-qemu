@@ -51,7 +51,7 @@ pub fn evaluate_data(node: &DataNode, time: f32) -> f32 {
         } => {
             let lhs = match lhs {
                 DataInput::Value(value) => *value,
-                DataInput::DataNode(node) => evaluate_data(node, time)
+                DataInput::DataNode(node) => evaluate_data(node, time),
             };
 
             let rhs = match rhs {
@@ -111,7 +111,9 @@ pub fn evaluate_adi_device(node: &AdiDeviceNode, time: f32) -> Device {
 pub fn evaluate(ast: &Node, time: f32) -> InterpereterOutput {
     match ast {
         Node::DataNode(node) => InterpereterOutput::Value(evaluate_data(node, time)),
-        Node::SmartDeviceNode(node) => InterpereterOutput::Device(evaluate_smart_device(node, time)),
+        Node::SmartDeviceNode(node) => {
+            InterpereterOutput::Device(evaluate_smart_device(node, time))
+        }
         Node::AdiDeviceNode(node) => InterpereterOutput::Device(evaluate_adi_device(node, time)),
     }
 }
