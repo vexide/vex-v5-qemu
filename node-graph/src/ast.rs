@@ -116,6 +116,12 @@ impl Brain {
     }
 }
 
+impl Default for Brain {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Error, Diagnostic, Debug)]
 #[error("Failed to convert node graph to AST")]
 pub enum AstConversionError {
@@ -149,7 +155,7 @@ fn clean_inputs(
     keys: &[&str],
     inputs: BTreeMap<String, Node>,
 ) -> Result<BTreeMap<String, Node>, AstConversionError> {
-    if keys.len() == 0 && inputs.len() == 0 {
+    if keys.is_empty() && inputs.is_empty() {
         return Ok(inputs);
     }
 
@@ -269,7 +275,7 @@ pub fn node_graph_to_ast(graph: NodeGraph) -> Result<Brain, AstConversionError> 
     let mut brain = crate::ast::Brain::new();
 
     for (port, source_id) in graph.brain.smart_ports() {
-        let source_node = build_ast(&graph, &source_id)?;
+        let source_node = build_ast(&graph, source_id)?;
         if let Node::SmartDeviceNode(source_node) = source_node {
             // This will never panic because we are iterating over the smart ports of the
             // brain

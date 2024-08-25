@@ -11,9 +11,9 @@ use crate::{
 pub enum Device {
     Distance { distance: f32, size: f32 },
 }
-impl Into<NodeType> for Device {
-    fn into(self) -> NodeType {
-        match self {
+impl From<Device> for NodeType {
+    fn from(val: Device) -> Self {
+        match val {
             Device::Distance { distance, size } => NodeType::Distance {
                 distance: Some(distance),
                 size: Some(size),
