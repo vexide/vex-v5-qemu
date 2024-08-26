@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+ab_glyph = "0.2.28"
 atools = "=0.1.4"
 fimg = { version = "=0.4.41", features = ["save"] }
 png = "0.17.13"
 resource = "0.5.0"
-rusttype = "0.9.3"
 
 [lints]
 workspace = true

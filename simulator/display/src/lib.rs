@@ -7,9 +7,9 @@ use std::{
     time::{Duration, Instant},
 };
 
+use ab_glyph::{point, Font, FontVec, Glyph, OutlinedGlyph, Point, PxScale, Rect, ScaleFont};
 use fimg::{pixels::convert::RGB, Image, Pack, WritePng};
 use resource::resource;
-use rusttype::{point, Font, Point, PositionedGlyph, Rect, Scale};
 
 /// https://internals.vexide.dev/sdk/display#foreground-and-background-colors - #c0c0ff
 pub const DEFAULT_FOREGROUND: RGB = [0xc0, 0xc0, 0xff];
@@ -21,17 +21,6 @@ pub const INVERTED_BACKGROUND: RGB = [0xff, 0xff, 0xff];
 pub enum Path {
     Rect { x1: i32, y1: i32, x2: i32, y2: i32 },
     Circle { cx: i32, cy: i32, radius: i32 },
-}
-
-impl From<Rect<i32>> for Path {
-    fn from(rect: Rect<i32>) -> Self {
-        Path::Rect {
-            x1: rect.min.x,
-            y1: rect.min.y,
-            x2: rect.max.x,
-            y2: rect.max.y,
-        }
-    }
 }
 
 impl Path {
@@ -152,7 +141,7 @@ impl V5FontSize {
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct TextOptions {
-    pub font_type: V5FontSize,
+    pub size: V5FontSize,
     pub family: V5FontFamilyType,
     /// If true, the text will be drawn on the _previous_ frame instead of the
     /// working frame.
@@ -181,21 +170,6 @@ fn blend_pixel(bg: RGB, fg: RGB, fg_alpha: f32) -> RGB {
     ]
 }
 
-/// Calculates the size of a layout of glyphs.
-fn size_of_layout(glyphs: &[PositionedGlyph<'_>]) -> Option<Rect<i32>> {
-    let last_char = glyphs.last()?;
-    let first_char = &glyphs[0];
-    let last_bounding_box = last_char.pixel_bounding_box().unwrap();
-    let first_bounding_box = first_char.pixel_bounding_box().unwrap();
-    Some(Rect {
-        min: first_bounding_box.min,
-        max: Point {
-            x: last_bounding_box.max.x + (V5FontSize::x_spacing() * glyphs.len() as f32) as i32,
-            y: last_bounding_box.max.y,
-        },
-    })
-}
-
 pub const DISPLAY_HEIGHT: u32 = 272;
 pub const DISPLAY_WIDTH: u32 = 480;
 pub const HEADER_HEIGHT: u32 = 32;
@@ -205,6 +179,14 @@ pub const WHITE: RGB = [255, 255, 255];
 pub const HEADER_BG: RGB = [0x00, 0x99, 0xCC];
 
 type Canvas = Image<Box<[u8]>, 3>;
+
+struct TextLayout {
+    text: String,
+    options: TextOptions,
+    glyphs: Vec<OutlinedGlyph>,
+    /// None if the text is invisible
+    bounds: Option<Rect>,
+}
 
 pub struct Display {
     /// The display's saved foreground color.
@@ -216,12 +198,12 @@ pub struct Display {
     /// When the display is in double buffered mode, this field holds the
     /// previous frame while the current frame is being drawn.
     pub prev_canvas: Option<Canvas>,
-    user_mono: Font<'static>,
+    user_mono: FontVec,
     /// Font for the program header's timer.
-    timer_mono: Font<'static>,
+    timer_mono: FontVec,
     /// Cache for text layout calculations, to avoid re-calculating the same
     /// text layout multiple times in a row.
-    text_layout_cache: Cell<Option<(String, TextOptions, Vec<PositionedGlyph<'static>>)>>,
+    text_layout_cache: Cell<Option<TextLayout>>,
     /// The instant at which the program started.
     start_instant: Instant,
     /// The instant at which the display was last rendered.
@@ -232,9 +214,9 @@ impl Display {
     pub fn new(default_fg_color: RGB, default_bg_color: RGB, start_instant: Instant) -> Self {
         let canvas = Image::build(DISPLAY_WIDTH, DISPLAY_HEIGHT).fill(default_bg_color);
         let user_mono =
-            Font::try_from_vec(resource!("/fonts/NotoMono-Regular.ttf").to_vec()).unwrap();
+            FontVec::try_from_vec(resource!("/fonts/NotoMono-Regular.ttf").to_vec()).unwrap();
         let timer_mono =
-            Font::try_from_vec(resource!("/fonts/droid-sans-mono.ttf").to_vec()).unwrap();
+            FontVec::try_from_vec(resource!("/fonts/droid-sans-mono.ttf").to_vec()).unwrap();
 
         Self {
             foreground_color: default_fg_color,
@@ -250,7 +232,7 @@ impl Display {
     }
 
     /// Returns the font data for the given font family.
-    const fn font_family(&self, font_ty: V5FontFamilyType) -> &Font<'static> {
+    const fn font_family(&self, font_ty: V5FontFamilyType) -> &impl Font {
         match font_ty {
             V5FontFamilyType::UserMono => &self.user_mono,
             V5FontFamilyType::TimerMono => &self.timer_mono,
@@ -310,7 +292,7 @@ impl Display {
             ((DISPLAY_WIDTH / 2) as i32, 3),
             true,
             TextOptions {
-                font_type: V5FontSize::Big,
+                size: V5FontSize::Big,
                 family: V5FontFamilyType::TimerMono,
                 prev_frame: true,
             },
@@ -375,59 +357,82 @@ impl Display {
         shape.draw(&mut self.canvas, stroke, self.foreground_color);
     }
 
-    /// Removes the last text layout from the cache if it matches the given text
-    /// and options.
-    fn take_cached_glyphs_for(
-        &self,
-        text: &str,
-        options: TextOptions,
-    ) -> Option<Vec<PositionedGlyph<'static>>> {
-        let (cached_text, cached_options, glyphs) = self.text_layout_cache.take()?;
-        if text == cached_text && options == cached_options {
-            Some(glyphs)
+    /// Removes the last text layout from the cache and returns it if it matches
+    /// the given text and options.
+    fn check_layout_cache(&self, text: &str, options: TextOptions) -> Option<TextLayout> {
+        let layout = self.text_layout_cache.take()?;
+        if text == layout.text && options == layout.options {
+            Some(layout)
         } else {
             None
         }
     }
 
-    /// Returns the glyphs for the given text, using the given options.
+    /// Returns the layout for the given text, using the given options.
     ///
     /// May either return cached glyphs or calculate them when called.
-    fn glyphs_for(&self, text: &str, options: TextOptions) -> Vec<PositionedGlyph<'static>> {
-        if let Some(glyphs) = self.take_cached_glyphs_for(text, options) {
-            return glyphs;
+    fn layout_for(&self, text: &str, options: TextOptions) -> TextLayout {
+        if let Some(layout) = self.check_layout_cache(text, options) {
+            return layout;
         }
 
-        let scale = Scale {
-            y: options.font_type.font_size(),
+        let scale = PxScale {
+            y: options.size.font_size(),
             // V5's version of the Noto Mono font is slightly different
             // than the one bundled with the simulator, so we have to apply
             // an scale on the X axis and later move the characters further apart.
-            x: options.font_type.font_size() * V5FontSize::x_scale(),
+            x: options.size.font_size() * V5FontSize::x_scale(),
         };
+
         let font = self.font_family(options.family);
-        let v_metrics = font.v_metrics(scale);
-        font.layout(text, scale, point(0.0, 0.0 + v_metrics.ascent))
-            .collect()
+        let scale_font = font.as_scaled(scale);
+        let mut glyphs = Vec::new();
+
+        layout_glyphs(scale_font, text, V5FontSize::x_spacing(), &mut glyphs);
+
+        let outlined: Vec<OutlinedGlyph> = glyphs
+            .into_iter()
+            // removes any invisible characters
+            .filter_map(|g| font.outline_glyph(g))
+            .collect();
+
+        let bounds = outlined
+            .iter()
+            .map(|g| g.px_bounds())
+            .reduce(|mut b, next| {
+                b.min.x = b.min.x.min(next.min.x);
+                b.max.x = b.max.x.max(next.max.x);
+                b.min.y = b.min.y.min(next.min.y);
+                b.max.y = b.max.y.max(next.max.y);
+                b
+            });
+
+        TextLayout {
+            text: text.to_string(),
+            options,
+            glyphs: outlined,
+            bounds,
+        }
     }
 
     /// Calculates the shape of the area behind a text layout, so that it can be
     /// drawn on top of a background color.
     fn calculate_text_background(
-        glyphs: &[PositionedGlyph<'_>],
+        glyphs: &TextLayout,
         coords: (i32, i32),
         font_size: V5FontSize,
     ) -> Option<Path> {
-        let size = size_of_layout(glyphs)?;
-        let mut backdrop = Path::Rect {
-            x1: size.min.x + coords.0 - 1,
-            y1: coords.1 + font_size.backdrop_y_offset(),
-            x2: size.max.x + coords.0 + 1,
-            y2: coords.1 + font_size.backdrop_y_offset() + font_size.line_height() - 1,
-        };
+        glyphs.bounds.map(|size| {
+            let mut backdrop = Path::Rect {
+                x1: size.min.x as i32 + coords.0 - 1,
+                y1: coords.1 + font_size.backdrop_y_offset(),
+                x2: size.max.x as i32 + coords.0 + 1,
+                y2: coords.1 + font_size.backdrop_y_offset() + font_size.line_height() - 1,
+            };
 
-        backdrop.normalize();
-        Some(backdrop)
+            backdrop.normalize();
+            backdrop
+        })
     }
 
     /// Writes text to the display at a given coordinate. Use
@@ -455,62 +460,91 @@ impl Display {
 
         // The V5's text is all offset vertically from ours, so this adjustment makes it
         // consistent.
-        coords.1 += options.font_type.y_offset();
+        coords.1 += options.size.y_offset();
 
         let fg = self.foreground_color;
-        let glyphs = self.glyphs_for(&text, options);
+        let layout = self.layout_for(&text, options);
 
         if !transparent {
-            let backdrop =
-                Self::calculate_text_background(&glyphs, coords, options.font_type).unwrap();
-            backdrop.draw(&mut self.canvas, false, self.background_color);
-        }
-
-        for (idx, glyph) in glyphs.iter().enumerate() {
-            if let Some(bounding_box) = glyph.pixel_bounding_box() {
-                // Draw the glyph into the image per-pixel
-                glyph.draw(|mut x, mut y, alpha| {
-                    // Apply offsets to make the coordinates image-relative, not text-relative
-                    x += bounding_box.min.x as u32
-                        + coords.0 as u32
-                        // Similar reasoning to when we applied the x scale to the font.
-                        + (V5FontSize::x_spacing() * idx as f32) as u32;
-                    y += bounding_box.min.y as u32 + coords.1 as u32;
-
-                    if !(x < self.canvas.width() && y < self.canvas.height()) {
-                        return;
-                    }
-
-                    // I didn't find a safe version of pixel and set_pixel.
-                    // SAFETY: Pixel bounds are checked.
-                    unsafe {
-                        let old_pixel = self.canvas.pixel(x, y);
-
-                        self.canvas.set_pixel(
-                            x,
-                            y,
-                            // Taking this power seems to make the alpha blending look better;
-                            // otherwise it's not heavy enough.
-                            blend_pixel(old_pixel, fg, alpha.powf(0.4).clamp(0.0, 1.0)),
-                        );
-                    }
-                });
+            if let Some(backdrop) = Self::calculate_text_background(&layout, coords, options.size) {
+                backdrop.draw(&mut self.canvas, false, self.background_color);
             }
         }
 
+        for glyph in layout.glyphs.iter() {
+            let bounds = glyph.px_bounds();
+            // Draw the glyph into the image per-pixel
+            glyph.draw(|mut x, mut y, alpha| {
+                // Apply offsets to make the coordinates image-relative, not text-relative
+                x += bounds.min.x as u32 + coords.0 as u32;
+                y += bounds.min.y as u32 + coords.1 as u32;
+
+                if !(x < self.canvas.width() && y < self.canvas.height()) {
+                    return;
+                }
+
+                // I didn't find a safe version of pixel and set_pixel.
+                // SAFETY: Pixel bounds are checked.
+                unsafe {
+                    let old_pixel = self.canvas.pixel(x, y);
+
+                    self.canvas.set_pixel(
+                        x,
+                        y,
+                        // Taking this power seems to make the alpha blending look better;
+                        // otherwise it's not heavy enough.
+                        blend_pixel(old_pixel, fg, alpha.powf(0.4).clamp(0.0, 1.0)),
+                    );
+                }
+            });
+        }
+
         // Add (or re-add) the laid-out glyphs to the cache so they can be used later.
-        self.text_layout_cache.set(Some((text, options, glyphs)));
+        self.text_layout_cache.set(Some(layout));
     }
 
     /// Calculates how big a string will be when rendered.
     ///
     /// Caches the result so that the same text and options don't have to be
     /// calculated multiple times in a row.
-    pub fn calculate_string_size(&self, mut text: String, options: TextOptions) -> Point<i32> {
+    pub fn calculate_string_size(&self, mut text: String, options: TextOptions) -> Point {
         text = Self::normalize_text(&text);
-        let glyphs = self.glyphs_for(&text, options);
-        let size = size_of_layout(&glyphs);
-        self.text_layout_cache.set(Some((text, options, glyphs)));
+        let layout = self.layout_for(&text, options);
+        let size = layout.bounds;
+        self.text_layout_cache.set(Some(layout));
         size.unwrap_or_default().max
+    }
+}
+
+// mostly based on the example from ab_glyph
+pub fn layout_glyphs<F, SF>(font: SF, text: &str, x_spacing: f32, target: &mut Vec<Glyph>)
+where
+    F: Font,
+    SF: ScaleFont<F>,
+{
+    let mut caret = point(0.0, font.ascent());
+    let mut last_glyph: Option<Glyph> = None;
+
+    for mut c in text.chars() {
+        // Vex replaces newlines with a period
+        // Assuming here it's for all control characters
+        if c.is_control() {
+            c = '.';
+            continue;
+        }
+
+        // Render and kern
+        let mut glyph = font.scaled_glyph(c);
+        if let Some(previous) = last_glyph.take() {
+            caret.x += font.kern(previous.id, glyph.id);
+        }
+        glyph.position = caret;
+
+        // Advance to the next position
+        last_glyph = Some(glyph.clone());
+        caret.x += font.h_advance(glyph.id);
+        caret.x += x_spacing;
+
+        target.push(glyph);
     }
 }
