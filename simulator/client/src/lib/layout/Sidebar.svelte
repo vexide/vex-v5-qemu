@@ -34,7 +34,7 @@
 
     const { screenToFlowPosition, flowToScreenPosition } = useSvelteFlow();
 
-    const dispatch = createEventDispatcher<{ nodeDrag: DragData }>();
+    const dispatch = createEventDispatcher<{ nodeGrab: DragData }>();
 
     let width = 260;
     let scrollEdgeTop = true;
@@ -47,7 +47,7 @@
     const COLLAPSE_BREAKPOINT = 185;
 
     function handleDragStart(event: MouseEvent, nodeType: string) {
-        dispatch("nodeDrag", {
+        dispatch("nodeGrab", {
             nodeType,
             x: event.clientX,
             y: event.clientY,

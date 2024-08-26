@@ -128,7 +128,7 @@
     <main class="split-view">
         <DragNDropOverlay bind:dragNode {nodeTypes} />
         <Sidebar
-            on:nodeDrag={(e) => {
+            on:nodeGrab={(e) => {
                 dragNode = e.detail;
             }}
         />
