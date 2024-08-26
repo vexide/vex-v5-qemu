@@ -1,26 +1,15 @@
 <script lang="ts">
-    import { onDestroy, onMount, SvelteComponent } from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     import { listen, type UnlistenFn } from "@tauri-apps/api/event";
     import { attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
-    import {
-        SvelteFlowProvider,
-        useSvelteFlow,
-        type Node,
-        type NodeTypes,
-    } from "@xyflow/svelte";
+    import { SvelteFlowProvider, type NodeTypes } from "@xyflow/svelte";
 
     import Session from "~/lib/session";
     import { terminal, session, nodes, edges } from "~/lib/stores";
-    import {
-        Button,
-        Dialog,
-        Field,
-        NumberInput,
-        Slider,
-    } from "~/lib/components";
+    import { Button, Dialog, Field, Slider } from "~/lib/components";
     import { Toolbar, Sidebar, Flow, Terminal } from "~/lib/layout";
     import {
         BrainNode,

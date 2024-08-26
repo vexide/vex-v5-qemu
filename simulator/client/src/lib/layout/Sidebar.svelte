@@ -29,10 +29,7 @@
         LineTracker,
         LightSensor,
     } from "~/lib/icons";
-    import { useSvelteFlow, type Node, type NodeTypes } from "@xyflow/svelte";
     import { createEventDispatcher } from "svelte";
-
-    const { screenToFlowPosition, flowToScreenPosition } = useSvelteFlow();
 
     const dispatch = createEventDispatcher<{ nodeGrab: DragData }>();
 

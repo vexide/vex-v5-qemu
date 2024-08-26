@@ -3,7 +3,6 @@
     import type { DragData } from "../layout/Sidebar.svelte";
     import { nodes } from "../stores.js";
     import NodeBase from "./NodeBase.svelte";
-    import type { SvelteComponent } from "svelte";
 
     const { screenToFlowPosition, viewport } = useSvelteFlow();
 
