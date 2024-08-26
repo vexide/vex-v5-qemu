@@ -79,7 +79,6 @@
         math: MathNode,
         time: TimeNode,
         light_sensor: LightSensorNode,
-        default: NodeBase,
     };
     const edgeTypes = {
         data: DataEdge,
