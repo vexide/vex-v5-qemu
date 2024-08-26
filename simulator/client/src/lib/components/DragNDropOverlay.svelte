@@ -51,7 +51,7 @@
 <div class="drag-overlay">
     {#if dragNode}
         <div
-            class="drag-item svelte-flow__node"
+            class="drag-item svelte-flow__node svelte-flow__node-{dragNode.nodeType}"
             data-valid={dragNode.valid}
             style:left="{dragNode.x}px"
             style:top="{dragNode.y}px"
