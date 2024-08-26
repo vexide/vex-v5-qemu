@@ -1,12 +1,21 @@
 [package]
-name = "app"
+name = "client"
+publish = false # Must be published as a Tauri app
 version = "0.1.0"
 description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+authors = [
+    "vexide",
+    "doinkythederp <doinkythederp@icloud.com>",
+    "Gavin Niederman <gavinniederman@gmail.com>",
+    "Tropical",
+]
+license = "MIT"
+repository = "https://github.com/vexide/vex-v5-qemu"
 edition = "2021"
 rust-version = "1.70"
+
+[lints]
+workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

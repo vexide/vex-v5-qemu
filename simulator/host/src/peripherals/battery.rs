@@ -9,23 +9,17 @@ pub struct Battery {
 }
 
 impl Battery {
-    pub(crate) fn new(
-        connection: QemuConnection,
-        data: BatteryData,
-    ) -> Self {
-        Self {
-            connection,
-            data
-        }
+    pub(crate) fn new(connection: QemuConnection, data: BatteryData) -> Self {
+        Self { connection, data }
     }
 
     async fn update(&mut self) -> Result<(), ConnectionError> {
-        self.connection.send_packet(
-            KernelBoundPacket::BatteryUpdate {
+        self.connection
+            .send_packet(KernelBoundPacket::BatteryUpdate {
                 data: self.data,
                 timestamp: 0,
-            }
-        ).await
+            })
+            .await
     }
 
     pub async fn set_voltage(&mut self, voltage: i32) -> Result<(), ConnectionError> {

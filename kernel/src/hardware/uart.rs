@@ -85,8 +85,7 @@ impl UartDriver {
 
     pub fn is_rx_empty(&self) -> bool {
         unsafe {
-            (XUartPs_GetChannelStatus(&self.instance) & XUARTPS_SR_RXEMPTY)
-            == XUARTPS_SR_RXEMPTY
+            (XUartPs_GetChannelStatus(&self.instance) & XUARTPS_SR_RXEMPTY) == XUARTPS_SR_RXEMPTY
         }
     }
 }

@@ -1,7 +1,17 @@
 [package]
-name = "simulator"
+name = "client-cli"
+publish = false # Name is not suitable for crates.io
 version = "0.1.0"
 edition = "2021"
+authors = [
+    "vexide",
+    "doinkythederp <doinkythederp@icloud.com>",
+    "Gavin Niederman <gavinniederman@gmail.com>",
+    "Tropical",
+]
+
+[lints]
+workspace = true
 
 [dependencies]
 tokio = { version = "1.23.0", features = ["full"] }

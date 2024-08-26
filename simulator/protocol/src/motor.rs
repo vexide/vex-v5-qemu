@@ -1,5 +1,4 @@
 use bitflags::bitflags;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

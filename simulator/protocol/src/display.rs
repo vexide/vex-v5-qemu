@@ -1,8 +1,7 @@
+use alloc::{string::String, vec::Vec};
 use core::num::NonZeroU16;
 
-use alloc::{string::String, vec::Vec};
 use bincode::{Decode, Encode};
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

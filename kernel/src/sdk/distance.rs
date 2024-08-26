@@ -1,6 +1,7 @@
 //! V5 Distance Sensor
 
 use core::ffi::c_double;
+
 use vex_sdk::*;
 
 pub extern "C" fn vexDeviceDistanceDistanceGet(device: V5_DeviceT) -> u32 {

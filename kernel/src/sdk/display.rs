@@ -1,19 +1,16 @@
 //! Brain Display
 
-use alloc::{
-    string::String,
-    vec::Vec,
-};
+use alloc::{string::String, vec::Vec};
 use core::{
     ffi::{c_char, CStr, VaList},
     num::NonZeroU16,
     slice,
 };
+
 use vex_sdk::*;
 use vex_v5_qemu_protocol::{
     display::{
-        Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation,
-        TextSize,
+        Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize,
     },
     geometry::{Point2, Rect},
     HostBoundPacket,

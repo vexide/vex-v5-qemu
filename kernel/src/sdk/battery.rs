@@ -5,9 +5,8 @@ use core::ffi::c_double;
 use vex_sdk::{V5_Device, V5_DeviceT, V5_DeviceType};
 use vex_v5_qemu_protocol::battery::BatteryData;
 
-use crate::sync::Mutex;
-
 use super::Device;
+use crate::sync::Mutex;
 
 #[derive(Default, Debug, PartialEq)]
 pub struct Battery {
@@ -21,7 +20,10 @@ impl Battery {
     pub const INTERNAL_PORT_INDEX: u8 = 24;
 
     pub const fn new() -> Self {
-        Self { data: None, timestamp: 0 }
+        Self {
+            data: None,
+            timestamp: 0,
+        }
     }
 }
 

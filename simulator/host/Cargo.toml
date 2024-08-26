@@ -2,6 +2,15 @@
 name = "vex-v5-qemu-host"
 version = "0.1.0"
 edition = "2021"
+authors = [
+    "vexide",
+    "doinkythederp <doinkythederp@icloud.com>",
+    "Gavin Niederman <gavinniederman@gmail.com>",
+    "Tropical",
+]
+
+[lints]
+workspace = true
 
 [dependencies]
 vex-v5-qemu-protocol = { path = "../protocol" }

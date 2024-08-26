@@ -1,4 +1,8 @@
-use std::{io, path::PathBuf, process::{ExitStatus, Stdio}};
+use std::{
+    io,
+    path::PathBuf,
+    process::{ExitStatus, Stdio},
+};
 
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -72,7 +76,16 @@ impl Brain {
         tokio::task::spawn({
             let connection = self.connection.clone();
             async move {
-                while connection.inner.lock().await.as_mut().unwrap().child.id().is_some() {
+                while connection
+                    .inner
+                    .lock()
+                    .await
+                    .as_mut()
+                    .unwrap()
+                    .child
+                    .id()
+                    .is_some()
+                {
                     let mut lock = connection.inner.lock().await;
                     let inner = lock.as_mut().unwrap();
                     let stdout = &mut inner.stdout;
