@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use fimg::pixels::convert::RGB;
 use vex_v5_display_simulator::{Display, Path, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
 
 pub fn main() {

@@ -1338,12 +1338,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fer"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a02dba6a60cd31533cf16561ced53239686d18f1464bff49579dd320fcea081"
-
-[[package]]
 name = "fern"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1365,13 +1359,13 @@ dependencies = [
 
 [[package]]
 name = "fimg"
-version = "0.4.41"
+version = "0.4.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f319f81799f8b1b61b733b5840deb4d15ec83534fb2bc80e4d949ba770fab210"
+checksum = "190af4559b118e547e8d454948e73121a88e0f1884169734374e52effb93742c"
 dependencies = [
  "atools",
  "clipline",
- "fer",
+ "libc",
  "mattr",
  "png",
  "umath",
@@ -4991,7 +4985,6 @@ name = "vex-v5-display-simulator"
 version = "0.1.0"
 dependencies = [
  "ab_glyph",
- "atools",
  "fimg",
  "png",
  "resource",

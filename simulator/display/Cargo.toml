@@ -5,8 +5,7 @@ edition = "2021"
 
 [dependencies]
 ab_glyph = "0.2.28"
-atools = "=0.1.4"
-fimg = { version = "=0.4.41", features = ["save"] }
+fimg = { version = "0.4.43", features = ["save"], default-features = false }
 png = "0.17.13"
 resource = "0.5.0"
 
