@@ -38,10 +38,8 @@
         let relativeY = flowCoords.y - boundingCoords.y - 14;
         position = { x: relativeX, y: relativeY };
         position = {
-            x:
-                Math.max(0, Math.min(150 - 28, position.x)),
-            y:
-                Math.max(0, Math.min(150 - 28, position.y)),
+            x: Math.max(0, Math.min(150 - 28, position.x)),
+            y: Math.max(0, Math.min(150 - 28, position.y)),
         };
     }
 
@@ -98,6 +96,7 @@
         height: 150px;
         border-radius: 16px;
         border: var(--accent-primary) 2px solid;
+        cursor: default;
     }
 
     .draggable {
@@ -106,7 +105,11 @@
     }
 
     .draggable:hover {
-        cursor: grabbing;
+        cursor: grab;
         color: var(--foreground-primary);
+    }
+
+    .draggable:active {
+        cursor: grabbing;
     }
 </style>
