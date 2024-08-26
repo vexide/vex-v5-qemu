@@ -41,7 +41,7 @@
     import "~/styles/flow.css";
     import type { DragData } from "./lib/layout/Sidebar.svelte";
     import NodeBase from "./lib/components/NodeBase.svelte";
-    import DragNDropNode from "./lib/components/DragNDropNode.svelte";
+    import DragNDropOverlay from "./lib/components/DragNDropOverlay.svelte";
 
     let settingsDialogOpen = false;
 
@@ -126,7 +126,7 @@
 
 <SvelteFlowProvider>
     <main class="split-view">
-        <DragNDropNode bind:dragNode {nodeTypes} />
+        <DragNDropOverlay bind:dragNode {nodeTypes} />
         <Sidebar
             on:nodeDrag={(e) => {
                 dragNode = e.detail;
