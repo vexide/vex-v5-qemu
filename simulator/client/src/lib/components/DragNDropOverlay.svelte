@@ -19,6 +19,9 @@
                 y: dragNode.y,
             });
 
+            const headerOffset = -18;
+            position.y += headerOffset;
+
             const newNode = {
                 id: `${crypto.randomUUID()}`,
                 type: dragNode.nodeType,
