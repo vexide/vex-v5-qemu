@@ -530,7 +530,6 @@ where
         // Assuming here it's for all control characters
         if c.is_control() {
             c = '.';
-            continue;
         }
 
         // Render and kern
