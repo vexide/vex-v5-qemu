@@ -100,12 +100,11 @@
     }
 
     .draggable {
-        cursor: move;
         position: relative;
+        cursor: grab;
     }
 
     .draggable:hover {
-        cursor: grab;
         color: var(--foreground-primary);
     }
 
