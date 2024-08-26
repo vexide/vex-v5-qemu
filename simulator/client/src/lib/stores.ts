@@ -9,7 +9,7 @@ export const terminal: Writable<Terminal | null> = writable(null);
 export const display: Writable<CanvasRenderingContext2D | null> =
     writable(null);
 
-export const dndType: Writable<string | null> = writable(null);
+export const dndNode: Writable<Node | null> = writable(null);
 export const nodes = writable<Node[]>([
     {
         id: "brain",

@@ -1,14 +1,19 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy, onMount, SvelteComponent } from "svelte";
 
     import { listen, type UnlistenFn } from "@tauri-apps/api/event";
     import { attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
-    import { SvelteFlowProvider } from "@xyflow/svelte";
+    import {
+        SvelteFlowProvider,
+        useSvelteFlow,
+        type Node,
+        type NodeTypes,
+    } from "@xyflow/svelte";
 
     import Session from "~/lib/session";
-    import { terminal, session, nodes, edges } from "~/lib/stores";
+    import { terminal, session, nodes, edges, dndNode } from "~/lib/stores";
     import {
         Button,
         Dialog,
@@ -34,6 +39,9 @@
 
     import "@xyflow/svelte/dist/style.css";
     import "~/styles/flow.css";
+    import type { DragData } from "./lib/layout/Sidebar.svelte";
+    import NodeBase from "./lib/components/NodeBase.svelte";
+    import DragNDropNode from "./lib/components/DragNDropNode.svelte";
 
     let settingsDialogOpen = false;
 
@@ -58,8 +66,10 @@
     let detachConsole: UnlistenFn | undefined;
     let unlistenUserSerial: UnlistenFn | undefined;
 
+    let dragNode: DragData | null = null;
+
     const decoder = new TextDecoder("UTF-8");
-    const nodeTypes = {
+    const nodeTypes: NodeTypes = {
         brain: BrainNode,
         adi: AdiNode,
         battery: BatteryNode,
@@ -69,6 +79,7 @@
         math: MathNode,
         time: TimeNode,
         light_sensor: LightSensorNode,
+        default: NodeBase,
     };
     const edgeTypes = {
         data: DataEdge,
@@ -115,7 +126,12 @@
 
 <SvelteFlowProvider>
     <main class="split-view">
-        <Sidebar />
+        <DragNDropNode bind:dragNode {nodeTypes} />
+        <Sidebar
+            on:nodeDrag={(e) => {
+                dragNode = e.detail;
+            }}
+        />
         <div class="app-left">
             <Toolbar>
                 <svelte:fragment slot="left">
@@ -161,7 +177,20 @@
                     <Settings size="16" />
                 </Button>
             </Toolbar>
-            <section class="display-view">
+            <section
+                class="display-view"
+                role="application"
+                on:mouseenter={() => {
+                    if (dragNode) {
+                        dragNode.valid = true;
+                    }
+                }}
+                on:mouseleave={() => {
+                    if (dragNode) {
+                        dragNode.valid = false;
+                    }
+                }}
+            >
                 <Flow {nodeTypes} {edgeTypes} {nodes} {edges} />
             </section>
             <Terminal />
@@ -224,5 +253,9 @@
             );
         background-position: -1px -1px;
         background-size: 20px 20px;
+    }
+
+    :global(.split-view:has(.drag-item) *) {
+        cursor: grabbing !important;
     }
 </style>
