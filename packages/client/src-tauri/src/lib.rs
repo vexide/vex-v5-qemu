@@ -1,8 +1,10 @@
+use nodes::InterpreterState;
 use tauri::Manager;
-use tauri_plugin_log::TimezoneStrategy;
+use tauri_plugin_log::{Target, TargetKind, TimezoneStrategy};
 use tauri_plugin_shell::process::CommandChild;
 use tokio::sync::Mutex;
 
+pub mod nodes;
 pub mod protocol;
 pub mod qemu;
 
@@ -10,6 +12,8 @@ pub mod qemu;
 pub struct AppState {
     /// QEMU child process (if running).
     qemu_process: Option<CommandChild>,
+    /// Node graph interpreter state.
+    interpreter: InterpreterState,
 }
 
 const ESCAPES: [Option<&str>; 6] = [
@@ -27,6 +31,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
+                .target(Target::new(TargetKind::Stdout))
+                .target(Target::new(TargetKind::Webview))
                 .format(|out, message, record| {
                     let time_format =
                         time::format_description::parse("[hour]:[minute]:[second]").unwrap();
@@ -50,7 +56,13 @@ pub fn run() {
             app.manage(Mutex::new(AppState::default()));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![qemu::spawn_qemu, qemu::kill_qemu])
+        .invoke_handler(tauri::generate_handler![
+            qemu::spawn_qemu,
+            qemu::kill_qemu,
+            nodes::update_node_graph,
+            nodes::start_node_graph_interpreter,
+            nodes::stop_node_graph_interpreter
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

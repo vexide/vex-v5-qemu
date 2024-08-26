@@ -1,4 +1,5 @@
 use miette::Diagnostic;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
@@ -7,7 +8,7 @@ use crate::{
 };
 
 /// Represents a device node.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Device {
     DistanceSensor { distance: f32, size: f32 },
     LightSensor { darkness: f32 },

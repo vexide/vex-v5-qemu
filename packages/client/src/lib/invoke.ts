@@ -19,3 +19,19 @@ export function killQemu() {
         invoke("kill_qemu");
     }
 }
+
+export function startNodeGraphInterpreter() {
+    if ("__TAURI_INTERNALS__" in window) {
+        invoke("start_node_graph_interpreter", {});
+    }
+}
+export function stopNodeGraphInterpreter() {
+    if ("__TAURI_INTERNALS__" in window) {
+        invoke("stop_node_graph_interpreter", {});
+    }
+}
+export function updateNodeGraph() {
+    if ("__TAURI_INTERNALS__" in window) {
+        invoke("update_node_graph", { opts: { brain: { port_1: "distance-node-0" }, nodes: { "distance-node-0": { data: { type: "DistanceSensor", data: { distance: 1000, size: 200 } } } } } });
+    }
+}

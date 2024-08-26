@@ -8,8 +8,15 @@
     import { SvelteFlowProvider, type NodeTypes } from "@xyflow/svelte";
 
     import Session from "~/lib/session";
-    import { terminal, session, nodes, edges } from "~/lib/stores";
-    import { Button, Dialog, Field, Slider } from "~/lib/components";
+    import Interpreter from "~/lib/interpreter";
+    import { terminal, session, nodes, edges, interpreter } from "~/lib/stores";
+    import {
+        Button,
+        Dialog,
+        Field,
+        NumberInput,
+        Slider,
+    } from "~/lib/components";
     import { Toolbar, Sidebar, Flow, Terminal } from "~/lib/layout";
     import {
         BrainNode,

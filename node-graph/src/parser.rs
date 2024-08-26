@@ -4,7 +4,7 @@ use miette::{Diagnostic, SourceSpan};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct NodeGraph {
     pub brain: Brain,
     pub nodes: BTreeMap<String, Node>,
@@ -44,6 +44,40 @@ pub struct Brain {
     pub adi_h: Option<String>,
 }
 impl Brain {
+    pub fn new() -> Self {
+        Self {
+            port_1: None,
+            port_2: None,
+            port_3: None,
+            port_4: None,
+            port_5: None,
+            port_6: None,
+            port_7: None,
+            port_8: None,
+            port_9: None,
+            port_10: None,
+            port_11: None,
+            port_12: None,
+            port_13: None,
+            port_14: None,
+            port_15: None,
+            port_16: None,
+            port_17: None,
+            port_18: None,
+            port_19: None,
+            port_20: None,
+            port_21: None,
+
+            adi_a: None,
+            adi_b: None,
+            adi_c: None,
+            adi_d: None,
+            adi_e: None,
+            adi_f: None,
+            adi_g: None,
+            adi_h: None,
+        }
+    }
     pub fn smart_ports(&self) -> Vec<(u8, &String)> {
         [
             &self.port_1,
@@ -87,6 +121,12 @@ impl Brain {
         .into_iter()
         .filter_map(|(i, port)| port.as_ref().map(|port| (i, port)))
         .collect()
+    }
+}
+
+impl Default for Brain {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

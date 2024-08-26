@@ -42,6 +42,4 @@ pub fn main() -> miette::Result<()> {
         sleep(Duration::from_millis(10) - elapsed);
         time += 0.01;
     }
-
-    Ok(())
 }
