@@ -1,10 +1,6 @@
 use std::time::Instant;
 
-use fimg::pixels::convert::RGB;
-use vex_v5_display_simulator::{
-    Display, Path, TextOptions, V5FontFamilyType, V5FontSize, DEFAULT_BACKGROUND,
-    DEFAULT_FOREGROUND,
-};
+use vex_v5_display_simulator::{Display, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
 
 pub fn main() {
     let mut display = Display::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND, Instant::now());

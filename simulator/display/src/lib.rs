@@ -1,9 +1,5 @@
 use std::{
     cell::Cell,
-    hash::DefaultHasher,
-    ops::{Deref, DerefMut},
-    sync::Arc,
-    thread::{sleep, spawn},
     time::{Duration, Instant},
 };
 
