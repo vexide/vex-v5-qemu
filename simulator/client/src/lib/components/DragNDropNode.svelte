@@ -1,7 +1,7 @@
 <script lang="ts">
     import { useSvelteFlow, type Node, type NodeTypes } from "@xyflow/svelte";
     import type { DragData } from "../layout/Sidebar.svelte";
-    import { dndNode, nodes } from "../stores.js";
+    import { nodes } from "../stores.js";
     import NodeBase from "./NodeBase.svelte";
     import type { SvelteComponent } from "svelte";
 

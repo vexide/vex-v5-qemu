@@ -10,7 +10,6 @@
 <script lang="ts">
     import { Clock, Hash, Menu, PlusCircle } from "svelte-feathers";
 
-    import { dndNode } from "~/lib/stores";
     import { Button, DraggableDevice } from "~/lib/components";
     import { drag } from "~/lib/actions";
 

@@ -13,8 +13,6 @@
         type EdgeTypes,
     } from "@xyflow/svelte";
 
-    import { dndNode } from "~/lib/stores";
-
     const { screenToFlowPosition } = useSvelteFlow();
 
     export let nodeTypes: NodeTypes | undefined;

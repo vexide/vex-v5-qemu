@@ -13,7 +13,7 @@
     } from "@xyflow/svelte";
 
     import Session from "~/lib/session";
-    import { terminal, session, nodes, edges, dndNode } from "~/lib/stores";
+    import { terminal, session, nodes, edges } from "~/lib/stores";
     import {
         Button,
         Dialog,
