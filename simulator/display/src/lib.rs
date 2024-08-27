@@ -4,8 +4,13 @@ use std::{
 };
 
 use ab_glyph::{point, Font, FontVec, Glyph, OutlinedGlyph, Point, PxScale, Rect, ScaleFont};
-use fimg::{pixels::convert::RGB, Image, Pack, WritePng};
+pub use fimg::Pack;
+use fimg::{pixels::convert::RGB, Image, WritePng};
 use resource::resource;
+use vex_v5_qemu_protocol::{
+    display::{Shape, TextSize},
+    geometry::Point2,
+};
 
 /// https://internals.vexide.dev/sdk/display#foreground-and-background-colors - #c0c0ff
 pub const DEFAULT_FOREGROUND: RGB = [0xc0, 0xc0, 0xff];
@@ -14,51 +19,35 @@ pub const DEFAULT_BACKGROUND: RGB = [0, 0, 0];
 /// https://internals.vexide.dev/sdk/display#code-signature - #ffffff
 pub const INVERTED_BACKGROUND: RGB = [0xff, 0xff, 0xff];
 
-pub enum Path {
-    Rect { x1: i32, y1: i32, x2: i32, y2: i32 },
-    Circle { cx: i32, cy: i32, radius: i32 },
-}
-
-impl Path {
-    pub fn normalize(&mut self) {
-        match self {
-            Path::Rect { x1, y1, x2, y2 } => {
-                *x1 = (*x1).clamp(0, DISPLAY_WIDTH as i32 - 1);
-                *y1 = (*y1).clamp(0, DISPLAY_HEIGHT as i32 - 1);
-                *x2 = (*x2).clamp(0, DISPLAY_WIDTH as i32 - 1);
-                *y2 = (*y2).clamp(0, DISPLAY_HEIGHT as i32 - 1);
-            }
-            Path::Circle { cx, cy, .. } => {
-                *cx = (*cx).clamp(0, DISPLAY_WIDTH as i32 - 1);
-                *cy = (*cy).clamp(0, DISPLAY_HEIGHT as i32 - 1);
+fn draw_shape<T: AsMut<[u8]> + AsRef<[u8]>>(
+    shape: Shape,
+    canvas: &mut Image<T, 3>,
+    stroke: bool,
+    color: RGB,
+) {
+    match shape {
+        Shape::Rectangle {
+            top_left,
+            bottom_right,
+        } => {
+            let coords = (top_left.x as u32, top_left.y as u32);
+            let width = (bottom_right.x - top_left.x).try_into().unwrap();
+            let height = (bottom_right.y - top_left.y).try_into().unwrap();
+            if stroke {
+                canvas.r#box(coords, width, height, color);
+            } else {
+                canvas.filled_box(coords, width, height, color);
             }
         }
-    }
-
-    pub fn draw<T: AsMut<[u8]> + AsRef<[u8]>>(
-        &self,
-        canvas: &mut Image<T, 3>,
-        stroke: bool,
-        color: RGB,
-    ) {
-        match *self {
-            Path::Rect { x1, y1, x2, y2 } => {
-                let coords = (x1 as u32, y1 as u32);
-                let width = (x2 - x1).try_into().unwrap();
-                let height = (y2 - y1).try_into().unwrap();
-                if stroke {
-                    canvas.r#box(coords, width, height, color);
-                } else {
-                    canvas.filled_box(coords, width, height, color);
-                }
+        Shape::Circle { center, radius } => {
+            if stroke {
+                canvas.border_circle((center.x, center.y), radius.into(), color);
+            } else {
+                canvas.circle((center.x, center.y), radius.into(), color);
             }
-            Path::Circle { cx, cy, radius } => {
-                if stroke {
-                    canvas.border_circle((cx, cy), radius, color);
-                } else {
-                    canvas.circle((cx, cy), radius, color);
-                }
-            }
+        }
+        Shape::Line { start, end } => {
+            canvas.line((start.x, start.y), (end.x, end.y), color);
         }
     }
 }
@@ -67,8 +56,11 @@ impl Path {
 pub struct TextLine(pub i32);
 
 impl TextLine {
-    pub const fn coords(&self) -> (i32, i32) {
-        (0, self.0 * 20 + 34)
+    pub const fn coords(&self) -> Point2<i32> {
+        Point2 {
+            x: 0,
+            y: self.0 * 20 + 34,
+        }
     }
 }
 
@@ -85,6 +77,16 @@ pub enum V5FontSize {
     #[default]
     Normal,
     Big,
+}
+
+impl From<TextSize> for V5FontSize {
+    fn from(value: TextSize) -> Self {
+        match value {
+            TextSize::Small => V5FontSize::Small,
+            TextSize::Normal => V5FontSize::Normal,
+            TextSize::Large => V5FontSize::Big,
+        }
+    }
 }
 
 impl V5FontSize {
@@ -239,17 +241,17 @@ impl Display {
     pub fn draw_buffer(
         &mut self,
         buf: &[u8],
-        top_left: (i32, i32),
-        bot_right: (i32, i32),
-        stride: u32,
+        top_left: Point2<i32>,
+        bot_right: Point2<i32>,
+        stride: usize,
     ) {
-        let mut y = top_left.1;
-        for row in buf.chunks((stride * 4) as usize) {
-            if y > bot_right.1 {
+        let mut y = top_left.y;
+        for row in buf.chunks(stride * 4) {
+            if y > bot_right.y {
                 break;
             }
 
-            let mut x = top_left.0;
+            let mut x = top_left.x;
             for pixel in row.chunks(4) {
                 let color = RGB::unpack(u32::from_le_bytes(pixel[0..4].try_into().unwrap()));
                 if x >= 0
@@ -285,7 +287,10 @@ impl Display {
         self.foreground_color = [0, 0, 0];
         self.write_text(
             time,
-            ((DISPLAY_WIDTH / 2) as i32, 3),
+            Point2 {
+                x: (DISPLAY_WIDTH / 2) as i32,
+                y: 3,
+            },
             true,
             TextOptions {
                 size: V5FontSize::Big,
@@ -348,9 +353,8 @@ impl Display {
 
     /// Draws or strokes a shape on the display, using the current foreground
     /// color.
-    pub fn draw(&mut self, mut shape: Path, stroke: bool) {
-        shape.normalize();
-        shape.draw(&mut self.canvas, stroke, self.foreground_color);
+    pub fn draw(&mut self, shape: Shape, stroke: bool) {
+        draw_shape(shape, &mut self.canvas, stroke, self.foreground_color)
     }
 
     /// Removes the last text layout from the cache and returns it if it matches
@@ -415,19 +419,18 @@ impl Display {
     /// drawn on top of a background color.
     fn calculate_text_background(
         glyphs: &TextLayout,
-        coords: (i32, i32),
+        coords: Point2<i32>,
         font_size: V5FontSize,
-    ) -> Option<Path> {
-        glyphs.bounds.map(|size| {
-            let mut backdrop = Path::Rect {
-                x1: size.min.x as i32 + coords.0 - 1,
-                y1: coords.1 + font_size.backdrop_y_offset(),
-                x2: size.max.x as i32 + coords.0 + 1,
-                y2: coords.1 + font_size.backdrop_y_offset() + font_size.line_height() - 1,
-            };
-
-            backdrop.normalize();
-            backdrop
+    ) -> Option<Shape> {
+        glyphs.bounds.map(|size| Shape::Rectangle {
+            top_left: Point2 {
+                x: size.min.x as i32 + coords.x - 1,
+                y: coords.y + font_size.backdrop_y_offset(),
+            },
+            bottom_right: Point2 {
+                x: size.max.x as i32 + coords.x + 1,
+                y: coords.y + font_size.backdrop_y_offset() + font_size.line_height() - 1,
+            },
         })
     }
 
@@ -445,7 +448,7 @@ impl Display {
     pub fn write_text(
         &mut self,
         mut text: String,
-        mut coords: (i32, i32),
+        mut coords: Point2<i32>,
         transparent: bool,
         options: TextOptions,
     ) {
@@ -456,14 +459,14 @@ impl Display {
 
         // The V5's text is all offset vertically from ours, so this adjustment makes it
         // consistent.
-        coords.1 += options.size.y_offset();
+        coords.y += options.size.y_offset();
 
         let fg = self.foreground_color;
         let layout = self.layout_for(&text, options);
 
         if !transparent {
             if let Some(backdrop) = Self::calculate_text_background(&layout, coords, options.size) {
-                backdrop.draw(&mut self.canvas, false, self.background_color);
+                draw_shape(backdrop, &mut self.canvas, false, self.background_color);
             }
         }
 
@@ -472,8 +475,8 @@ impl Display {
             // Draw the glyph into the image per-pixel
             glyph.draw(|mut x, mut y, alpha| {
                 // Apply offsets to make the coordinates image-relative, not text-relative
-                x += bounds.min.x as u32 + coords.0 as u32;
-                y += bounds.min.y as u32 + coords.1 as u32;
+                x += bounds.min.x as u32 + coords.x as u32;
+                y += bounds.min.y as u32 + coords.y as u32;
 
                 if !(x < self.canvas.width() && y < self.canvas.height()) {
                     return;
