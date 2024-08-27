@@ -65,13 +65,6 @@ impl TextLine {
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum V5FontFamilyType {
-    #[default]
-    UserMono,
-    TimerMono,
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum V5FontSize {
     Small,
     #[default]
@@ -140,13 +133,6 @@ impl V5FontSize {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct TextOptions {
     pub size: V5FontSize,
-    pub family: V5FontFamilyType,
-    /// If true, the text will be drawn on the _previous_ frame instead of the
-    /// working frame.
-    ///
-    /// This is useful for updating the header text, which should update
-    /// immediately.
-    pub prev_frame: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -197,15 +183,9 @@ pub struct Display {
     /// previous frame while the current frame is being drawn.
     pub prev_canvas: Option<Canvas>,
     user_mono: FontVec,
-    /// Font for the program header's timer.
-    timer_mono: FontVec,
     /// Cache for text layout calculations, to avoid re-calculating the same
     /// text layout multiple times in a row.
     text_layout_cache: Cell<Option<TextLayout>>,
-    /// The instant at which the program started.
-    start_instant: Instant,
-    /// The instant at which the display was last rendered.
-    last_render_time: Option<Instant>,
 }
 
 impl Display {
@@ -213,27 +193,14 @@ impl Display {
         let canvas = Image::build(DISPLAY_WIDTH, DISPLAY_HEIGHT).fill(default_bg_color);
         let user_mono =
             FontVec::try_from_vec(resource!("/fonts/NotoMono-Regular.ttf").to_vec()).unwrap();
-        let timer_mono =
-            FontVec::try_from_vec(resource!("/fonts/droid-sans-mono.ttf").to_vec()).unwrap();
 
         Self {
             foreground_color: default_fg_color,
             background_color: default_bg_color,
             user_mono,
-            timer_mono,
             canvas,
             prev_canvas: None,
             text_layout_cache: Cell::default(),
-            start_instant,
-            last_render_time: None,
-        }
-    }
-
-    /// Returns the font data for the given font family.
-    const fn font_family(&self, font_ty: V5FontFamilyType) -> &impl Font {
-        match font_ty {
-            V5FontFamilyType::UserMono => &self.user_mono,
-            V5FontFamilyType::TimerMono => &self.timer_mono,
         }
     }
 
@@ -272,58 +239,16 @@ impl Display {
         }
     }
 
-    /// Draws the blue program header at the top of the display.
-    fn draw_header(&mut self) {
-        let canvas = self.prev_canvas.as_mut().unwrap_or(&mut self.canvas);
-
-        canvas.filled_box((0, 0), DISPLAY_WIDTH, HEADER_HEIGHT, HEADER_BG);
-
-        let elapsed = self.start_instant.elapsed().as_secs();
-        let secs = elapsed % 60;
-        let mins = elapsed / 60;
-        let time = format!("{:01}:{:02}", mins, secs);
-
-        let prev_fg = self.foreground_color;
-        self.foreground_color = [0, 0, 0];
-        self.write_text(
-            time,
-            Point2 {
-                x: (DISPLAY_WIDTH / 2) as i32,
-                y: 3,
-            },
-            true,
-            TextOptions {
-                size: V5FontSize::Big,
-                family: V5FontFamilyType::TimerMono,
-                prev_frame: true,
-            },
-        );
-        self.foreground_color = prev_fg;
-    }
-
-    fn normalize_text(text: &str) -> String {
-        text.replace('\n', ".")
-    }
-
     /// Returns the next display frame, if one is available.
     pub fn render(&mut self, explicitly_requested: bool) -> Option<Vec<u8>> {
-        let timer_out_of_date = self
-            .last_render_time
-            .map_or(true, |last| last.elapsed() > Duration::from_secs(1));
-
         if explicitly_requested {
             // Save the current state of the display so we can continue
             // showing it as the next frame is being drawn. The existence
             // of `prev_canvas` indicates that we're (now) in double buffered mode.
             self.prev_canvas = Some(self.canvas.clone());
-        } else if self.render_mode() == RenderMode::DoubleBuffered && !timer_out_of_date {
-            // If we're already in double buffered mode and the program doesn't want to
-            // update the display yet, the only reason we would need to
-            // re-render is if the timer needs to be changed.
+        } else if self.render_mode() == RenderMode::DoubleBuffered {
             return None;
         }
-
-        self.draw_header();
 
         let frame = self.prev_canvas.as_ref().unwrap_or(&self.canvas);
         let mut png_data = Vec::new();
@@ -371,8 +296,8 @@ impl Display {
     /// Returns the layout for the given text, using the given options.
     ///
     /// May either return cached glyphs or calculate them when called.
-    fn layout_for(&self, text: &str, options: TextOptions) -> TextLayout {
-        if let Some(layout) = self.check_layout_cache(text, options) {
+    fn layout_for(&self, text: String, options: TextOptions) -> TextLayout {
+        if let Some(layout) = self.check_layout_cache(&text, options) {
             return layout;
         }
 
@@ -384,16 +309,15 @@ impl Display {
             x: options.size.font_size() * V5FontSize::x_scale(),
         };
 
-        let font = self.font_family(options.family);
-        let scale_font = font.as_scaled(scale);
+        let scale_font = self.user_mono.as_scaled(scale);
         let mut glyphs = Vec::new();
 
-        layout_glyphs(scale_font, text, V5FontSize::x_spacing(), &mut glyphs);
+        layout_glyphs(scale_font, &text, V5FontSize::x_spacing(), &mut glyphs);
 
         let outlined: Vec<OutlinedGlyph> = glyphs
             .into_iter()
             // removes any invisible characters
-            .filter_map(|g| font.outline_glyph(g))
+            .filter_map(|g| self.user_mono.outline_glyph(g))
             .collect();
 
         let bounds = outlined
@@ -408,7 +332,7 @@ impl Display {
             });
 
         TextLayout {
-            text: text.to_string(),
+            text,
             options,
             glyphs: outlined,
             bounds,
@@ -447,12 +371,11 @@ impl Display {
     /// * `options`: The options to use when rendering the text.
     pub fn write_text(
         &mut self,
-        mut text: String,
+        text: String,
         mut coords: Point2<i32>,
         transparent: bool,
         options: TextOptions,
     ) {
-        text = Self::normalize_text(&text);
         if text.is_empty() {
             return;
         }
@@ -462,7 +385,7 @@ impl Display {
         coords.y += options.size.y_offset();
 
         let fg = self.foreground_color;
-        let layout = self.layout_for(&text, options);
+        let layout = self.layout_for(text, options);
 
         if !transparent {
             if let Some(backdrop) = Self::calculate_text_background(&layout, coords, options.size) {
@@ -506,9 +429,8 @@ impl Display {
     ///
     /// Caches the result so that the same text and options don't have to be
     /// calculated multiple times in a row.
-    pub fn calculate_string_size(&self, mut text: String, options: TextOptions) -> Point {
-        text = Self::normalize_text(&text);
-        let layout = self.layout_for(&text, options);
+    pub fn calculate_string_size(&self, text: String, options: TextOptions) -> Point {
+        let layout = self.layout_for(text, options);
         let size = layout.bounds;
         self.text_layout_cache.set(Some(layout));
         size.unwrap_or_default().max
