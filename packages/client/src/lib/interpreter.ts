@@ -1,8 +1,10 @@
 import { startNodeGraphInterpreter, stopNodeGraphInterpreter, updateNodeGraph } from "~/lib/invoke";
 
 class Interpreter {
-    started: boolean = true;
-
+    started: boolean = false;
+    constructor() {
+        this.started = false;
+    }
     async start() {
         console.log("Starting interpreter");
         if (!this.started) {

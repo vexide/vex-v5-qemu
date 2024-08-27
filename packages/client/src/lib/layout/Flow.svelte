@@ -18,6 +18,7 @@
     import { onDestroy, onMount } from "svelte";
     import { listen, type UnlistenFn } from "@tauri-apps/api/event";
     import type { NodeGraphUpdatePayload } from "~/lib/payload";
+    import { invoke } from "@tauri-apps/api/core";
 
     const { screenToFlowPosition } = useSvelteFlow();
 
@@ -61,6 +62,7 @@
     onMount(async () => {
         $interpreter = new Interpreter();
         $interpreter.start();
+        console.log("interpreter", $interpreter);
 
         updateUnlisten = await listen<NodeGraphUpdatePayload>("node-graph-update", (event) => {
             console.log("node-graph-update", event);

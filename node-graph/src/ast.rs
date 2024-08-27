@@ -12,7 +12,7 @@ pub enum DataInput {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum DataNode {
+pub enum DataNodeData {
     Math {
         operation: Operation,
         lhs: DataInput,
@@ -23,12 +23,18 @@ pub enum DataNode {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct DataNode {
+    pub data: DataNodeData,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum DeviceInput {
     Value(DataInput),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum SmartDeviceNode {
+pub enum SmartDeviceNodeData {
     Distance {
         distance: DeviceInput,
         size: DeviceInput,
@@ -36,8 +42,20 @@ pub enum SmartDeviceNode {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum AdiDeviceNode {
+pub struct SmartDeviceNode {
+    pub data: SmartDeviceNodeData,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum AdiDeviceNodeData {
     Light { darkness: DeviceInput },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AdiDeviceNode {
+    pub data: AdiDeviceNodeData,
+    pub id: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -45,6 +63,29 @@ pub enum Node {
     DataNode(DataNode),
     SmartDeviceNode(SmartDeviceNode),
     AdiDeviceNode(AdiDeviceNode),
+}
+impl Node {
+    pub fn id(&self) -> &str {
+        match self {
+            Node::DataNode(node) => &node.id,
+            Node::SmartDeviceNode(node) => &node.id,
+            Node::AdiDeviceNode(node) => &node.id,
+        }
+    }
+    pub fn into_data(self) -> NodeData {
+        match self {
+            Node::DataNode(node) => NodeData::DataNode(node.data),
+            Node::SmartDeviceNode(node) => NodeData::SmartDeviceNode(node.data),
+            Node::AdiDeviceNode(node) => NodeData::AdiDeviceNode(node.data),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum NodeData {
+    DataNode(DataNodeData),
+    SmartDeviceNode(SmartDeviceNodeData),
+    AdiDeviceNode(AdiDeviceNodeData),
 }
 
 #[derive(Error, Debug)]
@@ -182,9 +223,6 @@ fn handle_device_input(
     fallback: f32,
 ) -> Result<DeviceInput, AstConversionError> {
     match input {
-        Some(Node::DataNode(DataNode::Value(value))) => {
-            Ok(DeviceInput::Value(DataInput::Value(*value)))
-        }
         Some(Node::DataNode(node)) => Ok(DeviceInput::Value(DataInput::DataNode(Box::new(
             node.clone(),
         )))),
@@ -242,15 +280,18 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
             let distance =
                 handle_device_input(id, inputs.get("distance"), distance.unwrap_or_default())?;
             let size = handle_device_input(id, inputs.get("size"), size.unwrap_or_default())?;
-            Ok(Node::SmartDeviceNode(SmartDeviceNode::Distance {
-                distance,
-                size,
+            Ok(Node::SmartDeviceNode(SmartDeviceNode {
+                data: SmartDeviceNodeData::Distance { distance, size },
+                id: id.to_owned(),
             }))
         }
         crate::parser::NodeType::Value { value } => {
             clean_inputs(id, &[], inputs)?;
 
-            Ok(Node::DataNode(DataNode::Value(*value)))
+            Ok(Node::DataNode(DataNode {
+                data: DataNodeData::Value(*value),
+                id: id.to_owned(),
+            }))
         }
         crate::parser::NodeType::Math {
             operation,
@@ -261,10 +302,13 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
             let lhs = handle_data_input(id, inputs.get("lhs"), lhs.unwrap_or_default())?;
             let rhs = handle_data_input(id, inputs.get("rhs"), rhs.unwrap_or_default())?;
 
-            Ok(Node::DataNode(DataNode::Math {
-                operation: *operation,
-                lhs,
-                rhs,
+            Ok(Node::DataNode(DataNode {
+                data: DataNodeData::Math {
+                    operation: *operation,
+                    lhs,
+                    rhs,
+                },
+                id: id.to_owned(),
             }))
         }
         crate::parser::NodeType::LightSensor { darkness } => {
@@ -272,12 +316,18 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
             let darkness =
                 handle_device_input(id, inputs.get("darkness"), darkness.unwrap_or_default())?;
 
-            Ok(Node::AdiDeviceNode(AdiDeviceNode::Light { darkness }))
+            Ok(Node::AdiDeviceNode(AdiDeviceNode {
+                data: AdiDeviceNodeData::Light { darkness },
+                id: id.to_owned(),
+            }))
         }
         crate::parser::NodeType::Time => {
             clean_inputs(id, &[], inputs)?;
 
-            Ok(Node::DataNode(DataNode::Time))
+            Ok(Node::DataNode(DataNode {
+                data: DataNodeData::Time,
+                id: id.to_owned(),
+            }))
         }
     }
 }
