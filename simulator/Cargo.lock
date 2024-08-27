@@ -4978,9 +4978,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vex-sdk"
-version = "0.17.0"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f285bbc2b96fc4c7fae42ebe365dd2e9121e7002a58b1a9e0e4b1d14dba4d6d0"
+checksum = "d27d92f1deaa83617d0e7f47a712982c7e9bd990797713d6d4eaca173100866f"
 
 [[package]]
 name = "vex-v5-display-simulator"

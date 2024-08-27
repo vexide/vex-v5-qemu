@@ -1,10 +1,7 @@
-use std::{
-    io::{stderr, stdout, Write},
-    path::PathBuf,
-};
+use std::path::PathBuf;
 
 use anyhow::Context;
-use log::{debug, LevelFilter};
+use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::process::Command;
 use vex_v5_qemu_host::brain::Brain;
@@ -12,7 +9,7 @@ use vex_v5_qemu_host::brain::Brain;
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../kernel/target/armv7a-none-eabi/debug/kernel"
+    "/../../kernel/target/armv7a-none-eabi/debug/kernel"
 );
 
 /// Simulate the VEX V5 robot program at <BINARY>.
@@ -61,7 +58,6 @@ async fn main() -> anyhow::Result<()> {
     .unwrap();
 
     let mut brain = Brain::new();
-    let mut peripherals = brain.peripherals.take().unwrap();
 
     let mut qemu = Command::new("qemu-system-arm");
     if opt.gdb {

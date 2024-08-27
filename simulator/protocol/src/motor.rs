@@ -1,14 +1,27 @@
+use bincode::{Decode, Encode};
 use bitflags::bitflags;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::impl_bincode_bitflags;
 
+#[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct MotorData {
+    pub velocity: f64,
+    pub position: i32,
+    pub power: f64,
+    pub torque: f64,
+    pub efficiency: f64,
+    pub temperature: f64,
+    pub flags: MotorFlags,
+    pub faults: MotorFaults,
+}
+
 bitflags! {
     /// The fault flags returned by a [`Motor`].
     #[derive(Debug, Clone, Eq, PartialEq, PartialOrd)]
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-
     pub struct MotorFaults: u32 {
         /// The motor's temperature is above its limit.
         const OVER_TEMPERATURE = 0x01;

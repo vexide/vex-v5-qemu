@@ -3,7 +3,7 @@
 use core::ffi::{c_double, c_int};
 
 use vex_sdk::*;
-use vex_v5_qemu_protocol::DeviceData;
+use vex_v5_qemu_protocol::{KernelBoundPacket, SmartPortData};
 
 use super::BATTERY;
 use crate::sync::Mutex;
@@ -35,18 +35,36 @@ pub static SMARTPORTS: [Mutex<SmartPort>; 21] = [
 pub static ONBOARD_ADI: Mutex<SmartPort> = Mutex::new(SmartPort::new(21));
 
 pub struct SmartPort {
-    pub port_index: u8,
+    pub index: u8,
     pub timestamp: u32,
-    pub data: Option<DeviceData>,
+    pub data: Option<SmartPortData>,
+    pub(crate) handle: V5_Device,
 }
 
 impl SmartPort {
-    pub const fn new(port_index: u8) -> Self {
+    pub const fn new(index: u8) -> Self {
         Self {
-            port_index,
+            index,
             data: None,
             timestamp: 0,
+            handle: V5_Device {
+                zero_indexed_port: index,
+                _unknown0: 0,
+                one_indexed_port: index + 1,
+                _unknown1_3: [0; 3],
+                device_type: V5_DeviceType::kDeviceTypeNoSensor,
+                installed: false,
+            },
         }
+    }
+
+    pub fn update(&mut self, data: SmartPortData, timestamp: u32) {
+        self.timestamp = timestamp;
+        self.data = Some(data);
+
+        let device_type = self.device_type();
+        self.handle.device_type = device_type;
+        self.handle.installed = device_type != V5_DeviceType::kDeviceTypeNoSensor;
     }
 }
 
@@ -54,12 +72,12 @@ pub trait Device {
     fn port_index(&self) -> u8;
     fn timestamp(&self) -> u32;
     fn device_type(&self) -> V5_DeviceType;
-    fn handle(&self) -> V5_DeviceT;
+    fn handle(&mut self) -> V5_DeviceT;
 }
 
 impl Device for SmartPort {
     fn port_index(&self) -> u8 {
-        self.port_index
+        self.index
     }
 
     fn timestamp(&self) -> u32 {
@@ -67,16 +85,18 @@ impl Device for SmartPort {
     }
 
     fn device_type(&self) -> V5_DeviceType {
-        V5_DeviceType::kDeviceTypeNoSensor
+        if let Some(data) = &self.data {
+            match data {
+                SmartPortData::DistanceSensor(_) => V5_DeviceType::kDeviceTypeDistanceSensor,
+                _ => V5_DeviceType::kDeviceTypeNoSensor,
+            }
+        } else {
+            V5_DeviceType::kDeviceTypeNoSensor
+        }
     }
 
-    fn handle(&self) -> V5_DeviceT {
-        let mut device = V5_Device::default();
-        device.zero_indexed_port = self.port_index;
-        device.one_indexed_port = self.port_index + 1;
-        device.device_type = self.device_type();
-
-        &mut device
+    fn handle(&mut self) -> V5_DeviceT {
+        &mut self.handle
     }
 }
 

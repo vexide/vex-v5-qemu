@@ -17,7 +17,7 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-vex-sdk = "0.17.0"
+vex-sdk = "0.19.0"
 bincode = { version = "2.0.0-rc.3", default-features = false, features = [
     "derive",
     "alloc",

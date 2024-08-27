@@ -57,10 +57,7 @@ pub extern "C" fn vexTasksRun() {
                     timestamp,
                 } => {
                     if let Some(port) = SMARTPORTS.get(port_index as usize) {
-                        let mut port = port.lock();
-                        port.port_index = port_index;
-                        port.data = Some(data);
-                        port.timestamp = timestamp;
+                        port.lock().update(data, timestamp);
                     }
                 }
                 KernelBoundPacket::ControllerUpdate {

@@ -12,6 +12,7 @@ use crate::sync::Mutex;
 pub struct Battery {
     pub data: Option<BatteryData>,
     pub timestamp: u32,
+    handle: V5_Device,
 }
 
 pub static BATTERY: Mutex<Battery> = Mutex::new(Battery::new());
@@ -23,6 +24,14 @@ impl Battery {
         Self {
             data: None,
             timestamp: 0,
+            handle: V5_Device {
+                zero_indexed_port: Self::INTERNAL_PORT_INDEX,
+                _unknown0: 0,
+                one_indexed_port: Self::INTERNAL_PORT_INDEX + 1,
+                _unknown1_3: [0; 3],
+                device_type: V5_DeviceType::kDeviceTypeRes2Sensor,
+                installed: false,
+            },
         }
     }
 }
@@ -40,13 +49,8 @@ impl Device for Battery {
         V5_DeviceType::kDeviceTypeRes2Sensor
     }
 
-    fn handle(&self) -> V5_DeviceT {
-        let mut device = V5_Device::default();
-        device.zero_indexed_port = Self::INTERNAL_PORT_INDEX;
-        device.one_indexed_port = Self::INTERNAL_PORT_INDEX + 1;
-        device.device_type = self.device_type();
-
-        &mut device
+    fn handle(&mut self) -> V5_DeviceT {
+        &mut self.handle
     }
 }
 
