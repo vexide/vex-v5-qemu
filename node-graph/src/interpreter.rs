@@ -32,7 +32,7 @@ impl From<Device> for NodeType {
 
 /// Represents an evaluated output from an AST.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum InterpereterOutput {
+pub enum InterpreterOutput {
     /// The AST evaluated down to a single value.
     Value(f32),
     /// The AST evaluated down to a device node.
@@ -43,7 +43,7 @@ pub struct InterpreterContext {
     time: f32,
     roots: Vec<String>,
     nodes: BTreeMap<String, NodeData>,
-    evaluated: BTreeMap<String, InterpereterOutput>,
+    evaluated: BTreeMap<String, InterpreterOutput>,
 }
 impl InterpreterContext {
     pub fn from_brain(time: f32, brain: &Brain) -> Self {
@@ -77,22 +77,38 @@ impl InterpreterContext {
         }
     }
 
+    pub fn new(time: f32) -> Self {
+        Self {
+            time,
+            roots: Vec::new(),
+            nodes: BTreeMap::new(),
+            evaluated: BTreeMap::new(),
+        }
+    }
+
     pub fn update_time(&mut self, time: f32) {
         self.time = time;
         self.evaluated.clear();
     }
 
-    pub fn root_nodes(&self) -> Vec<NodeData> {
+    pub fn root_nodes(&self) -> Vec<Node> {
         self.roots
             .iter()
-            .filter_map(|id| self.nodes.get(id))
-            .cloned()
+            .filter_map(|id| {
+                self.nodes
+                    .get(id)
+                    .map(|node| Node::from_data(node.clone(), id.to_owned()))
+            })
             .collect()
+    }
+
+    pub fn evaluated_nodes(&self) -> &BTreeMap<String, InterpreterOutput> {
+        &self.evaluated
     }
 }
 
 pub fn evaluate_data(node: &DataNode, ctx: &mut InterpreterContext) -> f32 {
-    if let Some(InterpereterOutput::Value(value)) = ctx.evaluated.get(&node.id) {
+    if let Some(InterpreterOutput::Value(value)) = ctx.evaluated.get(&node.id) {
         return *value;
     }
 
@@ -124,12 +140,12 @@ pub fn evaluate_data(node: &DataNode, ctx: &mut InterpreterContext) -> f32 {
     };
 
     ctx.evaluated
-        .insert(node.id.to_owned(), InterpereterOutput::Value(result));
+        .insert(node.id.to_owned(), InterpreterOutput::Value(result));
     result
 }
 
 pub fn evaluate_smart_device(node: &SmartDeviceNode, ctx: &mut InterpreterContext) -> Device {
-    if let Some(InterpereterOutput::Device(device)) = ctx.evaluated.get(&node.id) {
+    if let Some(InterpreterOutput::Device(device)) = ctx.evaluated.get(&node.id) {
         return *device;
     }
 
@@ -153,12 +169,12 @@ pub fn evaluate_smart_device(node: &SmartDeviceNode, ctx: &mut InterpreterContex
     };
 
     ctx.evaluated
-        .insert(node.id.to_owned(), InterpereterOutput::Device(result));
+        .insert(node.id.to_owned(), InterpreterOutput::Device(result));
     result
 }
 
 pub fn evaluate_adi_device(node: &AdiDeviceNode, ctx: &mut InterpreterContext) -> Device {
-    if let Some(InterpereterOutput::Device(device)) = ctx.evaluated.get(&node.id) {
+    if let Some(InterpreterOutput::Device(device)) = ctx.evaluated.get(&node.id) {
         return *device;
     }
 
@@ -176,19 +192,19 @@ pub fn evaluate_adi_device(node: &AdiDeviceNode, ctx: &mut InterpreterContext) -
     };
 
     ctx.evaluated
-        .insert(node.id.to_owned(), InterpereterOutput::Device(result));
+        .insert(node.id.to_owned(), InterpreterOutput::Device(result));
     result
 }
 
-pub fn evaluate(node: &Node, ctx: &mut InterpreterContext) -> Option<InterpereterOutput> {
+pub fn evaluate(node: &Node, ctx: &mut InterpreterContext) -> Option<InterpreterOutput> {
     if ctx.evaluated.contains_key(node.id()) {
         return Some(ctx.evaluated[node.id()]);
     }
 
     let result = match node {
-        Node::DataNode(node) => InterpereterOutput::Value(evaluate_data(node, ctx)),
-        Node::SmartDeviceNode(_) => todo!(),
-        Node::AdiDeviceNode(_) => todo!(),
+        Node::DataNode(node) => InterpreterOutput::Value(evaluate_data(node, ctx)),
+        Node::SmartDeviceNode(node) => InterpreterOutput::Device(evaluate_smart_device(node, ctx)),
+        Node::AdiDeviceNode(node) => InterpreterOutput::Device(evaluate_adi_device(node, ctx))
     };
     ctx.evaluated.insert(node.id().to_owned(), result);
 

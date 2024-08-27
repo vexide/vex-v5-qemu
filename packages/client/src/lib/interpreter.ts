@@ -1,4 +1,4 @@
-import { startNodeGraphInterpreter, stopNodeGraphInterpreter, updateNodeGraph } from "~/lib/invoke";
+import { startNodeGraphInterpreter, stopNodeGraphInterpreter, updateNodeGraph, type NodeGraph } from "~/lib/invoke";
 
 class Interpreter {
     started: boolean = false;
@@ -12,10 +12,9 @@ class Interpreter {
             startNodeGraphInterpreter();
         }
     }
-    //TODO: actually support updating
-    async update() {
+    async update(nodeGraph: NodeGraph) {
         if (this.started) {
-            updateNodeGraph();
+            updateNodeGraph(nodeGraph);
         }
     }
     async stop() {

@@ -30,8 +30,68 @@ export function stopNodeGraphInterpreter() {
         invoke("stop_node_graph_interpreter", {});
     }
 }
-export function updateNodeGraph() {
+
+export interface Brain {
+    port_1?: string | undefined,
+    port_2?: string | undefined,
+    port_3?: string | undefined,
+    port_4?: string | undefined,
+    port_5?: string | undefined,
+    port_6?: string | undefined,
+    port_7?: string | undefined,
+    port_8?: string | undefined,
+    port_9?: string | undefined,
+    port_10?: string | undefined,
+    port_11?: string | undefined,
+    port_12?: string | undefined,
+    port_13?: string | undefined,
+    port_14?: string | undefined,
+    port_15?: string | undefined,
+    port_16?: string | undefined,
+    port_17?: string | undefined,
+    port_18?: string | undefined,
+    port_19?: string | undefined,
+    port_20?: string | undefined,
+    port_21?: string | undefined
+}
+
+export interface Input {
+    source_id: string,
+    target_handle_id: string,
+    source_handle_id: string,
+}
+
+export interface DistanceSensor {
+    distance?: number | undefined,
+    size?: number | undefined
+}
+
+export interface LightSensor {
+    darkness?: number | undefined
+}
+
+export interface Value {
+    value?: number | undefined
+}
+
+export interface Math {
+    operation: string,
+    lhs?: number | undefined
+    rhs?: number | undefined
+}
+
+export interface Node {
+    data: {
+        type: "DistanceSensor" | "LightSensor" | "Value" | "Math",
+        data: DistanceSensor | LightSensor | Value | Math
+    } | "Time"
+    inputs?: Input[] | undefined
+}
+
+export interface NodeGraph { brain: Brain, nodes: { [key: string]: Node } }
+
+export function updateNodeGraph(nodeGraph: NodeGraph) {
     if ("__TAURI_INTERNALS__" in window) {
-        invoke("update_node_graph", { opts: { brain: { port_1: "distance-node-0" }, nodes: { "distance-node-0": { data: { type: "DistanceSensor", data: { distance: 1000, size: 200 } } } } } });
+        invoke("update_node_graph", { opts: nodeGraph });
     }
 }

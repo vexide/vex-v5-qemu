@@ -72,6 +72,13 @@ impl Node {
             Node::AdiDeviceNode(node) => &node.id,
         }
     }
+    pub fn from_data(data: NodeData, id: String) -> Self {
+        match data {
+            NodeData::DataNode(data) => Node::DataNode(DataNode { data, id }),
+            NodeData::SmartDeviceNode(data) => Node::SmartDeviceNode(SmartDeviceNode { data, id }),
+            NodeData::AdiDeviceNode(data) => Node::AdiDeviceNode(AdiDeviceNode { data, id }),
+        }
+    }
     pub fn into_data(self) -> NodeData {
         match self {
             Node::DataNode(node) => NodeData::DataNode(node.data),

@@ -5,7 +5,7 @@ use std::{
 
 use log::info;
 use node_graph::{
-    evaluate_adi_device, evaluate_smart_device, interpreter::Device, parser::NodeGraph,
+    evaluate, interpreter::{Device, InterpreterOutput, InterpreterContext}, parser::NodeGraph
 };
 use serde::Serialize;
 use tauri::{Emitter, Manager, State};
@@ -38,33 +38,21 @@ pub fn start_node_graph_interpreter(state: State<'_, Mutex<AppState>>, app: taur
             let start = Instant::now();
 
             let brain = state.lock().await.interpreter.node_ast.clone();
-            let graph = state.lock().await.interpreter.node_graph.clone();
+            let mut ctx = InterpreterContext::from_brain(time, &brain);
 
             let mut devices: BTreeMap<String, Device> = BTreeMap::new();
 
-            let smart_ports = brain
-                .smart_ports()
-                .into_iter()
-                .zip(graph.brain.smart_ports())
-                .map(|((_, node), (_, id))| (node, id))
-                .collect::<Vec<_>>();
-            let adi_ports = brain
-                .adi_ports()
-                .into_iter()
-                .zip(graph.brain.adi_ports())
-                .map(|((_, node), (_, id))| (node, id))
-                .collect::<Vec<_>>();
+            // Evaluate all nodes in the graph by starting at the root nodes
+            for node in ctx.root_nodes() {
+                evaluate(&node, &mut ctx);
+            }
 
-            // Evaluate smart ports
-            for (node, id) in smart_ports.iter() {
-                let device = evaluate_smart_device(node, time);
-                devices.insert((*id).to_owned(), device);
+            for (id, value) in ctx.evaluated_nodes() {
+                if let InterpreterOutput::Device(device) = value {
+                    devices.insert(id.clone(), *device);
+                }
             }
-            // Evaluate ADI ports
-            for (node, id) in adi_ports.iter() {
-                let device = evaluate_adi_device(node, time);
-                devices.insert((*id).to_owned(), device);
-            }
+
             app.emit("node-graph-update", NodeGraphUpdate { devices })
                 .unwrap();
             let elapsed = start.elapsed();

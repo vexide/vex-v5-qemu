@@ -76,7 +76,7 @@
     $: {
         console.log($nodes);
         console.log($edges);
-        $interpreter?.update();
+        $interpreter?.update({ brain: { port_1: "distance-node-0" }, nodes: { "distance-node-0": { data: { type: "DistanceSensor", data: { distance: 1000, size: 200 } } } } });
     }
 </script>
 
