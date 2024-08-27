@@ -9,8 +9,8 @@ use bincode::{Decode, Encode};
 use code_signature::CodeSignature;
 use controller::{ControllerData, ControllerId};
 use display::{Color, DisplayRenderMode, DrawCommand, ScrollLocation};
+use distance_sensor::DistanceSensorData;
 use geometry::Rect;
-use motor::{MotorFaults, MotorFlags};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +20,7 @@ pub mod controller;
 pub mod display;
 pub mod geometry;
 pub mod motor;
+pub mod distance_sensor;
 
 /// A message sent from the guest to the host.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
@@ -46,9 +47,9 @@ pub enum HostBoundPacket {
     },
     DisplayRenderMode(DisplayRenderMode),
     DisplayRender,
-    DeviceCommand {
+    SmartPortCommand {
         port: u8,
-        command: DeviceCommand,
+        command: SmartPortCommand,
     },
 }
 
@@ -59,7 +60,7 @@ pub enum KernelBoundPacket {
     UserSerial(Vec<u8>),
     SmartPortUpdate {
         port_index: u8,
-        data: DeviceData,
+        data: SmartPortData,
         timestamp: u32,
     },
     ControllerUpdate {
@@ -75,22 +76,13 @@ pub enum KernelBoundPacket {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum DeviceData {
-    Motor {
-        velocity: f64,
-        position: i32,
-        power: f64,
-        torque: f64,
-        efficiency: f64,
-        temperature: f64,
-        flags: MotorFlags,
-        faults: MotorFaults,
-    },
+pub enum SmartPortData {
+    DistanceSensor(DistanceSensorData),
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum DeviceCommand {}
+pub enum SmartPortCommand {}
 
 #[macro_export]
 macro_rules! impl_bincode_bitflags {
