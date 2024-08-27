@@ -8,7 +8,7 @@ use tokio::{
     sync::Mutex,
 };
 use vex_v5_display_simulator::{
-    Display, Pack, TextLine, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND,
+    DisplayRenderer, Pack, TextLine, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND,
 };
 use vex_v5_qemu_protocol::{
     display::{DrawCommand, TextLocation},
@@ -85,7 +85,8 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
         // Length of the next packet. This is `None` while the length is still being
         // read.
         let mut next_packet_len: Option<u32> = None;
-        let mut display = Display::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND, Instant::now());
+        let mut display =
+            DisplayRenderer::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND, Instant::now());
 
         while let Some(event) = rx.recv().await {
             match event {

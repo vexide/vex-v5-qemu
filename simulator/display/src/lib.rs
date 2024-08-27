@@ -1,11 +1,9 @@
-use std::{
-    cell::Cell,
-    time::{Duration, Instant},
-};
+use std::{cell::Cell, fmt::Debug, time::Instant};
 
 use ab_glyph::{point, Font, FontVec, Glyph, OutlinedGlyph, Point, PxScale, Rect, ScaleFont};
 pub use fimg::Pack;
-use fimg::{pixels::convert::RGB, Image, WritePng};
+use fimg::{pixels::convert::RGB, Image};
+use image::{ImageBuffer, Rgb, RgbImage};
 use resource::resource;
 use vex_v5_qemu_protocol::{
     display::{Shape, TextSize},
@@ -172,7 +170,7 @@ struct TextLayout {
     bounds: Option<Rect>,
 }
 
-pub struct Display {
+pub struct DisplayRenderer {
     /// The display's saved foreground color.
     pub foreground_color: RGB,
     /// The display's saved background color.
@@ -188,8 +186,18 @@ pub struct Display {
     text_layout_cache: Cell<Option<TextLayout>>,
 }
 
-impl Display {
-    pub fn new(default_fg_color: RGB, default_bg_color: RGB, start_instant: Instant) -> Self {
+impl Debug for DisplayRenderer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DisplayRenderer")
+            .field("foreground_color", &self.foreground_color)
+            .field("background_color", &self.background_color)
+            .field("double_buffered", &self.prev_canvas.is_some())
+            .finish()
+    }
+}
+
+impl DisplayRenderer {
+    pub fn new(default_fg_color: RGB, default_bg_color: RGB) -> Self {
         let canvas = Image::build(DISPLAY_WIDTH, DISPLAY_HEIGHT).fill(default_bg_color);
         let user_mono =
             FontVec::try_from_vec(resource!("/fonts/NotoMono-Regular.ttf").to_vec()).unwrap();
@@ -240,7 +248,7 @@ impl Display {
     }
 
     /// Returns the next display frame, if one is available.
-    pub fn render(&mut self, explicitly_requested: bool) -> Option<Vec<u8>> {
+    pub fn render(&mut self, explicitly_requested: bool) -> Option<RgbImage> {
         if explicitly_requested {
             // Save the current state of the display so we can continue
             // showing it as the next frame is being drawn. The existence
@@ -251,9 +259,8 @@ impl Display {
         }
 
         let frame = self.prev_canvas.as_ref().unwrap_or(&self.canvas);
-        let mut png_data = Vec::new();
-        frame.write(&mut png_data).unwrap();
-        Some(png_data)
+        // frame.clone().show();
+        RgbImage::from_raw(frame.width(), frame.height(), Vec::from(&**frame.buffer()))
     }
 
     pub const fn render_mode(&self) -> RenderMode {

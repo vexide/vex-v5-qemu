@@ -561,6 +561,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
+name = "byteorder-lite"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
+
+[[package]]
 name = "bytes"
 version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -770,9 +776,12 @@ dependencies = [
  "anyhow",
  "bincode",
  "clap",
+ "image",
  "log",
  "miette",
  "simplelog",
+ "sixel-bytes",
+ "sixel-sys-static",
  "thiserror",
  "tokio",
  "vex-v5-qemu-host",
@@ -2031,6 +2040,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "image"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99314c8a2152b8ddb211f924cdae532d8c5e4c8bb54728e12fff1b0cd5963a10"
+dependencies = [
+ "bytemuck",
+ "byteorder-lite",
+ "num-traits",
+]
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2332,6 +2352,12 @@ name = "mac"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
+
+[[package]]
+name = "make-cmd"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8ca8afbe8af1785e09636acb5a41e08a765f5f0340568716c18a8700ba3c0d3"
 
 [[package]]
 name = "malloc_buf"
@@ -3842,6 +3868,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38b58827f4464d87d377d175e90bf58eb00fd8716ff0a62f80356b5e61555d0d"
 
 [[package]]
+name = "sixel-bytes"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45cad296a72571e80953823496e9a55caf893e264de9a7c5cfd29427fca720fc"
+dependencies = [
+ "sixel-sys-static",
+]
+
+[[package]]
+name = "sixel-sys-static"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2988846c5099382a880a7dd385d38b203a60430710a9c22e538d500e6908f4f9"
+dependencies = [
+ "make-cmd",
+ "pkg-config",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4988,6 +5033,7 @@ version = "0.1.0"
 dependencies = [
  "ab_glyph",
  "fimg",
+ "image",
  "resource",
  "vex-v5-qemu-protocol",
 ]
@@ -4997,11 +5043,14 @@ name = "vex-v5-qemu-host"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "bytemuck",
  "cobs",
+ "image",
  "log",
  "miette",
  "thiserror",
  "tokio",
+ "vex-v5-display-simulator",
  "vex-v5-qemu-protocol",
 ]
 
