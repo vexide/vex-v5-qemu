@@ -6,6 +6,7 @@ members = [
     "./packages/protocol",
     "./packages/client-cli",
     "./packages/client/src-tauri",
+    "./packages/node-graph",
 ]
 resolver = "2"
 
