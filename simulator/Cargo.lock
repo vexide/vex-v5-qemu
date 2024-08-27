@@ -748,6 +748,7 @@ name = "client"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "bytemuck",
  "log",
  "serde",
  "serde_json",
@@ -758,6 +759,7 @@ dependencies = [
  "tauri-plugin-shell",
  "time",
  "tokio",
+ "vex-v5-display-simulator",
  "vex-v5-qemu-protocol",
 ]
 
@@ -4986,8 +4988,8 @@ version = "0.1.0"
 dependencies = [
  "ab_glyph",
  "fimg",
- "png",
  "resource",
+ "vex-v5-qemu-protocol",
 ]
 
 [[package]]
