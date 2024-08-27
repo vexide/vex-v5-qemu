@@ -78,10 +78,11 @@
         z-index: 1000;
         transform: scale(var(--flow-zoom, 1)) translate(-50%, calc(-36px / 2));
         pointer-events: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
     }
 
     .drag-item[data-valid="false"] {
-        opacity: 0.5;
+        opacity: 0.9;
         filter: grayscale(0.75);
     }
 </style>
