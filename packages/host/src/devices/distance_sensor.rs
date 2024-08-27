@@ -5,7 +5,7 @@ use std::{
 
 use tokio::{sync::Mutex, task::AbortHandle, time::sleep};
 use vex_v5_qemu_protocol::{
-    distance_sensor::{DistanceSensorData, DistanceSensorObject},
+    distance_sensor::{DistanceSensorData, DistanceObject},
     SmartPortData,
 };
 
@@ -45,7 +45,7 @@ impl DistanceSensor {
         }
     }
 
-    pub async fn set_object(&mut self, object: Option<DistanceSensorObject>) {
+    pub async fn set_object(&mut self, object: Option<DistanceObject>) {
         self.data.lock().await.object = object;
     }
 

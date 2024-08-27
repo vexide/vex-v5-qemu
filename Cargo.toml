@@ -1,5 +1,12 @@
 [workspace]
-members = ["client-cli", "host", "protocol", "client/src-tauri", "display"]
+members = [
+    "./packages/kernel",
+    "./packages/host",
+    "./packages/display",
+    "./packages/protocol",
+    "./packages/client-cli",
+    "./packages/client/src-tauri",
+]
 resolver = "2"
 
 [workspace.lints.rust]

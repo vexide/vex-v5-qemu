@@ -44,7 +44,7 @@ pub unsafe extern "C" fn vexDeviceDistanceObjectSizeGet(device: V5_DeviceT) -> i
     if let Some(port) = SMARTPORTS.get(unsafe { *device }.zero_indexed_port as usize) {
         if let Some(SmartPortData::DistanceSensor(data)) = &port.lock().data {
             return if let Some(object) = &data.object {
-                object.size as _
+                object.relative_size as _
             } else {
                 0
             }

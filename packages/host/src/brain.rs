@@ -9,7 +9,7 @@ use tokio::{
     io::AsyncWriteExt,
     process::Command,
     sync::{
-        mpsc::{self, error::TryRecvError, Sender},
+        mpsc::{self, Sender},
         Mutex,
     },
     task::AbortHandle,

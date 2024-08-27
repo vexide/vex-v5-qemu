@@ -9,7 +9,7 @@ use vex_v5_qemu_host::brain::Brain;
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../kernel/target/armv7a-none-eabi/debug/kernel"
+    "/../../target/armv7a-none-eabi/debug/kernel"
 );
 
 /// Simulate the VEX V5 robot program at <BINARY>.
