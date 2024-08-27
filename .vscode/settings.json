@@ -13,8 +13,7 @@
     "rust-analyzer.cargo.allTargets": false,
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.linkedProjects": [
-        "./simulator/Cargo.toml",
-        "./kernel/Cargo.toml",
+        "./Cargo.toml",
     ],
     "files.trimTrailingWhitespace": true,
     "files.trimFinalNewlines": true,
