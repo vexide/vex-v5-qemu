@@ -1,14 +1,13 @@
+cargo-features = ["per-package-target"]
+
 [package]
 name = "kernel"
 version = "0.1.0"
 edition = "2021"
+forced-target = "armv7a-none-eabi"
 
-[workspace.lints.rust]
-rust_2018_idioms = { level = "warn", priority = -1 }
-unsafe_op_in_unsafe_fn = "deny"
-
-[workspace.lints.clippy]
-missing_const_for_fn = "warn"
+[lints]
+workspace = true
 
 [profile.dev]
 panic = "abort"
@@ -33,5 +32,5 @@ embedded-io = "0.6.1"
 bincode = { version = "2.0.0-rc.3", default-features = false, features = [
     "derive",
 ] }
-vex-v5-qemu-protocol = { path = "../simulator/protocol" }
+vex-v5-qemu-protocol = { path = "../protocol" }
 talc = "4.4.1"
