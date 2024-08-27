@@ -43,7 +43,7 @@
           [
             qemu
             gdb
-            (rust-bin.nightly."2024-05-07".default.override {
+            (rust-bin.nightly."2024-06-20".default.override {
               extensions = [ "rust-src" "rust-analyzer" "clippy" ];
             })
           ] ++ tauriPackages;

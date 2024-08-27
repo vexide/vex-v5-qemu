@@ -9,13 +9,6 @@ forced-target = "armv7a-none-eabi"
 [lints]
 workspace = true
 
-[profile.dev]
-panic = "abort"
-
-[profile.release]
-panic = "abort"
-debug = true
-
 [dependencies]
 heapless = "0.8.0"
 # host_call = { path = "../host_call" }
