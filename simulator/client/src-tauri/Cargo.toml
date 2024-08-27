@@ -41,3 +41,5 @@ bincode = "2.0.0-rc.3"
 log = "0.4.22"
 time = { version = "0.3.36", features = ["formatting"] }
 tauri-plugin-dialog = "2.0.0-beta.0"
+vex-v5-display-simulator = { version = "0.1.0", path = "../../display" }
+bytemuck = "1.17.0"
