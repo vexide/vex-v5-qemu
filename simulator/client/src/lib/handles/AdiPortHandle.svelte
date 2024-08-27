@@ -1,7 +1,13 @@
 <script lang="ts">
-    import { Handle, useHandleConnections, type HandleProps, useEdges, useSvelteFlow } from "@xyflow/svelte";
+    import {
+        Handle,
+        useHandleConnections,
+        type HandleProps,
+        useEdges,
+        useSvelteFlow,
+    } from "@xyflow/svelte";
 
-    type Props = HandleProps
+    type Props = HandleProps;
 
     export let id: string;
     export let parentNode: string;
@@ -33,9 +39,11 @@
     id="adi_port_{id}"
     class="adi-port-handle"
     isConnectable={$connections.length === 0}
-    isValidConnection={c => {
-        const isSourceSmartport = c.sourceHandle?.startsWith("adi_port") ?? false;
-        const isTargetSmartport = c.targetHandle?.startsWith("adi_port") ?? false;
+    isValidConnection={(c) => {
+        const isSourceSmartport =
+            c.sourceHandle?.startsWith("adi_port") ?? false;
+        const isTargetSmartport =
+            c.targetHandle?.startsWith("adi_port") ?? false;
         return isSourceSmartport && isTargetSmartport;
     }}
     {style}

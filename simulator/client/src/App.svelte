@@ -5,17 +5,11 @@
     import { attachConsole } from "@tauri-apps/plugin-log";
     import { open } from "@tauri-apps/plugin-dialog";
 
-    import { SvelteFlowProvider } from "@xyflow/svelte";
+    import { SvelteFlowProvider, type NodeTypes } from "@xyflow/svelte";
 
     import Session from "~/lib/session";
     import { terminal, session, nodes, edges } from "~/lib/stores";
-    import {
-        Button,
-        Dialog,
-        Field,
-        NumberInput,
-        Slider,
-    } from "~/lib/components";
+    import { Button, Dialog, Field, Slider } from "~/lib/components";
     import { Toolbar, Sidebar, Flow, Terminal } from "~/lib/layout";
     import {
         BrainNode,
@@ -34,6 +28,9 @@
 
     import "@xyflow/svelte/dist/style.css";
     import "~/styles/flow.css";
+    import type { DragData } from "./lib/layout/Sidebar.svelte";
+    import NodeBase from "./lib/components/NodeBase.svelte";
+    import DragNDropOverlay from "./lib/components/DragNDropOverlay.svelte";
 
     let settingsDialogOpen = false;
 
@@ -58,8 +55,10 @@
     let detachConsole: UnlistenFn | undefined;
     let unlistenUserSerial: UnlistenFn | undefined;
 
+    let dragNode: DragData | null = null;
+
     const decoder = new TextDecoder("UTF-8");
-    const nodeTypes = {
+    const nodeTypes: NodeTypes = {
         brain: BrainNode,
         adi: AdiNode,
         battery: BatteryNode,
@@ -115,7 +114,12 @@
 
 <SvelteFlowProvider>
     <main class="split-view">
-        <Sidebar />
+        <DragNDropOverlay bind:dragNode {nodeTypes} />
+        <Sidebar
+            on:nodeGrab={(e) => {
+                dragNode = e.detail;
+            }}
+        />
         <div class="app-left">
             <Toolbar>
                 <svelte:fragment slot="left">
@@ -161,7 +165,20 @@
                     <Settings size="16" />
                 </Button>
             </Toolbar>
-            <section class="display-view">
+            <section
+                class="display-view"
+                role="application"
+                on:mouseenter={() => {
+                    if (dragNode) {
+                        dragNode.valid = true;
+                    }
+                }}
+                on:mouseleave={() => {
+                    if (dragNode) {
+                        dragNode.valid = false;
+                    }
+                }}
+            >
                 <Flow {nodeTypes} {edgeTypes} {nodes} {edges} />
             </section>
             <Terminal />
@@ -224,5 +241,9 @@
             );
         background-position: -1px -1px;
         background-size: 20px 20px;
+    }
+
+    :global(.split-view:has(.drag-item) *) {
+        cursor: grabbing !important;
     }
 </style>

@@ -20,4 +20,5 @@
     "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
     "files.eol": "\n",
+    "typescript.tsdk": "./simulator/client/node_modules/typescript/lib",
 }

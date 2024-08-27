@@ -1,7 +1,15 @@
+<script lang="ts" context="module">
+    export interface DragData {
+        nodeType: string;
+        x: number;
+        y: number;
+        valid: boolean;
+    }
+</script>
+
 <script lang="ts">
     import { Clock, Hash, Menu, PlusCircle } from "svelte-feathers";
 
-    import { dndType } from "~/lib/stores";
     import { Button, DraggableDevice } from "~/lib/components";
     import { drag } from "~/lib/actions";
 
@@ -21,6 +29,9 @@
         LineTracker,
         LightSensor,
     } from "~/lib/icons";
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher<{ nodeGrab: DragData }>();
 
     let width = 260;
     let scrollEdgeTop = true;
@@ -32,20 +43,13 @@
     const MAX_WIDTH = 400;
     const COLLAPSE_BREAKPOINT = 185;
 
-    function handleDragStart(event: DragEvent, nodeType: string) {
-        if (!event.dataTransfer) {
-            return;
-        }
-
-        $dndType = nodeType;
-
-        event.dataTransfer.effectAllowed = "move";
-        // Workaround for a webkit bug.
-        // see: https://github.com/tauri-apps/tauri/issues/6695
-        event.dataTransfer.setData(
-            "text/plain",
-            (event.target as HTMLElement).id,
-        );
+    function handleDragStart(event: MouseEvent, nodeType: string) {
+        dispatch("nodeGrab", {
+            nodeType,
+            x: event.clientX,
+            y: event.clientY,
+            valid: false,
+        });
     }
 
     function toggleCollapse() {
@@ -83,7 +87,7 @@
             target.scrollHeight - target.scrollTop - target.clientHeight < 24;
     }
 
-    const DATA_NODES =  [
+    const DATA_NODES = [
         {
             name: "Value",
             icon: Hash,
@@ -98,7 +102,7 @@
             name: "Time",
             icon: Clock,
             node: "time",
-        }
+        },
     ];
 
     const SMART_DEVICES = [
@@ -174,7 +178,7 @@
             name: "Light Sensor",
             icon: LightSensor,
             node: "light_sensor",
-        }
+        },
     ];
 </script>
 
@@ -202,7 +206,7 @@
                 <li>
                     <DraggableDevice
                         name={device.name}
-                        on:dragstart={(e) => handleDragStart(e, device.node)}
+                        on:mousedown={(e) => handleDragStart(e, device.node)}
                     >
                         <svelte:component
                             this={device.icon}
@@ -219,7 +223,7 @@
                 <li>
                     <DraggableDevice
                         name={device.name}
-                        on:dragstart={(e) => handleDragStart(e, device.node)}
+                        on:mousedown={(e) => handleDragStart(e, device.node)}
                     >
                         <svelte:component
                             this={device.icon}
@@ -236,7 +240,7 @@
                 <li>
                     <DraggableDevice
                         name={device.name}
-                        on:dragstart={(e) => handleDragStart(e, device.node)}
+                        on:mousedown={(e) => handleDragStart(e, device.node)}
                     >
                         <svelte:component
                             this={device.icon}

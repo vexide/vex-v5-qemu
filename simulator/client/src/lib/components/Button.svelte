@@ -4,6 +4,7 @@
     export let disabled = false;
     export let small = false;
     export let ref: HTMLElement | null = null;
+    export let draggable = false;
 
     let className = "";
     export { className as class };
@@ -15,12 +16,14 @@
     href={href && !disabled ? href : undefined}
     class="button variant-{variant} {className}"
     class:small
+    class:draggable
     {disabled}
     bind:this={ref}
     on:click
     on:focus
     on:blur
     on:dragstart
+    on:mousedown
     {...$$restProps}
 >
     <slot />
@@ -81,6 +84,10 @@
         padding-block: 8px;
         line-height: 16px;
         gap: 4px;
+    }
+
+    .button.draggable {
+        cursor: grab;
     }
 
     .button:disabled {

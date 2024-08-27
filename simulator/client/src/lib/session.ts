@@ -17,7 +17,7 @@ class Session {
             spawnQemu({
                 gdb: false,
                 qemu: "qemu-system-arm",
-                kernel: "../../kernel/target/armv7a-none-eabi/debug/kernel",
+                kernel: "../../../kernel/target/armv7a-none-eabi/debug/kernel",
                 binary: this.binary,
                 qemu_args: [],
             });
@@ -41,7 +41,7 @@ class Session {
                 gdb: false,
                 qemu: "qemu-system-arm",
                 // temporary
-                kernel: "../../kernel/target/armv7a-none-eabi/debug/kernel",
+                kernel: "../../../kernel/target/armv7a-none-eabi/debug/kernel",
                 binary: this.binary,
                 qemu_args: [],
             });
