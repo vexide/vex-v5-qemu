@@ -10,7 +10,7 @@
         "opcontrol",
         "vexlink"
     ],
-    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.check.allTargets": false,
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml",

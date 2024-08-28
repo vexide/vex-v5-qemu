@@ -1,9 +1,11 @@
 import type { Terminal } from "@xterm/xterm";
 import type Session from "~/lib/session";
+import type Interpreter from "~/lib/interpreter";
 import type { Edge, Node } from "@xyflow/svelte";
 
 import { writable, type Writable } from "svelte/store";
 
+export const interpreter: Writable<Interpreter | null> = writable(null);
 export const session: Writable<Session | null> = writable(null);
 export const terminal: Writable<Terminal | null> = writable(null);
 export const display: Writable<CanvasRenderingContext2D | null> =

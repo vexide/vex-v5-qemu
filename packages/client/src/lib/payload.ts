@@ -98,3 +98,17 @@ export type DragEnterPayload = DragDropPayload;
 export type DragOverPayload = {
     position: { x: number; y: number };
 };
+
+// Node Graph interpreter payloads
+
+export type NodeGraphDevice =
+    | {
+        DistanceSensor: { distance: number; size: number };
+    }
+    | {
+        LightSensor: { darkness: number }
+    }
+
+export type NodeGraphUpdatePayload = {
+    devices: { [id: string]: NodeGraphDevice }
+};

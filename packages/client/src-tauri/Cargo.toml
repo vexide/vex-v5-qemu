@@ -29,13 +29,14 @@ tauri-build = { version = "2.0.0-rc.2", features = [] }
 [dependencies]
 tauri = { version = "2.0.0-rc.2", features = [] }
 tauri-plugin-shell = "2.0.0-beta.0"
-tauri-plugin-log = { version = "2.0.0-beta.0", features = ["colored"] }
+tauri-plugin-log = { version = "2.0.0-rc.1", features = ["colored"] }
 
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 
 tokio = { version = "1.39.2", features = ["full"] }
 
+node-graph = { path = "../../node-graph" }
 vex-v5-qemu-protocol = { path = "../../protocol", features = ["serde"] }
 bincode = "2.0.0-rc.3"
 log = "0.4.22"

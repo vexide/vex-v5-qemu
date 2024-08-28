@@ -1,0 +1,13 @@
+[package]
+name = "node-graph"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+miette = "7.2.0"
+serde = { version = "1.0.209", features = ["derive"] }
+thiserror = "1.0.63"
+toml = "0.8.19"
+
+[dev-dependencies]
+miette = { version = "7.2.0", features = ["fancy"] }
