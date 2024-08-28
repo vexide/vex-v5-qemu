@@ -1,4 +1,4 @@
-use std::{path::PathBuf, time::Instant};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use tauri::{Emitter, Manager, State};
@@ -7,18 +7,9 @@ use tokio::{
     io::{stderr, AsyncWriteExt},
     sync::Mutex,
 };
-use vex_v5_display_simulator::{
-    DisplayRenderer, Pack, TextLine, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND,
-};
-use vex_v5_qemu_protocol::{
-    display::{DrawCommand, TextLocation},
-    HostBoundPacket, KernelBoundPacket,
-};
+use vex_v5_qemu_protocol::HostBoundPacket;
 
-use crate::{
-    protocol::{self, DisplayClearPayload, DisplayDrawPayload, DisplayScrollPayload},
-    AppState,
-};
+use crate::AppState;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QemuOptions {
