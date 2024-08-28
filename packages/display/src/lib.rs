@@ -4,7 +4,6 @@ use ab_glyph::{point, Font, FontVec, Glyph, OutlinedGlyph, Point, PxScale, Rect,
 pub use fimg::Pack;
 use fimg::{pixels::convert::RGB, Image};
 use image::{ImageBuffer, Rgb, RgbImage};
-use resource::resource;
 use vex_v5_qemu_protocol::{
     display::{Shape, TextSize},
     geometry::Point2,
@@ -200,7 +199,8 @@ impl DisplayRenderer {
     pub fn new(default_fg_color: RGB, default_bg_color: RGB) -> Self {
         let canvas = Image::build(DISPLAY_WIDTH, DISPLAY_HEIGHT).fill(default_bg_color);
         let user_mono =
-            FontVec::try_from_vec(resource!("/fonts/NotoMono-Regular.ttf").to_vec()).unwrap();
+            FontVec::try_from_vec(include_bytes!("../fonts/NotoMono-Regular.ttf").to_vec())
+                .unwrap();
 
         Self {
             foreground_color: default_fg_color,
