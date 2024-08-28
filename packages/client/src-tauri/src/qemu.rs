@@ -85,8 +85,6 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
         // Length of the next packet. This is `None` while the length is still being
         // read.
         let mut next_packet_len: Option<u32> = None;
-        let mut display =
-            DisplayRenderer::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND, Instant::now());
 
         while let Some(event) = rx.recv().await {
             match event {
@@ -141,90 +139,8 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
                             process.kill().unwrap();
                             log::debug!("Exit request completed. Code {code}.");
                         }
-                        HostBoundPacket::DisplayDraw {
-                            command,
-                            color,
-                            clip_region: _,
-                        } => {
-                            log::debug!("Received display draw packet: {:?}", command);
-                            display.foreground_color = Pack::unpack(color.0);
-                            match command {
-                                DrawCommand::Fill(shape) => {
-                                    display.draw(shape, false);
-                                }
-                                DrawCommand::Stroke(shape) => {
-                                    display.draw(shape, true);
-                                }
-                                DrawCommand::Text {
-                                    data,
-                                    size,
-                                    location,
-                                    opaque,
-                                    background,
-                                } => {
-                                    display.background_color = Pack::unpack(background.0);
-                                    let coords = match location {
-                                        TextLocation::Coordinates(coords) => coords,
-                                        TextLocation::Line(line) => TextLine(line).coords(),
-                                    };
-                                    display.write_text(
-                                        data,
-                                        coords,
-                                        !opaque,
-                                        TextOptions {
-                                            size: size.into(),
-                                            ..Default::default()
-                                        },
-                                    );
-                                }
-                                DrawCommand::CopyBuffer {
-                                    top_left,
-                                    bottom_right,
-                                    stride,
-                                    buffer,
-                                } => {
-                                    let buffer = bytemuck::cast_slice(&buffer);
-                                    display.draw_buffer(
-                                        buffer,
-                                        top_left,
-                                        bottom_right,
-                                        stride.get().into(),
-                                    );
-                                }
-                            }
-                            display.render(false);
-                            display.canvas.clone().show();
-                        }
-                        HostBoundPacket::DisplayErase { color, clip_region } => {
-                            log::debug!("Received display erase packet.");
-                            app.emit("display_clear", DisplayClearPayload { color, clip_region })
-                                .unwrap();
-                        }
-                        HostBoundPacket::DisplayScroll {
-                            location,
-                            lines,
-                            background,
-                            clip_region,
-                        } => {
-                            log::debug!("Received display scroll packet.");
-                            app.emit(
-                                "display_scroll",
-                                DisplayScrollPayload {
-                                    location,
-                                    lines,
-                                    background,
-                                    clip_region,
-                                },
-                            )
-                            .unwrap();
-                        }
-                        HostBoundPacket::DisplayRender => {
-                            log::debug!("Received display render packet.");
-                            app.emit("display_render", ()).unwrap();
-                        }
-                        HostBoundPacket::DisplayRenderMode(mode) => {
-                            log::debug!("Received display render mode packet.");
-                            app.emit("display_set_render_mode", mode).unwrap();
+                        HostBoundPacket::DisplayCommand { command } => {
+                            log::debug!("Display command not implemented: {:?}", command);
                         }
                         _ => {}
                     }
