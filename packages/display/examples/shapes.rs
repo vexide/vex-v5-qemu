@@ -1,10 +1,10 @@
 use std::time::Instant;
 
-use vex_v5_display_simulator::{Display, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
+use vex_v5_display_simulator::{DisplayRenderer, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
 use vex_v5_qemu_protocol::{display::Shape, geometry::Point2};
 
 pub fn main() {
-    let mut display = Display::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND, Instant::now());
+    let mut display = DisplayRenderer::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND);
 
     display.draw(
         Shape::Rectangle {

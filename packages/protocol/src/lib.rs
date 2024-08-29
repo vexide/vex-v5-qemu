@@ -18,9 +18,9 @@ pub mod battery;
 pub mod code_signature;
 pub mod controller;
 pub mod display;
+pub mod distance_sensor;
 pub mod geometry;
 pub mod motor;
-pub mod distance_sensor;
 
 /// A message sent from the guest to the host.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
@@ -30,27 +30,30 @@ pub enum HostBoundPacket {
     KernelSerial(Vec<u8>),
     CodeSignature(CodeSignature),
     ExitRequest(i32),
-    DisplayDraw {
+    DisplayCommand { command: DisplayCommand },
+    SmartPortCommand { port: u8, command: SmartPortCommand },
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum DisplayCommand {
+    Draw {
         command: DrawCommand,
         color: Color,
         clip_region: Rect,
     },
-    DisplayScroll {
+    Scroll {
         location: ScrollLocation,
         lines: i32,
         background: Color,
         clip_region: Rect,
     },
-    DisplayErase {
+    Erase {
         color: Color,
         clip_region: Rect,
     },
-    DisplayRenderMode(DisplayRenderMode),
-    DisplayRender,
-    SmartPortCommand {
-        port: u8,
-        command: SmartPortCommand,
-    },
+    DisableDoubleBuffering,
+    Render,
 }
 
 /// A message sent from the host to the guest.

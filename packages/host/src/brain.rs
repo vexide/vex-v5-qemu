@@ -14,11 +14,11 @@ use tokio::{
     },
     task::AbortHandle,
 };
-use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket, SmartPortCommand};
+use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
 
 use crate::{
     connection::QemuConnection,
-    peripherals::{battery::Battery, smartport::SmartPort, Peripherals},
+    peripherals::{battery::Battery, display::Display, smartport::SmartPort, Peripherals},
 };
 
 #[derive(Debug)]
@@ -59,6 +59,8 @@ impl Brain {
         let (port_19_tx, port_19_rx) = mpsc::channel::<SmartPortCommand>(1);
         let (port_20_tx, port_20_rx) = mpsc::channel::<SmartPortCommand>(1);
         let (port_21_tx, port_21_rx) = mpsc::channel::<SmartPortCommand>(1);
+
+        let (display_tx, display_rx) = mpsc::channel::<DisplayCommand>(1);
 
         Self {
             connection: connection.clone(),
@@ -125,6 +127,10 @@ impl Brain {
                                 }
                             }
 
+                            HostBoundPacket::DisplayCommand { command } => {
+                                display_tx.send(command).await.unwrap();
+                            }
+
                             // Not implemented yet.
                             _ => {}
                         }
@@ -156,6 +162,8 @@ impl Brain {
                 port_19: SmartPort::new(18, peripherals_tx.clone(), port_19_rx),
                 port_20: SmartPort::new(19, peripherals_tx.clone(), port_20_rx),
                 port_21: SmartPort::new(20, peripherals_tx.clone(), port_21_rx),
+
+                display: Display::new(peripherals_tx.clone(), display_rx),
             }),
         }
     }
