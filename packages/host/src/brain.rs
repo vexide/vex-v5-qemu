@@ -18,7 +18,7 @@ use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket, SmartPortCommand}
 
 use crate::{
     connection::QemuConnection,
-    peripherals::{battery::Battery, smartport::SmartPort, Peripherals},
+    peripherals::{battery::Battery, smartport::SmartPort, usb::Usb, Peripherals},
 };
 
 #[derive(Debug)]
@@ -60,6 +60,8 @@ impl Brain {
         let (port_20_tx, port_20_rx) = mpsc::channel::<SmartPortCommand>(1);
         let (port_21_tx, port_21_rx) = mpsc::channel::<SmartPortCommand>(1);
 
+        let (usb_tx, usb_rx) = mpsc::channel::<Vec<u8>>(1);
+
         Self {
             connection: connection.clone(),
             task: tokio::task::spawn(async move {
@@ -90,9 +92,8 @@ impl Brain {
                         match connection.recv_packet().await.unwrap() {
                             // TODO: Forward this to a `Usb` peripheral once that exists.
                             HostBoundPacket::UserSerial(data) => {
-                                let mut stdout = tokio::io::stdout();
-                                stdout.write_all(&data).await.unwrap();
-                                stdout.flush().await.unwrap();
+                                log::debug!("Received user serial data");
+                                usb_tx.send(data).await.unwrap();
                             }
 
                             // I'm not sure if this should be handled as part of the USB
@@ -156,6 +157,7 @@ impl Brain {
                 port_19: SmartPort::new(18, peripherals_tx.clone(), port_19_rx),
                 port_20: SmartPort::new(19, peripherals_tx.clone(), port_20_rx),
                 port_21: SmartPort::new(20, peripherals_tx.clone(), port_21_rx),
+                usb: Usb::new(usb_rx),
             }),
         }
     }

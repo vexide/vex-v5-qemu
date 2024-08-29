@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
-use tokio::process::Command;
+use tokio::{io::AsyncReadExt, process::Command, task};
 use vex_v5_qemu_host::brain::Brain;
 
 // TODO: fix this cursedness
@@ -47,22 +47,36 @@ struct Opt {
 async fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
 
-    TermLogger::init(
-        LevelFilter::Debug,
-        ConfigBuilder::new()
-            .set_thread_level(LevelFilter::Off)
-            .build(),
-        TerminalMode::Mixed,
-        ColorChoice::Auto,
-    )
-    .unwrap();
+    // TermLogger::init(
+    //     LevelFilter::Debug,
+    //     ConfigBuilder::new()
+    //         .set_thread_level(LevelFilter::Off)
+    //         .build(),
+    //     TerminalMode::Mixed,
+    //     ColorChoice::Auto,
+    // )
+    // .unwrap();
 
     let mut brain = Brain::new();
+
+    let mut peripherals = brain.peripherals.take().unwrap();
 
     let mut qemu = Command::new("qemu-system-arm");
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
+
+    let mut usb = peripherals.usb;
+
+    task::spawn(async move {
+        let mut buf = [0u8; 1024];
+        loop {
+            let n = usb.read(&mut buf).await.unwrap();
+            log::debug!("Read {} bytes from USB", n);
+            let data_str = std::str::from_utf8(&buf[..n]).unwrap();
+            println!("USB: {}", data_str);
+        }
+    });
 
     brain
         .run_program(qemu, opt.kernel, opt.binary)
