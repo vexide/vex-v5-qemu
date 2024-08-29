@@ -1,24 +1,25 @@
 use std::{
-    io,
-    pin::Pin,
-    task::{Context, Poll},
+    io, pin::Pin, task::{Context, Poll}
 };
 
 use tokio::{
-    io::{AsyncRead, ReadBuf},
-    sync::mpsc::Receiver,
+    io::{AsyncRead, AsyncWrite, ReadBuf},
+    sync::mpsc::{Receiver, Sender, error::TrySendError},
 };
+use vex_v5_qemu_protocol::KernelBoundPacket;
 
 /// Allows access to the simulated USB serial port.
 #[derive(Debug)]
 pub struct Usb {
+    tx: Sender<KernelBoundPacket>,
     rx: Receiver<Vec<u8>>,
     read_buf: Vec<u8>,
 }
 
 impl Usb {
-    pub const fn new(rx: Receiver<Vec<u8>>) -> Self {
+    pub(crate) const fn new(tx: Sender<KernelBoundPacket>, rx: Receiver<Vec<u8>>) -> Self {
         Self {
+            tx,
             rx,
             read_buf: Vec::new(),
         }
@@ -49,6 +50,35 @@ impl AsyncRead for Usb {
         buf.put_slice(&self.read_buf[..read_len]);
         self.read_buf.drain(0..read_len);
 
+        Poll::Ready(Ok(()))
+    }
+}
+
+impl AsyncWrite for Usb {
+    fn poll_write(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &[u8],
+    ) -> Poll<Result<usize, io::Error>> {
+        match self.tx.try_send(KernelBoundPacket::UsbSerial(buf.to_vec())) {
+            Ok(()) => Poll::Ready(Ok(buf.len())),
+            Err(TrySendError::Full(_)) => {
+                // TODO: determine if this hogs CPU cycles
+                cx.waker().wake_by_ref();
+                Poll::Pending
+            }
+            Err(TrySendError::Closed(_)) => Poll::Ready(Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "Sender was dropped.",
+            ))),
+        }
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<(), io::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn poll_shutdown(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<(), io::Error>> {
         Poll::Ready(Ok(()))
     }
 }

@@ -137,7 +137,7 @@ impl Brain {
             .abort_handle(),
             peripherals: Some(Peripherals {
                 battery: Battery::new(peripherals_tx.clone()),
-                usb: Usb::new(usb_rx),
+                usb: Usb::new(peripherals_tx.clone(), usb_rx),
 
                 port_1: SmartPort::new(0, peripherals_tx.clone(), port_1_rx),
                 port_2: SmartPort::new(1, peripherals_tx.clone(), port_2_rx),
