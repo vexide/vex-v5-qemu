@@ -94,7 +94,7 @@ impl Brain {
                             // Forward sent data to usb peripheral.
                             HostBoundPacket::UsbSerial(data) => {
                                 _ = usb_tx.send(data).await;
-                            },
+                            }
 
                             // I'm not sure if this should be handled as part of the USB
                             // peripheral in the future or not, since it's kernel log output
@@ -113,6 +113,7 @@ impl Brain {
                                 connection.child.kill().await.unwrap();
                                 *connection_guard = None;
                                 log::info!("Kernel exited with code {code}.");
+                                break;
                             }
 
                             // The kernel has sent a device command packet to a specific smartport,
@@ -136,7 +137,7 @@ impl Brain {
             .abort_handle(),
             peripherals: Some(Peripherals {
                 battery: Battery::new(peripherals_tx.clone()),
-                usb: Usb::new(peripherals_tx.clone(), usb_rx),
+                usb: Usb::new(usb_rx),
 
                 port_1: SmartPort::new(0, peripherals_tx.clone(), port_1_rx),
                 port_2: SmartPort::new(1, peripherals_tx.clone(), port_2_rx),

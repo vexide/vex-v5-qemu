@@ -3,7 +3,10 @@ use std::path::PathBuf;
 use anyhow::Context;
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
-use tokio::{io::{AsyncReadExt, AsyncWriteExt}, process::Command};
+use tokio::{
+    io::{stdout, AsyncReadExt, AsyncWriteExt, BufReader},
+    process::Command,
+};
 use vex_v5_qemu_host::brain::Brain;
 
 // TODO: fix this cursedness
@@ -45,7 +48,6 @@ struct Opt {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    console_subscriber::init();
     let opt = <Opt as clap::Parser>::parse();
 
     TermLogger::init(
@@ -59,7 +61,7 @@ async fn main() -> anyhow::Result<()> {
     .unwrap();
 
     let mut brain = Brain::new();
-    let mut peripherals = brain.peripherals.take().unwrap();
+    let peripherals = brain.peripherals.take().unwrap();
 
     let mut qemu = Command::new("qemu-system-arm");
     if opt.gdb {
@@ -75,13 +77,17 @@ async fn main() -> anyhow::Result<()> {
 
     let usb_task = tokio::task::spawn(async move {
         let mut usb = peripherals.usb;
+        let mut out = stdout();
 
         loop {
-            let mut buf = vec![0; 2];
-            _ = usb.read(&mut buf).await;
-            let mut stdout = tokio::io::stdout();
-            stdout.write_all(&buf).await.unwrap();
-            stdout.flush().await.unwrap();
+            let mut buf = vec![0; 1024];
+            let n = usb.read(&mut buf).await.unwrap();
+            if n == 0 {
+                break;
+            }
+
+            out.write_all(&buf[..n]).await.unwrap();
+            out.flush().await.unwrap();
         }
     });
 
