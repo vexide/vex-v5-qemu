@@ -1,12 +1,15 @@
 pub mod battery;
 pub mod smartport;
+pub mod usb;
 
 use battery::Battery;
 use smartport::SmartPort;
+use usb::Usb;
 
 #[derive(Debug)]
 pub struct Peripherals {
     pub battery: Battery,
+    pub usb: Usb,
 
     pub port_1: SmartPort,
     pub port_2: SmartPort,

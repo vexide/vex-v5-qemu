@@ -26,7 +26,7 @@ pub mod distance_sensor;
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum HostBoundPacket {
-    UserSerial(Vec<u8>),
+    UsbSerial(Vec<u8>),
     KernelSerial(Vec<u8>),
     CodeSignature(CodeSignature),
     ExitRequest(i32),
@@ -57,7 +57,7 @@ pub enum HostBoundPacket {
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum KernelBoundPacket {
-    UserSerial(Vec<u8>),
+    UsbSerial(Vec<u8>),
     SmartPortUpdate {
         port_index: u8,
         data: SmartPortData,
