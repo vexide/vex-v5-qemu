@@ -9,6 +9,7 @@ use tokio::{
     sync::mpsc::Receiver,
 };
 
+/// Allows access to the simulated USB serial port.
 #[derive(Debug)]
 pub struct Usb {
     rx: Receiver<Vec<u8>>,
