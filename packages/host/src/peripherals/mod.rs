@@ -1,8 +1,10 @@
 pub mod battery;
+pub mod display;
 pub mod smartport;
 pub mod usb;
 
 use battery::Battery;
+use display::Display;
 use smartport::SmartPort;
 use usb::Usb;
 
@@ -33,5 +35,6 @@ pub struct Peripherals {
     pub port_20: SmartPort,
     pub port_21: SmartPort,
 
+    pub display: Display,
     // TODO: onboard ADI, controllers, display/touch, usb, sdcard
 }

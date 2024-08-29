@@ -20,3 +20,6 @@ thiserror = "1.0.63"
 bincode = "2.0.0-rc.3"
 cobs = "0.2.3"
 log = "0.4.22"
+image = { version = "0.25.2", default-features = false }
+vex-v5-display-simulator = { version = "0.1.0", path = "../display" }
+bytemuck = "1.17.0"

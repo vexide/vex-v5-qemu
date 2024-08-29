@@ -13,7 +13,7 @@ use vex_v5_qemu_protocol::{
         Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize,
     },
     geometry::{Point2, Rect},
-    HostBoundPacket,
+    DisplayCommand, HostBoundPacket,
 };
 
 use crate::{
@@ -81,27 +81,33 @@ impl Display {
     }
 
     pub fn erase(&mut self) -> Result<(), ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayErase {
-            color: self.background,
-            clip_region: self.clip_region,
+        protocol::send_packet(HostBoundPacket::DisplayCommand {
+            command: DisplayCommand::Erase {
+                color: self.background,
+                clip_region: self.clip_region,
+            },
         })
     }
 
     pub fn scroll(&mut self, location: ScrollLocation, lines: i32) -> Result<(), ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayScroll {
-            location,
-            lines,
-            background: self.background,
-            clip_region: self.clip_region,
+        protocol::send_packet(HostBoundPacket::DisplayCommand {
+            command: DisplayCommand::Scroll {
+                location,
+                lines,
+                background: self.background,
+                clip_region: self.clip_region,
+            },
         })
     }
 
     #[allow(unused)]
     pub fn fill(&mut self, shape: Shape, color: Color) -> Result<(), ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayDraw {
-            command: DrawCommand::Fill(shape),
-            color,
-            clip_region: self.clip_region,
+        protocol::send_packet(HostBoundPacket::DisplayCommand {
+            command: DisplayCommand::Draw {
+                command: DrawCommand::Fill(shape),
+                color,
+                clip_region: self.clip_region,
+            },
         })
     }
 
@@ -115,10 +121,12 @@ impl Display {
 
     #[allow(unused)]
     pub fn stroke(&mut self, shape: Shape, color: Color) -> Result<(), ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayDraw {
-            command: DrawCommand::Stroke(shape),
-            color,
-            clip_region: self.clip_region,
+        protocol::send_packet(HostBoundPacket::DisplayCommand {
+            command: DisplayCommand::Draw {
+                command: DrawCommand::Stroke(shape),
+                color,
+                clip_region: self.clip_region,
+            },
         })
     }
 
@@ -138,15 +146,17 @@ impl Display {
         stride: NonZeroU16,
         buffer: Vec<u32>,
     ) -> Result<(), ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayDraw {
-            command: DrawCommand::CopyBuffer {
-                top_left,
-                bottom_right,
-                stride,
-                buffer,
+        protocol::send_packet(HostBoundPacket::DisplayCommand {
+            command: DisplayCommand::Draw {
+                command: DrawCommand::CopyBuffer {
+                    top_left,
+                    bottom_right,
+                    stride,
+                    buffer,
+                },
+                color: self.foreground,
+                clip_region: self.clip_region,
             },
-            color: self.foreground,
-            clip_region: self.clip_region,
         })
     }
 
@@ -159,16 +169,18 @@ impl Display {
         opaque: bool,
         background: Color,
     ) -> Result<(), ProtocolError> {
-        protocol::send_packet(HostBoundPacket::DisplayDraw {
-            command: DrawCommand::Text {
-                data,
-                size,
-                location,
-                opaque,
-                background,
+        protocol::send_packet(HostBoundPacket::DisplayCommand {
+            command: DisplayCommand::Draw {
+                command: DrawCommand::Text {
+                    data,
+                    size,
+                    location,
+                    opaque,
+                    background,
+                },
+                color: self.foreground,
+                clip_region: self.clip_region,
             },
-            color: self.foreground,
-            clip_region: self.clip_region,
         })
     }
 }
@@ -360,12 +372,15 @@ pub extern "C" fn vexDisplayClipRegionSet(x1: i32, y1: i32, x2: i32, y2: i32) {
     })
 }
 pub extern "C" fn vexDisplayRender(bVsyncWait: bool, bRunScheduler: bool) {
-    protocol::send_packet(HostBoundPacket::DisplayRender).unwrap();
+    protocol::send_packet(HostBoundPacket::DisplayCommand {
+        command: DisplayCommand::Render,
+    })
+    .unwrap();
 }
 pub extern "C" fn vexDisplayDoubleBufferDisable() {
-    protocol::send_packet(HostBoundPacket::DisplayRenderMode(
-        DisplayRenderMode::Immediate,
-    ))
+    protocol::send_packet(HostBoundPacket::DisplayCommand {
+        command: DisplayCommand::DisableDoubleBuffering,
+    })
     .unwrap();
 }
 pub extern "C" fn vexDisplayClipRegionSetWithIndex(index: i32, x1: i32, y1: i32, x2: i32, y2: i32) {
