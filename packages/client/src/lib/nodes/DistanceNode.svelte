@@ -17,31 +17,25 @@
     import { DistanceSensor } from "~/lib/icons";
     import Slider from "../components/Slider.svelte";
 
-    type NodeData = {};
+    type NodeData = {
+        distance: number;
+        size: number;
+    };
 
     type $$Props = NodeProps<Node<NodeData>>;
 
     export let data: NodeData;
     export let id: $$Props["id"];
 
-    let distance = 1000;
-    let size = 200;
+    data.distance = 1000;
+    data.size = 200;
+
+
 
     let objectVisible = true;
 
     const distanceConnections = useHandleConnections({ nodeId: id, type: "target", id: "data_distance"});
     const sizeConnections = useHandleConnections({ nodeId: id, type: "target", id: "data_size"});
-    $: distanceData = useNodesData($distanceConnections[0]?.source);
-    $: sizeData = useNodesData($sizeConnections[0]?.source);
-
-    $: {
-        if ($distanceData) {
-            distance = $distanceData.data.value as number;
-        }
-        if ($sizeData) {
-            size = $sizeData.data.value as number;
-        }
-    }
 
     data;
 </script>
@@ -73,11 +67,11 @@
                 min={20}
                 step="10"
                 disabled={!objectVisible && $distanceConnections.length > 0}
-                bind:value={distance}
+                bind:value={data.distance}
             />{:else}<NumberInput disabled="true" value="9999" />{/if}
     </Field>
     {#if objectVisible}
-        <Slider bind:value={distance} disabled={!objectVisible} min={20} max={2000} step={10} label="Distance slider" />
+        <Slider bind:value={data.distance} disabled={!objectVisible} min={20} max={2000} step={10} label="Distance slider" />
     {/if}
     <Field label="Size">
         <DataHandle
@@ -92,7 +86,7 @@
                 min={0}
                 step="10"
                 disabled={!objectVisible && $sizeConnections.length > 0}
-                bind:value={size}
+                bind:value={data.size}
             />{:else}<NumberInput disabled="true" value="-1" />{/if}
     </Field>
 </NodeBase>

@@ -283,10 +283,10 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
 
     match &node.data {
         crate::parser::NodeType::DistanceSensor { distance, size } => {
-            let inputs = clean_inputs(id, &["distance", "size"], inputs)?;
+            let inputs = clean_inputs(id, &["data_distance", "data_size"], inputs)?;
             let distance =
-                handle_device_input(id, inputs.get("distance"), distance.unwrap_or_default())?;
-            let size = handle_device_input(id, inputs.get("size"), size.unwrap_or_default())?;
+                handle_device_input(id, inputs.get("data_distance"), distance.unwrap_or_default())?;
+            let size = handle_device_input(id, inputs.get("data_size"), size.unwrap_or_default())?;
             Ok(Node::SmartDeviceNode(SmartDeviceNode {
                 data: SmartDeviceNodeData::Distance { distance, size },
                 id: id.to_owned(),
@@ -305,9 +305,9 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
             lhs,
             rhs,
         } => {
-            let inputs = clean_inputs(id, &["lhs", "rhs"], inputs)?;
-            let lhs = handle_data_input(id, inputs.get("lhs"), lhs.unwrap_or_default())?;
-            let rhs = handle_data_input(id, inputs.get("rhs"), rhs.unwrap_or_default())?;
+            let inputs = clean_inputs(id, &["data_lhs", "data_rhs"], inputs)?;
+            let lhs = handle_data_input(id, inputs.get("data_lhs"), lhs.unwrap_or_default())?;
+            let rhs = handle_data_input(id, inputs.get("data_rhs"), rhs.unwrap_or_default())?;
 
             Ok(Node::DataNode(DataNode {
                 data: DataNodeData::Math {
@@ -319,9 +319,9 @@ fn build_ast(graph: &NodeGraph, id: &str) -> Result<Node, AstConversionError> {
             }))
         }
         crate::parser::NodeType::LightSensor { darkness } => {
-            let inputs = clean_inputs(id, &["darkness"], inputs)?;
+            let inputs = clean_inputs(id, &["data_darkness"], inputs)?;
             let darkness =
-                handle_device_input(id, inputs.get("darkness"), darkness.unwrap_or_default())?;
+                handle_device_input(id, inputs.get("data_darkness"), darkness.unwrap_or_default())?;
 
             Ok(Node::AdiDeviceNode(AdiDeviceNode {
                 data: AdiDeviceNodeData::Light { darkness },

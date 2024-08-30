@@ -32,7 +32,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_log::Builder::new()
                 .target(Target::new(TargetKind::Stdout))
-                .target(Target::new(TargetKind::Webview))
+                // .target(Target::new(TargetKind::Webview))
                 .format(|out, message, record| {
                     let time_format =
                         time::format_description::parse("[hour]:[minute]:[second]").unwrap();

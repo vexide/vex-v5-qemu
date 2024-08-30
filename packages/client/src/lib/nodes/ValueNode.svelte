@@ -25,10 +25,9 @@
     export let data: NodeData;
     export let id: $$Props["id"];
 
-    let value = 0;
+    data.value = 0;
 
     const { updateNodeData } = useSvelteFlow();
-    $: updateNodeData(id, { value });
 
     let currentTab = "value";
 
@@ -43,13 +42,13 @@
         if (currentTab === "constant") {
             switch (constant) {
                 case "pi":
-                    value = Math.PI;
+                    data.value = Math.PI;
                     break;
                 case "tao":
-                    value = 2 * Math.PI;
+                    data.value = 2 * Math.PI;
                     break;
                 case "e":
-                    value = Math.E;
+                    data.value = Math.E;
                     break;
             }
         }
@@ -69,7 +68,7 @@
     />
     <Tabs bind:selected={currentTab}>
         <TabPanel label="Value" id="value">
-            <Field label="Value"><NumberInput bind:value /></Field>
+            <Field label="Value"><NumberInput bind:value={data.value} /></Field>
         </TabPanel>
         <TabPanel label="Constant" id="constant">
             <Field label="Constant"

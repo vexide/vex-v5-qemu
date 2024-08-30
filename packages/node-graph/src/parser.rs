@@ -140,7 +140,6 @@ pub struct Node {
 pub struct Input {
     pub source_id: String,
     pub target_handle_id: String,
-    pub source_handle_id: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,4 +1,5 @@
-import { startNodeGraphInterpreter, stopNodeGraphInterpreter, updateNodeGraph, type NodeGraph } from "~/lib/invoke";
+import { startNodeGraphInterpreter, stopNodeGraphInterpreter, updateNodeGraph } from "~/lib/invoke";
+import type { NodeGraph } from "~/lib/nodeGraph";
 
 class Interpreter {
     started: boolean = false;

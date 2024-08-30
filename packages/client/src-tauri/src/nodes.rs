@@ -53,10 +53,11 @@ pub fn start_node_graph_interpreter(state: State<'_, Mutex<AppState>>, app: taur
                 }
             }
 
+            // info!("Devices: {:?}", devices);
             app.emit("node-graph-update", NodeGraphUpdate { devices })
                 .unwrap();
             let elapsed = start.elapsed();
-            sleep(Duration::from_millis(10) - elapsed).await;
+            sleep(Duration::from_millis(10).saturating_sub(elapsed)).await;
             time += 0.01;
         }
     }));
@@ -73,7 +74,15 @@ pub fn stop_node_graph_interpreter(state: State<'_, Mutex<AppState>>) {
 #[tauri::command]
 pub fn update_node_graph(state: State<'_, Mutex<AppState>>, opts: NodeGraph) {
     let mut state = state.blocking_lock();
-    let brain = node_graph::node_graph_to_ast(&opts).unwrap();
+    let brain = match node_graph::node_graph_to_ast(&opts) {
+        Ok(brain) => brain,
+        Err(e) => {
+            info!("Failed to parse node graph: {:?}", e);
+            return;
+        }
+    };
     state.interpreter.node_ast = brain;
     state.interpreter.node_graph = opts;
+    info!("Updated node graph: {:?}", state.interpreter.node_graph);
+    info!("Updated node ast: {:?}", state.interpreter.node_ast);
 }
