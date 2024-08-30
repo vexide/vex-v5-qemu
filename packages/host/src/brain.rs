@@ -10,7 +10,7 @@ use tokio::{
     process::Command,
     sync::{
         mpsc::{self, Sender},
-        Mutex,
+        Barrier, Mutex,
     },
     task::AbortHandle,
 };
@@ -26,12 +26,14 @@ pub struct Brain {
     pub peripherals: Option<Peripherals>,
     connection: Arc<Mutex<Option<QemuConnection>>>,
     task: AbortHandle,
+    barrier: Arc<Barrier>,
 }
 
 impl Brain {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let connection = Arc::new(Mutex::new(None));
+        let barrier = Arc::new(Barrier::new(2));
 
         let (peripherals_tx, peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
 
@@ -64,6 +66,7 @@ impl Brain {
 
         Self {
             connection: connection.clone(),
+            barrier: barrier.clone(),
             task: tokio::task::spawn(async move {
                 let mut peripherals_rx = peripherals_rx;
                 let smartport_senders: [Sender<SmartPortCommand>; 21] = [
@@ -78,12 +81,10 @@ impl Brain {
                 // - Receive packets from peripherals and send them to the kernel.
                 // - Receive packets from the kernel and forward them to peripherals.
                 loop {
-                    // Receive incoming packets from peripherals.
-                    let peripherals_packet = peripherals_rx.try_recv().ok();
-
                     if let Some(connection) = connection.lock().await.as_mut() {
+                        // Receive incoming packets from peripherals.
                         // Send the latest packet from peripherals to the kernel.
-                        if let Some(peripherals_packet) = peripherals_packet {
+                        if let Ok(peripherals_packet) = peripherals_rx.try_recv() {
                             connection.send_packet(peripherals_packet).await.unwrap();
                         }
 
@@ -134,6 +135,8 @@ impl Brain {
                             // Not implemented yet.
                             _ => {}
                         }
+                    } else {
+                        barrier.wait().await;
                     }
                 }
             })
@@ -200,6 +203,7 @@ impl Brain {
 
         let mut child = qemu_command.spawn()?;
 
+        self.barrier.wait().await;
         *self.connection.lock().await = Some(QemuConnection {
             stdin: child.stdin.take().unwrap(),
             stdout: child.stdout.take().unwrap(),
