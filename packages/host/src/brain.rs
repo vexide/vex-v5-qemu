@@ -18,7 +18,9 @@ use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, S
 
 use crate::{
     connection::QemuConnection,
-    peripherals::{battery::Battery, display::Display, usb::Usb, smartport::SmartPort, Peripherals},
+    peripherals::{
+        battery::Battery, display::Display, smartport::SmartPort, usb::Usb, Peripherals,
+    },
 };
 
 #[derive(Debug)]
@@ -82,7 +84,8 @@ impl Brain {
                 // - Receive packets from peripherals and send them to the kernel.
                 // - Receive packets from the kernel and forward them to peripherals.
                 loop {
-                    if let Some(connection) = connection.lock().await.as_mut() {
+                    let mut connection_guard = connection.lock().await;
+                    if let Some(connection) = connection_guard.as_mut() {
                         // Send the latest packet from peripherals to the kernel.
                         if let Ok(peripherals_packet) = peripherals_rx.try_recv() {
                             connection.send_packet(peripherals_packet).await.unwrap();
