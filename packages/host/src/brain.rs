@@ -18,7 +18,7 @@ use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, S
 
 use crate::{
     connection::QemuConnection,
-    peripherals::{battery::Battery, display::Display, smartport::SmartPort, Peripherals},
+    peripherals::{battery::Battery, display::Display, usb::Usb, smartport::SmartPort, Peripherals},
 };
 
 #[derive(Debug)]
@@ -62,6 +62,7 @@ impl Brain {
         let (port_20_tx, port_20_rx) = mpsc::channel::<SmartPortCommand>(1);
         let (port_21_tx, port_21_rx) = mpsc::channel::<SmartPortCommand>(1);
 
+        let (usb_tx, usb_rx) = mpsc::channel::<Vec<u8>>(1);
         let (display_tx, display_rx) = mpsc::channel::<DisplayCommand>(1);
 
         Self {
@@ -82,7 +83,6 @@ impl Brain {
                 // - Receive packets from the kernel and forward them to peripherals.
                 loop {
                     if let Some(connection) = connection.lock().await.as_mut() {
-                        // Receive incoming packets from peripherals.
                         // Send the latest packet from peripherals to the kernel.
                         if let Ok(peripherals_packet) = peripherals_rx.try_recv() {
                             connection.send_packet(peripherals_packet).await.unwrap();
@@ -91,11 +91,9 @@ impl Brain {
                         // If a child process is running, then receive kernel packets and forward
                         // them to a respective peripheral's `Receiver`.
                         match connection.recv_packet().await.unwrap() {
-                            // TODO: Forward this to a `Usb` peripheral once that exists.
-                            HostBoundPacket::UserSerial(data) => {
-                                let mut stdout = tokio::io::stdout();
-                                stdout.write_all(&data).await.unwrap();
-                                stdout.flush().await.unwrap();
+                            // Forward sent data to usb peripheral.
+                            HostBoundPacket::UsbSerial(data) => {
+                                _ = usb_tx.send(data).await;
                             }
 
                             // I'm not sure if this should be handled as part of the USB
@@ -112,8 +110,10 @@ impl Brain {
 
                             // Kill QEMU child process when kernel requests exit.
                             HostBoundPacket::ExitRequest(code) => {
-                                log::info!("Kernel exited with code {code}.");
                                 connection.child.kill().await.unwrap();
+                                *connection_guard = None;
+                                log::info!("Kernel exited with code {code}.");
+                                break;
                             }
 
                             // The kernel has sent a device command packet to a specific smartport,
@@ -143,6 +143,7 @@ impl Brain {
             .abort_handle(),
             peripherals: Some(Peripherals {
                 battery: Battery::new(peripherals_tx.clone()),
+                usb: Usb::new(peripherals_tx.clone(), usb_rx),
 
                 port_1: SmartPort::new(0, peripherals_tx.clone(), port_1_rx),
                 port_2: SmartPort::new(1, peripherals_tx.clone(), port_2_rx),
@@ -211,6 +212,14 @@ impl Brain {
         });
 
         Ok(())
+    }
+
+    pub async fn kill_program(&mut self) -> io::Result<()> {
+        if let Some(mut connection) = self.connection.lock().await.take() {
+            connection.child.kill().await
+        } else {
+            Ok(())
+        }
     }
 
     pub async fn wait_for_exit(&mut self) -> io::Result<Option<ExitStatus>> {

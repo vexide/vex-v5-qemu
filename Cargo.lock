@@ -766,6 +766,7 @@ dependencies = [
  "time",
  "tokio",
  "vex-v5-display-simulator",
+ "vex-v5-qemu-host",
  "vex-v5-qemu-protocol",
 ]
 

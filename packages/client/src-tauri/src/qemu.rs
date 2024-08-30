@@ -113,7 +113,7 @@ pub fn spawn_qemu(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle, opts
                         .unwrap()
                         .0
                     {
-                        HostBoundPacket::UserSerial(data) => {
+                        HostBoundPacket::UsbSerial(data) => {
                             app.emit("user_serial", data).unwrap();
                         }
                         HostBoundPacket::KernelSerial(data) => {

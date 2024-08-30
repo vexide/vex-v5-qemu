@@ -11,7 +11,7 @@ use vex_v5_qemu_protocol::HostBoundPacket;
 use crate::protocol;
 
 pub extern "C" fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
-    if protocol::send_packet(HostBoundPacket::UserSerial(vec![c])).is_err() {
+    if protocol::send_packet(HostBoundPacket::UsbSerial(vec![c])).is_err() {
         -1
     } else {
         1
@@ -26,7 +26,7 @@ pub unsafe fn vexSerialWriteBuffer(channel: u32, data: *const u8, data_len: u32)
         return 0;
     }
 
-    if protocol::send_packet(HostBoundPacket::UserSerial(
+    if protocol::send_packet(HostBoundPacket::UsbSerial(
         unsafe { slice::from_raw_parts(data, data_len as usize) }.to_vec(),
     ))
     .is_err()

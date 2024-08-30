@@ -3,7 +3,7 @@
 use core::ffi::c_double;
 
 use vex_sdk::*;
-use vex_v5_qemu_protocol::{distance_sensor::DistanceSensorData, SmartPortData};
+use vex_v5_qemu_protocol::SmartPortData;
 
 use super::SMARTPORTS;
 

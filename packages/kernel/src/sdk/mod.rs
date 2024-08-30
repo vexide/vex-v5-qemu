@@ -5,7 +5,7 @@
     non_upper_case_globals,
     non_snake_case,
     clippy::too_many_arguments,
-    clippy::missing_const_for_fn
+    clippy::missing_const_for_fn,
 )]
 
 pub mod abs_enc;

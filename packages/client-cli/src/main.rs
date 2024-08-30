@@ -3,7 +3,10 @@ use std::path::PathBuf;
 use anyhow::Context;
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
-use tokio::process::Command;
+use tokio::{
+    io::{stdout, AsyncReadExt, AsyncWriteExt, BufReader},
+    process::Command,
+};
 use vex_v5_qemu_host::brain::Brain;
 
 // TODO: fix this cursedness
@@ -58,6 +61,7 @@ async fn main() -> anyhow::Result<()> {
     .unwrap();
 
     let mut brain = Brain::new();
+    let peripherals = brain.peripherals.take().unwrap();
 
     let mut qemu = Command::new("qemu-system-arm");
     if opt.gdb {
@@ -68,7 +72,27 @@ async fn main() -> anyhow::Result<()> {
         .run_program(qemu, opt.kernel, opt.binary)
         .await
         .context("Failed to start QEMU.")?;
+
+    // brain.kill_program().await.unwrap();
+
+    let usb_task = tokio::task::spawn(async move {
+        let mut usb = peripherals.usb;
+        let mut out = stdout();
+
+        loop {
+            let mut buf = vec![0; 1024];
+            let n = usb.read(&mut buf).await.unwrap();
+            if n == 0 {
+                break;
+            }
+
+            out.write_all(&buf[..n]).await.unwrap();
+            out.flush().await.unwrap();
+        }
+    });
+
     brain.wait_for_exit().await?;
+    usb_task.abort();
 
     Ok(())
 }
