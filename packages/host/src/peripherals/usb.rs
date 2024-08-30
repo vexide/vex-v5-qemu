@@ -4,7 +4,7 @@ use std::{
 
 use tokio::{
     io::{AsyncRead, AsyncWrite, ReadBuf},
-    sync::mpsc::{Receiver, Sender, error::TrySendError},
+    sync::mpsc::{error::{RecvError, SendError, TrySendError}, Receiver, Sender},
 };
 use vex_v5_qemu_protocol::KernelBoundPacket;
 
@@ -23,6 +23,15 @@ impl Usb {
             rx,
             read_buf: Vec::new(),
         }
+    }
+
+    pub async fn recv(&mut self) -> Option<Vec<u8>> {
+        self.rx.recv().await
+    }
+
+    pub async fn send(&mut self, data: Vec<u8>) -> Result<(), SendError<KernelBoundPacket>> {
+        self.tx.send(KernelBoundPacket::UsbSerial(data)).await?;
+        Ok(())
     }
 }
 

@@ -1,15 +1,13 @@
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_log::TimezoneStrategy;
-use tauri_plugin_shell::process::CommandChild;
 use tokio::sync::Mutex;
+use vex_v5_qemu_host::brain::Brain;
 
 pub mod protocol;
 pub mod qemu;
 
-#[derive(Default)]
 pub struct AppState {
-    /// QEMU child process (if running).
-    qemu_process: Option<CommandChild>,
+    pub brain: Brain,
 }
 
 const ESCAPES: [Option<&str>; 6] = [
@@ -47,7 +45,25 @@ pub fn run() {
         )
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
-            app.manage(Mutex::new(AppState::default()));
+            let mut brain = Brain::new();
+            let peripherals = brain.peripherals.take().unwrap();
+
+            app.manage(Mutex::new(AppState { brain }));
+
+            let app_handle = app.handle().to_owned();
+
+            tauri::async_runtime::spawn(async move {
+                let mut usb = peripherals.usb;
+                let mut display = peripherals.display;
+                loop {
+                    tokio::select! {
+                        Some(data) = usb.recv() => {
+                            app_handle.emit("brain_usb_recv", data).unwrap();
+                        },
+                    }
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![qemu::spawn_qemu, qemu::kill_qemu])

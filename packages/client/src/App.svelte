@@ -76,7 +76,7 @@
 
     onMount(async () => {
         detachConsole = await attachConsole();
-        unlistenUserSerial = await listen<number[]>("user_serial", (event) => {
+        unlistenUserSerial = await listen<number[]>("brain_usb_recv", (event) => {
             $terminal?.write(decoder.decode(new Uint8Array(event.payload)));
         });
     });

@@ -132,7 +132,7 @@ impl Brain {
                             }
 
                             HostBoundPacket::DisplayCommand { command } => {
-                                display_tx.send(command).await.unwrap();
+                                _ = display_tx.send(command).await;
                             }
 
                             // Not implemented yet.
