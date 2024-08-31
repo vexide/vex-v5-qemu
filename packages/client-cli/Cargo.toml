@@ -1,0 +1,25 @@
+[package]
+name = "client-cli"
+publish = false # Name is not suitable for crates.io
+version = "0.1.0"
+edition = "2021"
+authors = [
+    "vexide",
+    "doinkythederp <doinkythederp@icloud.com>",
+    "Gavin Niederman <gavinniederman@gmail.com>",
+    "Tropical",
+]
+
+[lints]
+workspace = true
+
+[dependencies]
+tokio = { version = "1.23.0", features = ["full"] }
+miette = { version = "7.2.0", features = ["fancy"] }
+clap = { version = "4.5.1", features = ["derive", "env"] }
+anyhow = "1.0.86"
+bincode = "2.0.0-rc.3"
+vex-v5-qemu-host = { path = "../host" }
+thiserror = "1.0.63"
+log = "0.4.22"
+simplelog = "0.12.2"

@@ -1,0 +1,13 @@
+[package]
+name = "vex-v5-display-simulator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ab_glyph = "0.2.28"
+fimg = { version = "0.4.43", features = ["save"], default-features = false }
+image = { version = "0.25.2", default-features = false }
+vex-v5-qemu-protocol = { version = "0.0.1", path = "../protocol" }
+
+[lints]
+workspace = true

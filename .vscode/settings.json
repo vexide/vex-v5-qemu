@@ -13,14 +13,11 @@
     "rust-analyzer.cargo.allTargets": false,
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.linkedProjects": [
-        "./kernel/Cargo.toml",
-        "./protocol/Cargo.toml",
-        "./client/src-tauri/Cargo.toml",
-        "./client-cli/Cargo.toml",
-        "./host/Cargo.toml",
+        "./Cargo.toml",
     ],
     "files.trimTrailingWhitespace": true,
     "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
     "files.eol": "\n",
+    "typescript.tsdk": "./simulator/client/node_modules/typescript/lib",
 }

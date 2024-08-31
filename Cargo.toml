@@ -1,0 +1,17 @@
+[workspace]
+members = [
+    "./packages/kernel",
+    "./packages/host",
+    "./packages/display",
+    "./packages/protocol",
+    "./packages/client-cli",
+    "./packages/client/src-tauri",
+]
+resolver = "2"
+
+[workspace.lints.rust]
+rust_2018_idioms = { level = "warn", priority = -1 }
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+missing_const_for_fn = "warn"

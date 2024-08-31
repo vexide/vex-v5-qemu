@@ -1,0 +1,17 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/debian
+{
+	"name": "Debian",
+	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/rust:1": {
+			"version": "nightly-2024-06-20",
+			"profile": "default",
+			"targets": "armv7a-none-eabi"
+		},
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+			"packages": "qemu-system-arm,pkg-config,libwebkit2gtk-4.0-dev,build-essential,curl,wget,file,libssl-dev,libgtk-3-dev,libayatana-appindicator3-dev,librsvg2-dev"
+		}
+	}
+}

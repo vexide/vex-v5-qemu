@@ -1,0 +1,29 @@
+cargo-features = ["per-package-target"]
+
+[package]
+name = "kernel"
+version = "0.1.0"
+edition = "2021"
+forced-target = "armv7a-none-eabi"
+
+[lints]
+workspace = true
+
+[dependencies]
+heapless = "0.8.0"
+# host_call = { path = "../host_call" }
+lock_api = "0.4.12"
+snafu = { version = "0.8.4", default-features = false, features = [
+    "unstable-core-error",
+    "rust_1_61",
+] }
+vex-sdk = "0.19.0"
+critical-section = { version = "1.1.2", features = ["restore-state-bool"] }
+printf-compat = { version = "0.1.1", default-features = false }
+log = "0.4.22"
+embedded-io = "0.6.1"
+bincode = { version = "2.0.0-rc.3", default-features = false, features = [
+    "derive",
+] }
+vex-v5-qemu-protocol = { path = "../protocol" }
+talc = "4.4.1"
