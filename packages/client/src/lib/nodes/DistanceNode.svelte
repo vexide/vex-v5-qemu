@@ -4,7 +4,7 @@
         type Node,
         Position,
         useHandleConnections,
-        useNodesData,
+        useSvelteFlow,
     } from "@xyflow/svelte";
     import { DataHandle, SmartPortHandle } from "~/lib/handles";
     import {
@@ -16,26 +16,37 @@
     } from "~/lib/components";
     import { DistanceSensor } from "~/lib/icons";
     import Slider from "../components/Slider.svelte";
+    import { writable, type Writable } from "svelte/store";
 
     type NodeData = {
-        distance: number;
-        size: number;
+        distance?: Writable<number>;
+        size?: Writable<number>;
     };
 
     type $$Props = NodeProps<Node<NodeData>>;
 
-    export let data: NodeData;
+    export let data: NodeData = { distance: writable(1000), size: writable(200)};
     export let id: $$Props["id"];
 
-    data.distance = 1000;
-    data.size = 200;
+    const { distance, size } = data;
+    $: {
+        console.log($distance, $size);
+    }
 
-
+    const { updateNodeData } = useSvelteFlow();
 
     let objectVisible = true;
 
-    const distanceConnections = useHandleConnections({ nodeId: id, type: "target", id: "data_distance"});
-    const sizeConnections = useHandleConnections({ nodeId: id, type: "target", id: "data_size"});
+    const distanceConnections = useHandleConnections({
+        nodeId: id,
+        type: "target",
+        id: "data_distance",
+    });
+    const sizeConnections = useHandleConnections({
+        nodeId: id,
+        type: "target",
+        id: "data_size",
+    });
 
     data;
 </script>
@@ -67,11 +78,18 @@
                 min={20}
                 step="10"
                 disabled={!objectVisible && $distanceConnections.length > 0}
-                bind:value={data.distance}
+                bind:value={$distance}
             />{:else}<NumberInput disabled="true" value="9999" />{/if}
     </Field>
     {#if objectVisible}
-        <Slider bind:value={data.distance} disabled={!objectVisible} min={20} max={2000} step={10} label="Distance slider" />
+        <Slider
+            bind:value={$distance}
+            disabled={!objectVisible}
+            min={20}
+            max={2000}
+            step={10}
+            label="Distance slider"
+        />
     {/if}
     <Field label="Size">
         <DataHandle
@@ -86,7 +104,7 @@
                 min={0}
                 step="10"
                 disabled={!objectVisible && $sizeConnections.length > 0}
-                bind:value={data.size}
+                bind:value={$size}
             />{:else}<NumberInput disabled="true" value="-1" />{/if}
     </Field>
 </NodeBase>

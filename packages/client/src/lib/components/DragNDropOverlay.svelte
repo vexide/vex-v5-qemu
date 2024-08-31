@@ -3,11 +3,30 @@
     import type { DragData } from "../layout/Sidebar.svelte";
     import { nodes } from "../stores.js";
     import NodeBase from "./NodeBase.svelte";
+    import { writable } from "svelte/store";
 
     const { screenToFlowPosition, viewport } = useSvelteFlow();
 
     export let dragNode: DragData | null = null;
     export let nodeTypes: NodeTypes;
+
+    function defaultNodeData(type: string): Record<string, unknown> {
+        console.log(type);
+        switch (type) {
+            case "distance":
+                return { distance: writable(1000), size: writable(200) };
+            case "light_sensor":
+                return { darkness: 0 };
+            case "value":
+                return { value: writable(0) };
+            case "adi":
+                return { onboard: false };
+            default:
+                return {
+                    label: `${type} node`,
+                };
+        }
+    }
 
     function handleNodeDrop() {
         if (!dragNode) return;
@@ -25,7 +44,7 @@
                 id: `${crypto.randomUUID()}`,
                 type: dragNode.nodeType,
                 position,
-                data: { label: `${dragNode.nodeType} node` },
+                data: defaultNodeData(dragNode.nodeType),
                 origin: [0.5, 0.0],
             } satisfies Node;
 
@@ -59,7 +78,6 @@
             <svelte:component
                 this={nodeTypes[dragNode.nodeType] ?? NodeBase}
                 title="{dragNode.nodeType} node"
-                data={{}}
             />
         </div>
     {/if}

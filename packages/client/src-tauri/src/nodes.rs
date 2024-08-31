@@ -53,7 +53,7 @@ pub fn start_node_graph_interpreter(state: State<'_, Mutex<AppState>>, app: taur
                 }
             }
 
-            // info!("Devices: {:?}", devices);
+            info!("Devices: {:?}", devices);
             app.emit("node-graph-update", NodeGraphUpdate { devices })
                 .unwrap();
             let elapsed = start.elapsed();
@@ -83,6 +83,6 @@ pub fn update_node_graph(state: State<'_, Mutex<AppState>>, opts: NodeGraph) {
     };
     state.interpreter.node_ast = brain;
     state.interpreter.node_graph = opts;
-    info!("Updated node graph: {:?}", state.interpreter.node_graph);
-    info!("Updated node ast: {:?}", state.interpreter.node_ast);
+    info!("Updated node graph: {:#?}", state.interpreter.node_graph);
+    info!("Updated node ast: {:#?}", state.interpreter.node_ast);
 }

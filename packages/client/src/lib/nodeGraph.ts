@@ -1,4 +1,5 @@
-import { useSvelteFlow, type Edge as FlowEdge, type Node as FlowNode } from "@xyflow/svelte"
+import { useSvelteFlow, type Edge as FlowEdge, type Node as FlowNode } from "@xyflow/svelte";
+import { get } from "svelte/store";
 
 export interface Brain {
     port_1?: string | undefined,
@@ -85,8 +86,8 @@ export function convertNodeData(flowData: any, type: "DistanceSensor" | "LightSe
     switch (type) {
         case "DistanceSensor": {
             return {
-                distance: flowData.distance,
-                size: flowData.size
+                distance: get(flowData.distance),
+                size: get(flowData.size)
             }
         }
         case "LightSensor": {
@@ -96,7 +97,7 @@ export function convertNodeData(flowData: any, type: "DistanceSensor" | "LightSe
         }
         case "Value": {
             return {
-                value: flowData.value
+                value: get(flowData.value)
             }
         }
         case "Math": {

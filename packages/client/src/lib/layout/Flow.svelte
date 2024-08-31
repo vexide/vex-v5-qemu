@@ -21,7 +21,7 @@
     import type { NodeGraphUpdatePayload } from "~/lib/payload";
     import { invoke } from "@tauri-apps/api/core";
 
-    const { screenToFlowPosition } = useSvelteFlow();
+    const { screenToFlowPosition, updateNodeData, getNode } = useSvelteFlow();
 
     export let nodeTypes: NodeTypes | undefined;
     export let edgeTypes: EdgeTypes | undefined;
@@ -34,9 +34,42 @@
         $interpreter.start();
         console.log("interpreter", $interpreter);
 
-        updateUnlisten = await listen<NodeGraphUpdatePayload>("node-graph-update", (event) => {
-            // console.log("node-graph-update", event);
-        })
+        updateUnlisten = await listen<NodeGraphUpdatePayload>(
+            "node-graph-update",
+            (event) => {
+                Object.entries(event.payload.devices).forEach(
+                    ([id, device]) => {
+                        let node = $nodes.find((node) => node.id === id);
+                        if (node) {
+                            switch (node.type) {
+                                case "distance":
+                                    const distance = device as {
+                                        DistanceSensor: {
+                                            distance: number;
+                                            size: number;
+                                        };
+                                    };
+                                    getNode(id)?.data.distance.set(distance.DistanceSensor.distance);
+                                    break;
+                                case "light_sensor":
+                                    const light = device as {
+                                        LightSensor: {
+                                            darkness: number;
+                                        };
+                                    };
+                                    node.data = light.LightSensor;
+                                    break;
+                            }
+                            node.data = device;
+                        }
+                    },
+                );
+            },
+        );
+
+        // setInterval(() => {
+        //     console.log("grpah", $nodes);
+        // }, 100);
     });
 
     onDestroy(() => {

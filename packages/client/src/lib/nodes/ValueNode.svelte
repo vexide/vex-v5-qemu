@@ -15,19 +15,18 @@
     } from "~/lib/components";
     import { DataHandle } from "~/lib/handles";
     import { Hash } from "svelte-feathers";
+    import { writable, type Writable } from "svelte/store";
 
     type NodeData = {
-        value: number;
+        value: Writable<number>;
     };
 
     type $$Props = NodeProps<Node<NodeData>>;
 
-    export let data: NodeData;
+    export let data: NodeData = { value: writable(0) };
     export let id: $$Props["id"];
 
-    data.value = 0;
-
-    const { updateNodeData } = useSvelteFlow();
+    const { value } = data;
 
     let currentTab = "value";
 
@@ -42,13 +41,13 @@
         if (currentTab === "constant") {
             switch (constant) {
                 case "pi":
-                    data.value = Math.PI;
+                    $value = Math.PI;
                     break;
                 case "tao":
-                    data.value = 2 * Math.PI;
+                    $value = 2 * Math.PI;
                     break;
                 case "e":
-                    data.value = Math.E;
+                    $value = Math.E;
                     break;
             }
         }
@@ -68,7 +67,7 @@
     />
     <Tabs bind:selected={currentTab}>
         <TabPanel label="Value" id="value">
-            <Field label="Value"><NumberInput bind:value={data.value} /></Field>
+            <Field label="Value"><NumberInput bind:value={$value} /></Field>
         </TabPanel>
         <TabPanel label="Constant" id="constant">
             <Field label="Constant"
