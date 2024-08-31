@@ -18,6 +18,7 @@ pub mod xil;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
+use sdk::vexSystemTimeGet;
 use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
 
 extern "C" {
@@ -59,12 +60,6 @@ pub extern "C" fn _start() -> ! {
         // `vectors` module.
         vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
 
-        // Enable IRQ and FIQ interrupts by masking CPSR with the IRQ and FIQ enable bits.
-        core::arch::asm!(
-            "mrs r1, cpsr
-             bic r1, r1, #0b11000000
-             msr cpsr_c, r1"
-            , options(nomem, nostack));
 
         // Register SDK exception handlers for data/prefetch/undefined aborts.
         vectors::register_sdk_exception_handlers();
@@ -74,6 +69,9 @@ pub extern "C" fn _start() -> ! {
 
         // Enable MMU
         hardware::mmu::enable_mmu();
+
+        // Enable IRQ and FIQ interrupts by masking CPSR with the IRQ and FIQ enable bits.
+        core::arch::asm!("cpsie if");
 
         // Initialize heap memory
         allocator::init_heap();
