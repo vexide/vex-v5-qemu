@@ -37,68 +37,22 @@
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        unlistenDisplayDraw = await listen<DisplayDrawPayload>(
-            "display_draw",
+        unlistenDisplayDraw = await listen<number[]>(
+            "brain_display_frame",
             (event) => {
                 if (!ctx) return;
-                const { command, clip_region, color } = event.payload;
-
-                ctx.save();
-                ctx.clip(rectToPath(clip_region));
-
-                if ("Fill" in command) {
-                    const path = shapeToPath(command.Fill);
-                    ctx.fillStyle = rgb8ToHex(color);
-                    ctx.fill(path);
-                } else if ("Stroke" in command) {
-                    const path = shapeToPath(command.Stroke);
-                    ctx.strokeStyle = rgb8ToHex(color);
-                    ctx.lineWidth = 0;
-                    ctx.stroke(path);
-                } else if ("CopyBuffer" in command) {
-                    const {
-                        CopyBuffer: { buffer, top_left, bottom_right, stride },
-                    } = command;
-
-                    const data = new ImageData(
-                        new Uint8ClampedArray(
-                            new Uint32Array(buffer).buffer,
-                            0,
-                            buffer.length * 4,
-                        ),
-                        bottom_right.x - top_left.x,
-                        bottom_right.y - top_left.y,
-                    );
-                    console.log(data);
-                    ctx.putImageData(data, top_left.x, top_left.y);
-                } else if ("Text" in command) {
-                    const { data, size, location, opaque, background } =
-                        command.Text;
-
-                    ctx.font = "13px Noto Mono";
-                    ctx.letterSpacing = "1.5%";
-
-                    const coords = textLocationToPoint(location);
-                    const metrics = ctx.measureText(data);
-
-                    if (opaque) {
-                        ctx.fillStyle = rgb8ToHex(background);
-                        ctx.fillRect(
-                            coords.x,
-                            coords.y,
-                            metrics.width,
-                            metrics.fontBoundingBoxAscent +
-                                metrics.fontBoundingBoxDescent,
-                        );
-                    }
-
-                    ctx.fillStyle = rgb8ToHex(color);
-                    ctx.fillText(
-                        data,
-                        coords.x,
-                        coords.y + metrics.fontBoundingBoxAscent,
-                    );
-                }
+                const bytes = event.payload;
+                const data = new ImageData(
+                    new Uint8ClampedArray(
+                        new Uint8Array(bytes),
+                        0,
+                        bytes.length,
+                    ),
+                    480,
+                    272,
+                );
+                console.log(data);
+                ctx.putImageData(data, 0, -32);
             },
         );
 
@@ -256,13 +210,30 @@
             </svg>
         </div>
     </header>
-    <canvas width="480" height="272" bind:this={canvas}></canvas>
+    <canvas width="480" height="240" bind:this={canvas}></canvas>
     {#if !$session?.running}
         <div class="upload-hint">
-            <svg width="64" height="76" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 4.5V71.5C3 72.3284 3.67157 73 4.5 73H59.5C60.3284 73 61 72.3284 61 71.5V20.6353C61 20.2292 60.8354 19.8405 60.5438 19.558L43.8901 3.4227C43.6102 3.1516 43.2359 3 42.8463 3H4.5C3.67157 3 3 3.67157 3 4.5Z" stroke="#E4E4E4" stroke-width="5.5"/>
-                <path d="M9.76953 40.8203H19.707C21.3633 40.8203 22.6328 41.2305 23.5156 42.0508C24.4062 42.8711 24.8516 43.8867 24.8516 45.0977C24.8516 46.1133 24.5352 46.9844 23.9023 47.7109C23.4805 48.1953 22.8633 48.5781 22.0508 48.8594C23.2852 49.1562 24.1914 49.668 24.7695 50.3945C25.3555 51.1133 25.6484 52.0195 25.6484 53.1133C25.6484 54.0039 25.4414 54.8047 25.0273 55.5156C24.6133 56.2266 24.0469 56.7891 23.3281 57.2031C22.8828 57.4609 22.2109 57.6484 21.3125 57.7656C20.1172 57.9219 19.3242 58 18.9336 58H9.76953V40.8203ZM15.125 47.5586H17.4336C18.2617 47.5586 18.8359 47.418 19.1562 47.1367C19.4844 46.8477 19.6484 46.4336 19.6484 45.8945C19.6484 45.3945 19.4844 45.0039 19.1562 44.7227C18.8359 44.4414 18.2734 44.3008 17.4688 44.3008H15.125V47.5586ZM15.125 54.3086H17.832C18.7461 54.3086 19.3906 54.1484 19.7656 53.8281C20.1406 53.5 20.3281 53.0625 20.3281 52.5156C20.3281 52.0078 20.1406 51.6016 19.7656 51.2969C19.3984 50.9844 18.75 50.8281 17.8203 50.8281H15.125V54.3086ZM28.6484 40.8203H33.9688V58H28.6484V40.8203ZM37.8242 40.8203H42.7812L49.25 50.3242V40.8203H54.2539V58H49.25L42.8164 48.5664V58H37.8242V40.8203Z" fill="#00ACD8"/>
-                <path d="M40 3V23.5C40 24.3284 40.6716 25 41.5 25H62.5" stroke="#E4E4E4" stroke-width="5.5"/>
+            <svg
+                width="64"
+                height="76"
+                viewBox="0 0 64 76"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <path
+                    d="M3 4.5V71.5C3 72.3284 3.67157 73 4.5 73H59.5C60.3284 73 61 72.3284 61 71.5V20.6353C61 20.2292 60.8354 19.8405 60.5438 19.558L43.8901 3.4227C43.6102 3.1516 43.2359 3 42.8463 3H4.5C3.67157 3 3 3.67157 3 4.5Z"
+                    stroke="#E4E4E4"
+                    stroke-width="5.5"
+                />
+                <path
+                    d="M9.76953 40.8203H19.707C21.3633 40.8203 22.6328 41.2305 23.5156 42.0508C24.4062 42.8711 24.8516 43.8867 24.8516 45.0977C24.8516 46.1133 24.5352 46.9844 23.9023 47.7109C23.4805 48.1953 22.8633 48.5781 22.0508 48.8594C23.2852 49.1562 24.1914 49.668 24.7695 50.3945C25.3555 51.1133 25.6484 52.0195 25.6484 53.1133C25.6484 54.0039 25.4414 54.8047 25.0273 55.5156C24.6133 56.2266 24.0469 56.7891 23.3281 57.2031C22.8828 57.4609 22.2109 57.6484 21.3125 57.7656C20.1172 57.9219 19.3242 58 18.9336 58H9.76953V40.8203ZM15.125 47.5586H17.4336C18.2617 47.5586 18.8359 47.418 19.1562 47.1367C19.4844 46.8477 19.6484 46.4336 19.6484 45.8945C19.6484 45.3945 19.4844 45.0039 19.1562 44.7227C18.8359 44.4414 18.2734 44.3008 17.4688 44.3008H15.125V47.5586ZM15.125 54.3086H17.832C18.7461 54.3086 19.3906 54.1484 19.7656 53.8281C20.1406 53.5 20.3281 53.0625 20.3281 52.5156C20.3281 52.0078 20.1406 51.6016 19.7656 51.2969C19.3984 50.9844 18.75 50.8281 17.8203 50.8281H15.125V54.3086ZM28.6484 40.8203H33.9688V58H28.6484V40.8203ZM37.8242 40.8203H42.7812L49.25 50.3242V40.8203H54.2539V58H49.25L42.8164 48.5664V58H37.8242V40.8203Z"
+                    fill="#00ACD8"
+                />
+                <path
+                    d="M40 3V23.5C40 24.3284 40.6716 25 41.5 25H62.5"
+                    stroke="#E4E4E4"
+                    stroke-width="5.5"
+                />
             </svg>
             <p>Click the button on the right to upload a program.</p>
         </div>
@@ -271,7 +242,7 @@
 
 <style>
     .display.running header {
-        background-color:  #0099cc;
+        background-color: #0099cc;
         color: #000;
     }
 
@@ -294,7 +265,6 @@
     .display header {
         display: flex;
         align-items: center;
-        position: absolute;
         width: 100%;
         height: 32px;
         padding: 0 8px;

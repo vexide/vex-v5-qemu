@@ -1,3 +1,4 @@
+use image::DynamicImage;
 use tauri::{Emitter, Manager};
 use tauri_plugin_log::TimezoneStrategy;
 use tokio::sync::Mutex;
@@ -60,7 +61,7 @@ pub fn run() {
                             app_handle.emit("brain_usb_recv", data).unwrap();
                         },
                         Some(frame) = display.next_frame() => {
-                            app_handle.emit("brain_display_frame", frame.into_vec()).unwrap();
+                            app_handle.emit("brain_display_frame", DynamicImage::ImageRgb8(frame).to_rgba8().to_vec()).unwrap();
                         }
                         else => break,
                     }

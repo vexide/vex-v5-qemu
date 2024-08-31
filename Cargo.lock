@@ -755,6 +755,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "bytemuck",
+ "image",
  "log",
  "serde",
  "serde_json",
