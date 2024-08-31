@@ -51,7 +51,6 @@ pub fn run() {
             app.manage(Mutex::new(AppState { brain }));
 
             let app_handle = app.handle().to_owned();
-
             tauri::async_runtime::spawn(async move {
                 let mut usb = peripherals.usb;
                 let mut display = peripherals.display;
@@ -60,6 +59,10 @@ pub fn run() {
                         Some(data) = usb.recv() => {
                             app_handle.emit("brain_usb_recv", data).unwrap();
                         },
+                        Some(frame) = display.next_frame() => {
+                            app_handle.emit("brain_display_frame", frame.into_vec()).unwrap();
+                        }
+                        else => break,
                     }
                 }
             });

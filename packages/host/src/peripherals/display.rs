@@ -1,10 +1,13 @@
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 use image::{ImageBuffer, Rgb, RgbImage};
 use tokio::{
     sync::{
         mpsc::{Receiver, Sender},
-        watch, Mutex,
+        watch,
     },
     task::AbortHandle,
 };
@@ -116,13 +119,15 @@ impl Display {
 
     /// Returns the next frame from the display once it has been rendered.
     ///
+    /// Returns [`None`] if the [`Brain`](crate::brain::Brain) has been dropped.
+    ///
     /// If this function is called too slowly, it will skip to the most recent
     /// frame.
-    pub async fn next_frame(&mut self) -> RgbImage {
-        self.data_rx.changed().await.unwrap();
+    pub async fn next_frame(&mut self) -> Option<RgbImage> {
+        self.data_rx.changed().await.ok()?;
         let frame = self.data_rx.borrow_and_update();
-        let mut frame = frame.lock().await;
-        frame.take().unwrap()
+        let mut frame = frame.lock().unwrap();
+        Some(frame.take().unwrap())
     }
 }
 

@@ -116,7 +116,6 @@ impl Brain {
                                 connection.child.kill().await.unwrap();
                                 *connection_guard = None;
                                 log::info!("Kernel exited with code {code}.");
-                                break;
                             }
 
                             // The kernel has sent a device command packet to a specific smartport,
