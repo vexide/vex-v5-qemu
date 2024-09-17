@@ -170,7 +170,7 @@ pub extern "C" fn vexSystemWatchdogReinitRtos() -> i32 {
     XST_SUCCESS
 }
 pub extern "C" fn vexSystemWatchdogGet() -> u32 {
-    Default::default()
+    WATCHDOG_TIMER.lock().counter()
 }
 pub extern "C" fn vexSystemBoot() {}
 
