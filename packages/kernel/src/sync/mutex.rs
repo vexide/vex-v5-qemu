@@ -1,23 +1,23 @@
-use core::sync::atomic::{AtomicU8, Ordering};
+use std::cell::UnsafeCell;
+use critical_section::RestoreState;
 
 pub use lock_api::MutexGuard;
 pub type Mutex<T> = lock_api::Mutex<RawMutex, T>;
 
-struct MutexState(AtomicU8);
+struct MutexState(UnsafeCell<RestoreState>);
 impl MutexState {
     const fn new() -> Self {
-        Self(AtomicU8::new(0))
+        Self(UnsafeCell::new(RestoreState::invalid()))
     }
 
     /// Returns true if the lock was acquired.
     fn try_lock(&self) -> bool {
-        self.0
-            .compare_exchange(0, 1, Ordering::Acquire, Ordering::Acquire)
-            .is_ok()
+        unsafe { *self.0.get() = critical_section::acquire() }
+        true
     }
 
     fn unlock(&self) {
-        self.0.store(0, Ordering::Release);
+        unsafe { critical_section::release(self.0.into_inner()) }
     }
 }
 
@@ -42,11 +42,7 @@ unsafe impl lock_api::RawMutex for RawMutex {
     type GuardMarker = lock_api::GuardSend;
 
     fn lock(&self) {
-        critical_section::with(|_| {
-            while !self.state.try_lock() {
-                core::hint::spin_loop();
-            }
-        })
+        critical_section::with(|_| self.state.try_lock())
     }
 
     fn try_lock(&self) -> bool {
@@ -54,8 +50,6 @@ unsafe impl lock_api::RawMutex for RawMutex {
     }
 
     unsafe fn unlock(&self) {
-        critical_section::with(|_| {
-            self.state.unlock();
-        })
+        critical_section::with(|_| self.state.unlock())
     }
 }
