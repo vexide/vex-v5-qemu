@@ -1,19 +1,37 @@
-use std::cell::UnsafeCell;
+use std::{cell::UnsafeCell, hint::spin_loop};
 use critical_section::RestoreState;
 
 pub use lock_api::MutexGuard;
 pub type Mutex<T> = lock_api::Mutex<RawMutex, T>;
 
-struct MutexState(UnsafeCell<RestoreState>);
+fn in_interrupt() -> bool {
+    unsafe {
+        let mut cpsr: u32;
+        asm!("mrs {0}, cpsr", out(reg) cpsr);
+        let is_system_mode = (cpsr & 0b11111) == 0b11111;
+        !is_system_mode
+    }
+}
+
+struct MutexState(UnsafeCell<RestoreState>, bool);
 impl MutexState {
     const fn new() -> Self {
-        Self(UnsafeCell::new(RestoreState::invalid()))
+        Self(UnsafeCell::new(RestoreState::invalid()), false)
     }
 
     /// Returns true if the lock was acquired.
     fn try_lock(&self) -> bool {
-        unsafe { *self.0.get() = critical_section::acquire() }
-        true
+        unsafe { 
+            let state = critical_section::acquire();
+            if self.1 {
+                critical_section::release(state);
+                false
+            } else {
+                *self.0.get() = state;
+                self.1 = true;
+                true
+            }
+        }
     }
 
     fn unlock(&self) {
@@ -42,14 +60,23 @@ unsafe impl lock_api::RawMutex for RawMutex {
     type GuardMarker = lock_api::GuardSend;
 
     fn lock(&self) {
-        critical_section::with(|_| self.state.try_lock())
+        if self.state.try_lock() {
+            ()
+        } else if in_interrupt() {
+            panic!("Deadlock in kernel detected!");
+        } else {
+            while !self.state.try_lock() {
+                spin_loop()
+            }
+            ()
+        }
     }
 
     fn try_lock(&self) -> bool {
-        critical_section::with(|_| self.state.try_lock())
+        self.state.try_lock()
     }
 
     unsafe fn unlock(&self) {
-        critical_section::with(|_| self.state.unlock())
+        self.state.unlock()
     }
 }
