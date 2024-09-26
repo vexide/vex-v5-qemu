@@ -1,8 +1,11 @@
 use std::{
+    ffi::OsString,
     io,
+    option::Option,
     path::PathBuf,
     process::{ExitStatus, Stdio},
     sync::Arc,
+    vec::Vec
 };
 
 use tokio::{
@@ -29,6 +32,7 @@ pub struct Brain {
     connection: Arc<Mutex<Option<QemuConnection>>>,
     task: AbortHandle,
     barrier: Arc<Barrier>,
+    link_addr: Option<u32>
 }
 
 impl Brain {
@@ -171,6 +175,7 @@ impl Brain {
 
                 display: Display::new(peripherals_tx.clone(), display_rx),
             }),
+            link_addr: None,
         }
     }
 
@@ -178,7 +183,10 @@ impl Brain {
         &mut self,
         mut qemu_command: Command,
         kernel: PathBuf,
-        binary: PathBuf,
+        main_binary: PathBuf,
+        main_binary_addr: u32,
+        linked_binary: Option<PathBuf>,
+        linked_binary_addr: Option<u32>,
     ) -> io::Result<()> {
         qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
@@ -191,10 +199,23 @@ impl Brain {
             .args([
                 "-device",
                 &format!(
-                    "loader,file={},force-raw=on,addr=0x03800000",
-                    binary.display()
+                    "loader,file={},force-raw=on,addr={}",
+                    main_binary.display(),
+                    main_binary_addr
                 ),
             ])
+            .args(if let Some(linked_binary) = linked_binary {
+                    let mut args = Vec::<OsString>::new();
+                    args.push("-device".into());
+                    args.push(format!(
+                        "loader,file={},force-raw=on,addr={}",
+                        linked_binary.display(),
+                        linked_binary_addr.expect("Cannot specify linked binary without link address!")
+                    ).into());
+                    args
+                } else {
+                    Vec::<OsString>::new()
+            })
             .args(["-display", "none"])
             .args(["-chardev", "stdio,id=char0"])
             .args(["-serial", "null"])

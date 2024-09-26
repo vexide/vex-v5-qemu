@@ -23,3 +23,4 @@ vex-v5-qemu-host = { path = "../host" }
 thiserror = "1.0.63"
 log = "0.4.22"
 simplelog = "0.12.2"
+clap-num = "1.1.1"
