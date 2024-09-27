@@ -185,7 +185,7 @@ impl Brain {
 
                 display: Display::new(peripherals_tx.clone(), display_rx),
             }),
-            link_addr: link_addr_2.clone(),
+            link_addr: link_addr_2,
         }
     }
 
