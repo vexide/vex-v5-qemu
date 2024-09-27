@@ -8,6 +8,7 @@ use battery::BatteryData;
 use bincode::{Decode, Encode};
 use code_signature::CodeSignature;
 use controller::{ControllerData, ControllerId};
+use core::{option::Option, num::NonZeroU32};
 use display::{Color, DisplayRenderMode, DrawCommand, ScrollLocation};
 use distance_sensor::DistanceSensorData;
 use geometry::Rect;
@@ -30,6 +31,7 @@ pub enum HostBoundPacket {
     KernelSerial(Vec<u8>),
     CodeSignature(CodeSignature),
     ExitRequest(i32),
+    LinkAddressRequest,
     DisplayCommand { command: DisplayCommand },
     SmartPortCommand { port: u8, command: SmartPortCommand },
 }
@@ -61,6 +63,7 @@ pub enum DisplayCommand {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum KernelBoundPacket {
     UsbSerial(Vec<u8>),
+    LinkAddress(Option<NonZeroU32>),
     SmartPortUpdate {
         port_index: u8,
         data: SmartPortData,

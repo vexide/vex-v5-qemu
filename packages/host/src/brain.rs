@@ -1,10 +1,11 @@
 use std::{
     ffi::OsString,
     io,
+    num::NonZeroU32,
     option::Option,
     path::PathBuf,
     process::{ExitStatus, Stdio},
-    sync::Arc,
+    sync::{Arc, atomic::{AtomicU32, Ordering}},
     vec::Vec
 };
 
@@ -32,7 +33,7 @@ pub struct Brain {
     connection: Arc<Mutex<Option<QemuConnection>>>,
     task: AbortHandle,
     barrier: Arc<Barrier>,
-    link_addr: Option<u32>
+    link_addr: Arc<AtomicU32>
 }
 
 impl Brain {
@@ -40,6 +41,8 @@ impl Brain {
     pub fn new() -> Self {
         let connection = Arc::new(Mutex::new(None));
         let barrier = Arc::new(Barrier::new(2));
+        let link_addr = Arc::new(AtomicU32::new(0));
+        let link_addr_2 = link_addr.clone();
 
         let (peripherals_tx, peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
 
@@ -122,6 +125,13 @@ impl Brain {
                                 log::info!("Kernel exited with code {code}.");
                             }
 
+                            HostBoundPacket::LinkAddressRequest => {
+                                // using lock here seems to deadlock occasionally ???
+                                connection
+                                .send_packet(KernelBoundPacket::LinkAddress(NonZeroU32::new(link_addr.load(Ordering::SeqCst))))
+                                .await.unwrap();
+                            }
+
                             // The kernel has sent a device command packet to a specific smartport,
                             // so we must forward that packet to the respective smartport's
                             // receiver.
@@ -175,7 +185,7 @@ impl Brain {
 
                 display: Display::new(peripherals_tx.clone(), display_rx),
             }),
-            link_addr: None,
+            link_addr: link_addr_2.clone(),
         }
     }
 
@@ -188,6 +198,8 @@ impl Brain {
         linked_binary: Option<PathBuf>,
         linked_binary_addr: Option<u32>,
     ) -> io::Result<()> {
+        assert!(linked_binary_addr.unwrap_or(1) != 0, "link address cannot be zero!");
+        self.link_addr.store(linked_binary_addr.unwrap_or(0), Ordering::SeqCst);
         qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])

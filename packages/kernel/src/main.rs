@@ -15,11 +15,14 @@ pub mod sync;
 pub mod vectors;
 pub mod xil;
 
+use alloc::format;
+use core::{num::NonZeroU32, sync::atomic::Ordering};
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
+use sdk::system::LINK_ADDR;
 use sdk::vexSystemTimeGet;
-use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket, KernelBoundPacket};
 
 extern "C" {
     /// Entrypoint of the user program. (located at 0x03800020)
@@ -105,7 +108,17 @@ pub extern "C" fn _start() -> ! {
         },
     )))
     .unwrap();
-
+    log::debug!("Requesting link adrress...");
+    protocol::send_packet(HostBoundPacket::LinkAddressRequest).unwrap();
+    let link_addr = match protocol::recv_packet().unwrap().expect("") {
+        KernelBoundPacket::LinkAddress(addr) => match addr {
+            Some(addr) => u32::from(addr),
+            None => 0
+        },
+        _ => unreachable!("")
+    };
+    log::debug!("Link address recieved: {}", link_addr);
+    LINK_ADDR.store(link_addr, Ordering::SeqCst);
     // Execute user program's entrypoint function.
     //
     // This is located 32 bytes after the code signature at 0x03800020.
