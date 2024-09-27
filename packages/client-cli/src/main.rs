@@ -1,4 +1,4 @@
-use std::{option::Option, path::PathBuf};
+use std::{option::Option, ffi::OsStr, fs::File, io::Read, path::PathBuf};
 
 use anyhow::Context;
 use clap_num::maybe_hex;
@@ -76,6 +76,16 @@ enum Subcommands {
     }
 }
 
+fn check_is_bin(mut file_path: PathBuf) {
+    //file_path = file_path.canonicalize().unwrap();
+    assert_eq!("bin", file_path.extension().unwrap_or(OsStr::new("bin")), "{} should have .bin extension", file_path.display());
+    let mut buffer = [0 as u8; 4];
+    let n = File::open(&file_path).expect(&*format!("{} does not exist", file_path.display())).read(&mut buffer[..]);
+    let buffer = buffer;
+    let elf_header = [0x7F as u8, 'E' as u8, 'L' as u8, 'F' as u8];
+    assert_ne!(buffer, elf_header, "{} is an elf file, use a bin file instead", file_path.display());
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
@@ -100,12 +110,15 @@ async fn main() -> anyhow::Result<()> {
 
     match opt.program_type {
         Subcommands::Monolith {bin} => {
+            check_is_bin(bin.clone());
             brain
                 .run_program(qemu, opt.kernel, bin, 0x03800000, None, None)
                 .await
                 .context("Failed to start QEMU.")?;
         }
         Subcommands::HotCold {hot_bin, cold_bin, hot_addr, cold_addr} => {
+            check_is_bin(hot_bin.clone());
+            check_is_bin(cold_bin.clone());
             brain
                 .run_program(qemu, opt.kernel, hot_bin, hot_addr, Some(cold_bin), Some(cold_addr))
                 .await
