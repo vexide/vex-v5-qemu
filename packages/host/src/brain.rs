@@ -42,7 +42,6 @@ impl Brain {
         let connection = Arc::new(Mutex::new(None));
         let barrier = Arc::new(Barrier::new(2));
         let link_addr = Arc::new(AtomicU32::new(0));
-        let link_addr_2 = link_addr.clone();
 
         let (peripherals_tx, peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
 
@@ -77,6 +76,7 @@ impl Brain {
         Self {
             connection: connection.clone(),
             barrier: barrier.clone(),
+            link_addr: link_addr.clone(),
             task: tokio::task::spawn(async move {
                 let mut peripherals_rx = peripherals_rx;
                 let smartport_senders: [Sender<SmartPortCommand>; 21] = [
@@ -126,9 +126,8 @@ impl Brain {
                             }
 
                             HostBoundPacket::LinkAddressRequest => {
-                                // using lock here seems to deadlock occasionally ???
                                 connection
-                                .send_packet(KernelBoundPacket::LinkAddress(NonZeroU32::new(link_addr.load(Ordering::SeqCst))))
+                                .send_packet(KernelBoundPacket::LinkAddress(NonZeroU32::new(link_addr.load(Ordering::SeqCst))).into())
                                 .await.unwrap();
                             }
 
@@ -185,7 +184,6 @@ impl Brain {
 
                 display: Display::new(peripherals_tx.clone(), display_rx),
             }),
-            link_addr: link_addr_2,
         }
     }
 
@@ -196,10 +194,9 @@ impl Brain {
         main_binary: PathBuf,
         main_binary_addr: u32,
         linked_binary: Option<PathBuf>,
-        linked_binary_addr: Option<u32>,
+        linked_binary_addr: Option<NonZeroU32>,
     ) -> io::Result<()> {
-        assert!(linked_binary_addr.unwrap_or(1) != 0, "link address cannot be zero!");
-        self.link_addr.store(linked_binary_addr.unwrap_or(0), Ordering::SeqCst);
+        self.link_addr.store(linked_binary_addr.map_or(0, |v| v.get()), Ordering::SeqCst);
         qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])
