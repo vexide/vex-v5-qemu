@@ -197,7 +197,7 @@ impl Brain {
         linked_binary_addr: Option<NonZeroU32>,
     ) -> io::Result<()> {
         self.link_addr.store(linked_binary_addr.map_or(0, |v| v.get()), Ordering::SeqCst);
-        qemu_command
+        let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])
             .args(["-object", "memory-backend-ram,id=mem,size=256M"])
@@ -212,19 +212,16 @@ impl Brain {
                     main_binary.display(),
                     main_binary_addr
                 ),
-            ])
-            .args(if let Some(linked_binary) = linked_binary {
-                    let mut args = Vec::<OsString>::new();
-                    args.push("-device".into());
-                    args.push(format!(
-                        "loader,file={},force-raw=on,addr={}",
-                        linked_binary.display(),
-                        linked_binary_addr.expect("Cannot specify linked binary without link address!")
-                    ).into());
-                    args
-                } else {
-                    Vec::<OsString>::new()
-            })
+            ]);
+        if let Some(linked_binary) = linked_binary {
+                qemu_command.arg("-device");
+                qemu_command.arg(format!(
+                    "loader,file={},force-raw=on,addr={}",
+                    linked_binary.display(),
+                    linked_binary_addr.expect("Cannot specify linked binary without link address!")
+                ));
+        }
+        qemu_command
             .args(["-display", "none"])
             .args(["-chardev", "stdio,id=char0"])
             .args(["-serial", "null"])
