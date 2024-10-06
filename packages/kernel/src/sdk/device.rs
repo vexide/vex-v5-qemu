@@ -101,7 +101,7 @@ impl Device for SmartPort {
 }
 
 pub extern "C" fn vexDevicesGetNumber() -> u32 {
-    Default::default()
+    23
 }
 pub extern "C" fn vexDevicesGetNumberByType(device_type: V5_DeviceType) -> u32 {
     let mut count = match device_type {
