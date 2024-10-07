@@ -3,7 +3,7 @@
 use core::{
     arch::asm,
     ffi::c_void,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, AtomicU32, Ordering},
 };
 
 use vex_sdk::*;
@@ -24,6 +24,8 @@ use crate::{
         XST_FAILURE, XST_SUCCESS,
     },
 };
+
+pub static LINK_ADDR: AtomicU32 = AtomicU32::new(0);
 
 pub extern "C" fn vexPrivateApiDisable(sig: u32) {}
 pub extern "C" fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
@@ -59,8 +61,7 @@ pub extern "C" fn vexSystemPowerupTimeGet() -> u64 {
     vexSystemHighResTimeGet()
 }
 pub extern "C" fn vexSystemLinkAddrGet() -> u32 {
-    // no multi-file support yet
-    0x0
+    LINK_ADDR.load(Ordering::SeqCst)
 }
 pub extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()

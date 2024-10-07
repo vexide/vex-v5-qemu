@@ -1,8 +1,12 @@
 use std::{
+    ffi::OsString,
     io,
+    num::NonZeroU32,
+    option::Option,
     path::PathBuf,
     process::{ExitStatus, Stdio},
-    sync::Arc,
+    sync::{Arc, atomic::{AtomicU32, Ordering}},
+    vec::Vec
 };
 
 use tokio::{
@@ -29,6 +33,7 @@ pub struct Brain {
     connection: Arc<Mutex<Option<QemuConnection>>>,
     task: AbortHandle,
     barrier: Arc<Barrier>,
+    link_addr: Arc<AtomicU32>
 }
 
 impl Brain {
@@ -36,6 +41,7 @@ impl Brain {
     pub fn new() -> Self {
         let connection = Arc::new(Mutex::new(None));
         let barrier = Arc::new(Barrier::new(2));
+        let link_addr = Arc::new(AtomicU32::new(0));
 
         let (peripherals_tx, peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
 
@@ -70,6 +76,7 @@ impl Brain {
         Self {
             connection: connection.clone(),
             barrier: barrier.clone(),
+            link_addr: link_addr.clone(),
             task: tokio::task::spawn(async move {
                 let mut peripherals_rx = peripherals_rx;
                 let smartport_senders: [Sender<SmartPortCommand>; 21] = [
@@ -116,6 +123,12 @@ impl Brain {
                                 connection.child.kill().await.unwrap();
                                 *connection_guard = None;
                                 log::info!("Kernel exited with code {code}.");
+                            }
+
+                            HostBoundPacket::LinkAddressRequest => {
+                                connection
+                                .send_packet(KernelBoundPacket::LinkAddress(NonZeroU32::new(link_addr.load(Ordering::SeqCst))).into())
+                                .await.unwrap();
                             }
 
                             // The kernel has sent a device command packet to a specific smartport,
@@ -178,9 +191,13 @@ impl Brain {
         &mut self,
         mut qemu_command: Command,
         kernel: PathBuf,
-        binary: PathBuf,
+        main_binary: PathBuf,
+        main_binary_addr: u32,
+        linked_binary: Option<PathBuf>,
+        linked_binary_addr: Option<NonZeroU32>,
     ) -> io::Result<()> {
-        qemu_command
+        self.link_addr.store(linked_binary_addr.map_or(0, |v| v.get()), Ordering::SeqCst);
+        let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])
             .args(["-object", "memory-backend-ram,id=mem,size=256M"])
@@ -191,10 +208,20 @@ impl Brain {
             .args([
                 "-device",
                 &format!(
-                    "loader,file={},force-raw=on,addr=0x03800000",
-                    binary.display()
+                    "loader,file={},force-raw=on,addr={}",
+                    main_binary.display(),
+                    main_binary_addr
                 ),
-            ])
+            ]);
+        if let Some(linked_binary) = linked_binary {
+                qemu_command.arg("-device");
+                qemu_command.arg(format!(
+                    "loader,file={},force-raw=on,addr={}",
+                    linked_binary.display(),
+                    linked_binary_addr.expect("Cannot specify linked binary without link address!")
+                ));
+        }
+        qemu_command
             .args(["-display", "none"])
             .args(["-chardev", "stdio,id=char0"])
             .args(["-serial", "null"])

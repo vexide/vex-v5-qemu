@@ -15,11 +15,15 @@ pub mod sync;
 pub mod vectors;
 pub mod xil;
 
+use alloc::format;
+use core::{num::NonZeroU32, sync::atomic::Ordering};
+use crate::protocol::exit;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
+use sdk::system::LINK_ADDR;
 use sdk::vexSystemTimeGet;
-use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket, KernelBoundPacket};
 
 extern "C" {
     /// Entrypoint of the user program. (located at 0x03800020)
@@ -97,15 +101,25 @@ pub extern "C" fn _start() -> ! {
     // FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    // Send user code signature to host.
-    log::debug!("Sending code signature to host.");
-    protocol::send_packet(HostBoundPacket::CodeSignature(CodeSignature::from(
+    let code_signature = CodeSignature::try_from(
         unsafe {
             core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
         },
-    )))
-    .unwrap();
-
+    ).unwrap_or_else(|()| {log::error!("Invalid user program!"); exit(102); });
+    // Send user code signature to host.
+    log::debug!("Sending code signature to host.");
+    protocol::send_packet(HostBoundPacket::CodeSignature(code_signature)).unwrap();
+    log::debug!("Requesting link address...");
+    protocol::send_packet(HostBoundPacket::LinkAddressRequest).unwrap();
+    let link_addr = match protocol::recv_packet().unwrap().expect("") {
+        KernelBoundPacket::LinkAddress(addr) => match addr {
+            Some(addr) => u32::from(addr),
+            None => 0
+        },
+        _ => unreachable!()
+    };
+    log::debug!("Link address recieved: {}", link_addr);
+    LINK_ADDR.store(link_addr, Ordering::SeqCst);
     // Execute user program's entrypoint function.
     //
     // This is located 32 bytes after the code signature at 0x03800020.
