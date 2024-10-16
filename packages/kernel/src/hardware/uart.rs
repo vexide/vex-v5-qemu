@@ -1,4 +1,4 @@
-use core::convert::Infallible;
+use core::{convert::Infallible, ffi::c_void};
 
 use embedded_io::{ErrorType, Read, Write};
 use snafu::Snafu;
@@ -44,6 +44,8 @@ pub struct UartDriver {
 }
 
 impl UartDriver {
+    pub const INTERRUPT_ID: u32 = 82;
+
     /// Initialize the UART driver with the given base address.
     ///
     /// # Parameters
@@ -73,6 +75,24 @@ impl UartDriver {
         // SAFETY: The instance is fully initialized.
         let status = unsafe { XUartPs_SetBaudRate(&mut self.instance, baud_rate) };
         UartDriverError::try_from_xst_status(status)
+    }
+
+    pub fn set_interrupt_mask(&mut self, mask: u32) {
+        unsafe {
+            XUartPs_SetInterruptMask(&mut self.instance, mask);
+        }
+    }
+
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+    pub fn set_handler(&mut self, handler: XUartPs_Handler, data: *mut c_void) {
+        unsafe {
+            XUartPs_SetHandler(&mut self.instance, handler, data);
+        }
+    }
+
+    #[inline]
+    pub unsafe extern "C" fn interrupt_handler(data: *mut c_void) {
+        unsafe { XUartPs_InterruptHandler(core::mem::transmute::<*mut c_void, *mut XUartPs>(data)) }
     }
 
     pub fn raw_mut(&mut self) -> &mut XUartPs {
