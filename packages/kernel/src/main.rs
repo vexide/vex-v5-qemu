@@ -21,8 +21,7 @@ use crate::protocol::exit;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
-use sdk::system::LINK_ADDR;
-use sdk::vexSystemTimeGet;
+use sdk::{vexSystemTimeGet, vexSystemLinkAddrGet};
 use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket, KernelBoundPacket};
 
 extern "C" {
@@ -101,6 +100,13 @@ pub extern "C" fn _start() -> ! {
     // FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
+    let code_header = unsafe {
+        core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const u32)
+    };
+    if code_header == u32::from_le_bytes(*b"\x7FELF") {
+        log::error!("Invalid user program! Hint: did you use the elf instead of the bin file?");
+        exit(102);
+    }
     let code_signature = CodeSignature::try_from(
         unsafe {
             core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
@@ -109,21 +115,10 @@ pub extern "C" fn _start() -> ! {
     // Send user code signature to host.
     log::debug!("Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(code_signature)).unwrap();
-    log::debug!("Requesting link address...");
-    protocol::send_packet(HostBoundPacket::LinkAddressRequest).unwrap();
-    let link_addr = match protocol::recv_packet().unwrap().expect("") {
-        KernelBoundPacket::LinkAddress(addr) => match addr {
-            Some(addr) => u32::from(addr),
-            None => 0
-        },
-        _ => unreachable!()
-    };
-    log::debug!("Link address recieved: {}", link_addr);
-    LINK_ADDR.store(link_addr, Ordering::SeqCst);
     // Execute user program's entrypoint function.
     //
     // This is located 32 bytes after the code signature at 0x03800020.
-    log::debug!("Calling user code.");
+    log::debug!("Link address is {:#02x}. Calling user code.", vexSystemLinkAddrGet());
     unsafe {
         vexStartup();
     }

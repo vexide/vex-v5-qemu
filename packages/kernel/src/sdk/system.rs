@@ -25,7 +25,10 @@ use crate::{
     },
 };
 
-pub static LINK_ADDR: AtomicU32 = AtomicU32::new(0);
+extern "C" {
+    #[link_name = "_link_addr"]
+    static LINK_ADDR: u32;
+}
 
 pub extern "C" fn vexPrivateApiDisable(sig: u32) {}
 pub extern "C" fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
@@ -61,7 +64,7 @@ pub extern "C" fn vexSystemPowerupTimeGet() -> u64 {
     vexSystemHighResTimeGet()
 }
 pub extern "C" fn vexSystemLinkAddrGet() -> u32 {
-    LINK_ADDR.load(Ordering::SeqCst)
+    unsafe { LINK_ADDR }
 }
 pub extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()

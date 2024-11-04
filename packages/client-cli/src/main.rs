@@ -8,7 +8,7 @@ use tokio::{
     io::{stdout, AsyncReadExt, AsyncWriteExt, BufReader},
     process::Command,
 };
-use vex_v5_qemu_host::brain::Brain;
+use vex_v5_qemu_host::brain::{Brain, Program};
 
 // TODO: fix this cursedness
 const DEFAULT_KERNEL: &str = concat!(
@@ -39,10 +39,6 @@ struct Opt {
     /// Override the QEMU executable to a custom version of `qemu-system-arm`.
     #[clap(short, long, global = true, default_value = "qemu-system-arm", env = "V5_SIM_QEMU")]
     qemu: PathBuf,
-
-    /// Allow running files that do not have a .bin file extension.
-    #[clap(long, global = true, env = "V5_SIM_ALLOW_NON_BIN")]
-    allow_non_bin: bool,
 
     /// What type of program to simulate
     #[clap(subcommand)]
@@ -80,21 +76,6 @@ enum Subcommands {
     }
 }
 
-fn verify_program_file(file_path: &Path, allow_non_bin: bool) -> anyhow::Result<()> {
-    if file_path.extension().unwrap_or(OsStr::new("bin")) != "bin" && !allow_non_bin {
-        bail!("{} should have .bin extension", file_path.display());
-    }
-    let mut buffer = [0 as u8; 4];
-    let mut file = File::open(&file_path).with_context(|| format!("Input file {} does not exist", file_path.display()))?;
-    file.read(&mut buffer[..]).with_context(|| format!("Could not read input file {}", file_path.display()))?;
-    let buffer = buffer;
-    let elf_header = [0x7F, b'E', b'L', b'F'];
-    if buffer == elf_header {
-        bail!("{} is an elf file, use a bin file instead", file_path.display())
-    }
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
@@ -119,23 +100,22 @@ async fn main() -> anyhow::Result<()> {
 
     match opt.program_type {
         Subcommands::Monolith {bin} => {
-            verify_program_file(&bin, opt.allow_non_bin)?;
             brain
-                .run_program(qemu, opt.kernel, bin, 0x03800000, None, None)
+                .run_program(qemu, opt.kernel, Program{path: bin, load_addr: NonZeroU32::new(0x03800000).unwrap()}, None)
                 .await
                 .context("Failed to start QEMU.")?;
         }
         Subcommands::HotCold {hot_bin, cold_bin, hot_addr, cold_addr} => {
-            verify_program_file(&hot_bin, opt.allow_non_bin)?;
-            verify_program_file(&cold_bin, opt.allow_non_bin)?;
             if hot_addr == 0 {
                 bail!("Hot load address cannot be zero!");
             }
             if cold_addr == 0 {
                 bail!("Cold load address cannot be zero!");
             }
+            let hot_addr = NonZeroU32::new(hot_addr).unwrap();
+            let cold_addr = NonZeroU32::new(cold_addr).unwrap();
             brain
-                .run_program(qemu, opt.kernel, hot_bin, hot_addr, Some(cold_bin), NonZeroU32::new(cold_addr))
+                .run_program(qemu, opt.kernel, Program{path: hot_bin, load_addr: hot_addr}, Some(Program{path: cold_bin, load_addr: cold_addr}))
                 .await
                 .context("Failed to start QEMU.")?;
         }

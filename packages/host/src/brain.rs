@@ -27,6 +27,12 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone)]
+pub struct Program {
+    pub path: PathBuf,
+    pub load_addr: NonZeroU32
+}
+
 #[derive(Debug)]
 pub struct Brain {
     pub peripherals: Option<Peripherals>,
@@ -126,9 +132,6 @@ impl Brain {
                             }
 
                             HostBoundPacket::LinkAddressRequest => {
-                                connection
-                                .send_packet(KernelBoundPacket::LinkAddress(NonZeroU32::new(link_addr.load(Ordering::SeqCst))).into())
-                                .await.unwrap();
                             }
 
                             // The kernel has sent a device command packet to a specific smartport,
@@ -191,16 +194,18 @@ impl Brain {
         &mut self,
         mut qemu_command: Command,
         kernel: PathBuf,
-        main_binary: PathBuf,
-        main_binary_addr: u32,
-        linked_binary: Option<PathBuf>,
-        linked_binary_addr: Option<NonZeroU32>,
+        main_binary: Program,
+        linked_binary: Option<Program>,
     ) -> io::Result<()> {
-        self.link_addr.store(linked_binary_addr.map_or(0, |v| v.get()), Ordering::SeqCst);
+        let link_addr : u32 = linked_binary.clone().map_or(0, |v| v.load_addr.into());
         let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])
             .args(["-object", "memory-backend-ram,id=mem,size=256M"])
+            .args([
+                "-device",
+                &format!("loader,addr=0x200,data={},data-len=4,cpu-num=0", link_addr),
+            ])
             .args([
                 "-device",
                 &format!("loader,file={},addr=0x100000,cpu-num=0", kernel.display()),
@@ -209,16 +214,16 @@ impl Brain {
                 "-device",
                 &format!(
                     "loader,file={},force-raw=on,addr={}",
-                    main_binary.display(),
-                    main_binary_addr
+                    main_binary.path.display(),
+                    main_binary.load_addr
                 ),
             ]);
         if let Some(linked_binary) = linked_binary {
                 qemu_command.arg("-device");
                 qemu_command.arg(format!(
                     "loader,file={},force-raw=on,addr={}",
-                    linked_binary.display(),
-                    linked_binary_addr.expect("Cannot specify linked binary without link address!")
+                    linked_binary.path.display(),
+                    linked_binary.load_addr
                 ));
         }
         qemu_command
