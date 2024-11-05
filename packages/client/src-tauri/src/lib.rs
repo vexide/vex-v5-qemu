@@ -1,5 +1,3 @@
-#![rust_analyzer::skip]
-
 use image::DynamicImage;
 use tauri::{Emitter, Manager};
 use tauri_plugin_log::TimezoneStrategy;
