@@ -3,7 +3,7 @@
 use core::{
     arch::asm,
     ffi::c_void,
-    sync::atomic::{AtomicBool, AtomicU32, Ordering},
+    sync::atomic::{AtomicBool, Ordering},
 };
 
 use vex_sdk::*;
