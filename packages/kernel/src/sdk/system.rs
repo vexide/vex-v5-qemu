@@ -25,6 +25,11 @@ use crate::{
     },
 };
 
+extern "C" {
+    #[link_name = "_link_addr"]
+    static LINK_ADDR: u32;
+}
+
 pub extern "C" fn vexPrivateApiDisable(sig: u32) {}
 pub extern "C" fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
 pub extern "C" fn vexScratchMemoryPtr(ptr: *mut *mut core::ffi::c_void) -> i32 {
@@ -59,8 +64,7 @@ pub extern "C" fn vexSystemPowerupTimeGet() -> u64 {
     vexSystemHighResTimeGet()
 }
 pub extern "C" fn vexSystemLinkAddrGet() -> u32 {
-    // no multi-file support yet
-    0x0
+    unsafe { LINK_ADDR }
 }
 pub extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {
     Default::default()

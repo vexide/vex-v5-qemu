@@ -26,6 +26,7 @@ __heap_end = _jump_table_start - __stack_size - __irq_stack_size - __fiq_stack_s
 
 SECTIONS {
     _vex_startup = _user_memory_start + 0x20;
+    _link_addr = 0x200;
 
     .mmu_pages : {
         KEEP(*(.mmu_pages))

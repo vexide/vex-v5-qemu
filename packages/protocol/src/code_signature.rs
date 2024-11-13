@@ -1,8 +1,9 @@
 use bincode::{Decode, Encode};
 use bitflags::bitflags;
+use core::result::Result;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use vex_sdk::vcodesig;
+use vex_sdk::{vcodesig, V5_SIG_MAGIC};
 
 use crate::impl_bincode_bitflags;
 
@@ -21,17 +22,22 @@ pub struct CodeSignature {
 }
 
 // TODO: This impl should probably be TryFrom and not have unreachables
-impl From<vcodesig> for CodeSignature {
-    fn from(vcodesig: vcodesig) -> Self {
-        Self {
-            magic: vcodesig.magic,
-            program_type: ProgramType::User,
-            owner: match vcodesig.owner {
-                1 => ProgramOwner::Vex,
-                2 => ProgramOwner::Partner,
-                _ => ProgramOwner::System,
-            },
-            flags: ProgramFlags::from_bits_retain(vcodesig.options),
+impl TryFrom<vcodesig> for CodeSignature {
+    type Error = ();
+    fn try_from(vcodesig: vcodesig) -> Result<Self, Self::Error> {
+        if vcodesig.magic != V5_SIG_MAGIC {
+            Err(())
+        } else {
+            Ok(Self {
+                magic: vcodesig.magic,
+                program_type: ProgramType::User,
+                owner: match vcodesig.owner {
+                    1 => ProgramOwner::Vex,
+                    2 => ProgramOwner::Partner,
+                    _ => ProgramOwner::System,
+                },
+                flags: ProgramFlags::from_bits_retain(vcodesig.options),
+            })
         }
     }
 }
