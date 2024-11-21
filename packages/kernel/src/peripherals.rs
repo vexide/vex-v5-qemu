@@ -16,7 +16,7 @@ use crate::{
             XScuTimer, XScuTimer_ClearInterruptStatus, XScuTimer_IsExpired,
             XPAR_XSCUTIMER_0_BASEADDR,
         },
-        uart::XPAR_XUARTPS_1_BASEADDR,
+        uart::{XUartPs, XPAR_XUARTPS_1_BASEADDR, XUARTPS_EVENT_RECV_DATA, XUARTPS_IXR_MASK, XUARTPS_IXR_RXOVR, XUARTPS_IXR_TTRIG},
         wdt::XPAR_XSCUWDT_0_BASEADDR,
     },
 };
@@ -78,6 +78,12 @@ pub extern "C" fn timer_interrupt_handler(timer: *mut c_void) {
     // [`vexSystemTimerReinitForRtos`] anyways...
 }
 
+pub extern "C" fn uart_interrupt_handler(_: *mut c_void, event: u32, event_data: u32) {
+    assert!(event == XUARTPS_EVENT_RECV_DATA);
+
+    log::debug!("UART Interrupt");
+}
+
 /// Configures the Private Timer peripheral and registers an interrupt handler
 /// for timer ticks using the Generic Interrupt Controller (GIC).
 pub fn setup_private_timer() -> Result<(), GicError> {
@@ -123,6 +129,31 @@ pub fn setup_private_timer() -> Result<(), GicError> {
     // Enable timer IRQ.
     gic.enable_interrupt(PrivateTimer::INTERRUPT_ID);
     timer.set_interrupt_enabled(true);
+
+    Ok(())
+}
+
+pub fn setup_uart1() -> Result<(), GicError> {
+    let mut uart = UART1.lock();
+    let mut gic = GIC.lock();
+
+    // Mask out all interrupts except receives.
+    uart.set_interrupt_mask(XUARTPS_IXR_MASK | XUARTPS_IXR_RXOVR);
+
+    // Register the driver's interrupt handler with the GIC.
+    gic.set_handler(
+        UartDriver::INTERRUPT_ID,
+        0, // priority
+        InterruptTrigger::RisingEdge,
+        UartDriver::interrupt_handler,
+        uart.raw_mut() as *mut XUartPs as _,
+    )?;
+
+    // Handle interrupts through [`uart_interrupt_handler`].
+    uart.set_handler(uart_interrupt_handler, core::ptr::null_mut());
+
+    // Enable UART IRQ.
+    gic.enable_interrupt(UartDriver::INTERRUPT_ID);
 
     Ok(())
 }

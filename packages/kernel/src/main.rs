@@ -80,17 +80,9 @@ pub extern "C" fn _start() -> ! {
         allocator::init_heap();
     }
 
-    // Force-initialize all peripherals.
-    //
-    // If they fail to initialize, we want them to fail now rather than whenever
-    // they're first accessed.
-    GIC.force();
-    PRIVATE_TIMER.force();
+    // The watchdog timer isn't locked until vexSystemWatchdogReinitRtos, which could be
+    // a while into program execution so we'll force initialize it here.
     WATCHDOG_TIMER.force();
-    UART1.force();
-
-    // Initialize UART kernel logger
-    LOGGER.init(LevelFilter::Debug).unwrap();
 
     // Setup private timer peripheral and register a tick interrupt handler using
     // the GIC.
