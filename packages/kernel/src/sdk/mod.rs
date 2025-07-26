@@ -64,7 +64,7 @@ pub use task::*;
 pub use touch::*;
 pub use vision::*;
 
-use crate::vexStartup;
+use crate::{vectors::reset, vexStartup};
 
 const SYSTEM_VERSION: u32 = u32::from_be_bytes([1, 1, 4, 19]);
 const STDLIB_VERSION: u32 = 0; // only relevant for vexcode
@@ -437,7 +437,7 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x8cc => vexSystemApplicationIRQHandler,
         0x8d0 => vexSystemWatchdogReinitRtos,
         0x8d4 => vexSystemWatchdogGet,
-        0x910 => vexSystemBoot,
+        0x910 => reset, // named vexSystemBoot in the SDK
         0x914 => vexSystemUndefinedException,
         0x918 => vexSystemFIQInterrupt,
         0x91c => vexSystemIQRQnterrupt,

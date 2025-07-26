@@ -103,8 +103,6 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("Failed to start QEMU.")?;
 
-    // brain.kill_program().await.unwrap();
-
     let usb_task = tokio::task::spawn(async move {
         let mut usb = peripherals.usb;
         let mut out = stdout();
