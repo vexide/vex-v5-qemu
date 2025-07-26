@@ -1,6 +1,7 @@
+use core::result::Result;
+
 use bincode::{Decode, Encode};
 use bitflags::bitflags;
-use core::result::Result;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use vex_sdk::{vcodesig, V5_SIG_MAGIC};

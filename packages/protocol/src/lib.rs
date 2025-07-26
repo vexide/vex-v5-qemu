@@ -3,12 +3,12 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use core::{num::NonZeroU32, option::Option};
 
 use battery::BatteryData;
 use bincode::{Decode, Encode};
 use code_signature::CodeSignature;
 use controller::{ControllerData, ControllerId};
-use core::{option::Option, num::NonZeroU32};
 use display::{Color, DrawCommand, ScrollLocation};
 use distance_sensor::DistanceSensorData;
 use geometry::Rect;

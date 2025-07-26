@@ -1,5 +1,9 @@
 use core::arch::asm;
 
+use cortex_ar::mmu::{
+    AccessPermissions, L1Section, MemoryRegionAttributes, SectionAttributes,
+};
+
 #[link_section = ".mmu_pages"]
 #[no_mangle]
 static MMU_PAGES: [u32; 0x1000] = {
@@ -7,12 +11,39 @@ static MMU_PAGES: [u32; 0x1000] = {
     let mut i = 0;
 
     while i < 16 {
-        table[i] = ((i as u32) << 20) | 0b1000110000001110;
+        let section = L1Section::new(
+            (i as u32) << 20,
+            SectionAttributes {
+                memory_attrs: MemoryRegionAttributes::OuterAndInnerWriteBackNoWriteAlloc.as_raw(),
+                execute_never: false,
+                domain: 0,
+                access: AccessPermissions::ReadOnly,
+                non_global: false,
+                p_bit: false,
+                shareable: false,
+            },
+        );
+
+        let value = section.raw_value();
+        table[i] = value;
         i += 1;
     }
 
     while i < 4096 {
-        table[i] = ((i as u32) << 20) | 0b0000110000001110;
+        let section = L1Section::new(
+            (i as u32) << 20,
+            SectionAttributes {
+                memory_attrs: MemoryRegionAttributes::OuterAndInnerWriteBackNoWriteAlloc.as_raw(),
+                execute_never: false,
+                domain: 0,
+                access: AccessPermissions::FullAccess,
+                non_global: false,
+                p_bit: false,
+                shareable: false,
+            },
+        );
+
+        table[i] = section.raw_value();
         i += 1;
     }
 
