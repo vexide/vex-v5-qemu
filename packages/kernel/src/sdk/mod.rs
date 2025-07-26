@@ -409,9 +409,9 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         0x8a0 => vexSerialReadChar,
         0x8a4 => vexSerialPeekChar,
         0x8ac => vexSerialWriteFree,
-        0x0f0 => vex_vprintf,
-        0x0f4 => vex_vsprintf,
-        0x0f8 => vex_vsnprintf,
+        0x0f0 => vex_printf, // aka vexDebug
+        0x0f4 => vex_sprintf,
+        0x0f8 => vex_snprintf,
 
         // System
         0x10 => vexStdlibMismatchError,

@@ -1,5 +1,6 @@
 //! USB Serial Communication
 
+use alloc::string::String;
 use core::ffi::{c_char, VaList};
 
 use embedded_io::{ErrorKind, ErrorType, Write};
@@ -109,21 +110,59 @@ pub extern "C" fn vexSerialWriteFree(channel: u32) -> i32 {
     }
 }
 
-pub extern "C" fn vex_vprintf(format: *const c_char, args: VaList<'_, '_>) -> i32 {
-    -1
+pub unsafe extern "C" fn vex_printf(format: *const c_char, args: VaList<'_, '_>) -> i32 {
+    let mut buffer = String::new();
+
+    let result = unsafe {
+        printf_compat::format(format, args, printf_compat::output::fmt_write(&mut buffer))
+    };
+
+    protocol::send_packet(HostBoundPacket::KernelSerial(buffer.as_bytes().to_vec())).unwrap();
+
+    result
 }
-pub extern "C" fn vex_vsprintf(
+pub unsafe extern "C" fn vex_sprintf(
     out: *mut c_char,
     format: *const c_char,
-    args: VaList<'_, '_>,
+    mut args: VaList<'_, '_>,
 ) -> i32 {
-    -1
+    unsafe {
+        let mut buf = String::new();
+        let num_bytes = printf_compat::format(
+            format,
+            args.as_va_list(),
+            printf_compat::output::fmt_write(&mut buf),
+        );
+        core::ptr::copy_nonoverlapping(buf.as_ptr(), out.cast(), num_bytes as usize);
+        num_bytes
+    }
 }
-pub extern "C" fn vex_vsnprintf(
+pub unsafe extern "C" fn vex_snprintf(
     out: *mut c_char,
     max_len: u32,
     format: *const c_char,
-    args: VaList<'_, '_>,
+    mut args: VaList<'_, '_>,
 ) -> i32 {
-    -1
+    let mut buf = String::new();
+    let num_bytes = unsafe {
+        printf_compat::format(
+            format,
+            args.as_va_list(),
+            printf_compat::output::fmt_write(&mut buf),
+        )
+    };
+
+    if num_bytes >= 0 {
+        buf.push('\0');
+
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                buf.as_ptr(),
+                out.cast(),
+                core::cmp::min(num_bytes as usize + 1, max_len as _),
+            );
+        }
+    }
+
+    num_bytes
 }

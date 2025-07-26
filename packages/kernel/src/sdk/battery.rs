@@ -58,7 +58,7 @@ pub extern "C" fn vexBatteryVoltageGet() -> i32 {
     if let Some(battery_data) = BATTERY.lock().data {
         battery_data.voltage
     } else {
-        -1
+        12000
     }
 }
 

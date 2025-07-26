@@ -16,7 +16,7 @@ pub mod sync;
 pub mod vectors;
 pub mod xil;
 
-use crate::protocol::exit;
+use crate::{protocol::exit, sdk::vexSystemMemoryDump};
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
@@ -61,7 +61,6 @@ pub extern "C" fn _start() -> ! {
         // The table is created in `vectors.s` and the handlers can be found in the
         // `vectors` module.
         vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
-
 
         // Register SDK exception handlers for data/prefetch/undefined aborts.
         vectors::register_sdk_exception_handlers();
@@ -114,6 +113,7 @@ pub extern "C" fn _start() -> ! {
     // Send user code signature to host.
     log::debug!("Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(code_signature)).unwrap();
+
     // Execute user program's entrypoint function.
     //
     // This is located 32 bytes after the code signature at 0x03800020.

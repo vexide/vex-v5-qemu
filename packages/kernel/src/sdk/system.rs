@@ -42,13 +42,93 @@ pub extern "C" fn vexScratchMemoryUnock() {}
 pub extern "C" fn vexSystemTimeGet() -> u32 {
     SYSTEM_TIME.load(Ordering::Acquire)
 }
-pub extern "C" fn vexGettime() -> time {
-    Default::default()
+/// # Safety
+///
+/// `pTime` must be a valid pointer to a `date` structure.
+pub unsafe extern "C" fn vexGettime(pTime: *mut time) {
+    let time_ms = SYSTEM_TIME.load(Ordering::Acquire);
+    let time_secs = time_ms / 1000;
+
+    unsafe {
+        *pTime = time {
+            ti_hour: (time_secs / 3600) as _,
+            ti_min: ((time_secs / 60) % 60) as _,
+            ti_sec: (time_secs % 60) as _,
+            ti_hund: ((time_ms % 1000) / 10) as _,
+        }
+    }
 }
-pub extern "C" fn vexGetdate() -> date {
-    Default::default()
+/// # Safety
+///
+/// `pDate` must be a valid pointer to a `date` structure.
+pub unsafe extern "C" fn vexGetdate(pDate: *mut date) {
+    unsafe {
+        *pDate = date {
+            da_year: 2016,
+            da_day: 16,
+            da_mon: 11,
+        }
+    }
 }
-pub extern "C" fn vexSystemMemoryDump() {}
+pub extern "C" fn vexSystemMemoryDump() {
+    unsafe {
+        unsafe extern "C" {
+            static mut __heap_start: u8;
+            static mut __heap_end: u8;
+
+            static mut __data_start: u32;
+            static mut __data_end: u32;
+
+            static mut __bss_start: u32;
+            static mut __bss_end: u32;
+
+            static mut __stack_top: u32;
+            static mut __stack_bottom: u32;
+        }
+
+        let stack_size = (&raw const __stack_top).offset_from(&raw const __stack_bottom);
+        let bss_size = (&raw const __bss_end).offset_from(&raw const __bss_start);
+        let data_size = (&raw const __data_end).offset_from(&raw const __data_start);
+        let heap_size = (&raw const __heap_end).offset_from(&raw const __heap_start);
+
+        vex_printf(c"sizeof task        : %u\n".as_ptr(), 0);
+        vex_printf(c"sizeof taskS       : %u\n".as_ptr(), 0);
+        vex_printf(
+            c"system data top    : %08X\n".as_ptr(),
+            &raw const __data_start,
+        );
+        vex_printf(
+            c"system data end    : %08X\n".as_ptr(),
+            &raw const __data_end,
+        );
+        vex_printf(
+            c"system data        : %08X (%8d)\n".as_ptr(),
+            data_size,
+            data_size,
+        );
+        vex_printf(c"system bss top     : %08X\n".as_ptr(), &__bss_start);
+        vex_printf(c"system bss end     : %08X\n".as_ptr(), &__bss_end);
+        vex_printf(
+            c"system bss         : %08X (%8d)\n".as_ptr(),
+            bss_size,
+            bss_size,
+        );
+        vex_printf(c"system heap top    : %08X\n".as_ptr(), &__heap_start);
+        vex_printf(c"system heap end    : %08X\n".as_ptr(), &__heap_end);
+        vex_printf(
+            c"system heap        : %08X (%8d)\n".as_ptr(),
+            heap_size,
+            heap_size,
+        );
+        vex_printf(c"system stack end   : %08X\n".as_ptr(), &__stack_top);
+        vex_printf(c"system stack       : %08X\n".as_ptr(), &__stack_bottom);
+        vex_printf(
+            c"system stack size  : %08X (%8d)\n".as_ptr(),
+            stack_size,
+            stack_size,
+        );
+    }
+}
 pub extern "C" fn vexSystemDigitalIO(pin: u32, value: u32) {}
 pub extern "C" fn vexSystemStartupOptions() -> u32 {
     Default::default()

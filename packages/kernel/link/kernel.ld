@@ -46,11 +46,15 @@ SECTIONS {
     } > low_rx_mem
 
     .data : {
+        __data_start = .;
         *(.data*)
+        __data_end = .;
     } > low_rw_mem
 
     .bss : {
+        __bss_start = .;
         *(.bss*)
+        __bss_end = .;
     } > low_rw_mem
 
     .drvcfg_sec : {
@@ -63,6 +67,7 @@ SECTIONS {
     } > low_rw_mem
 
     .stack (NOLOAD) : ALIGN(16) {
+        __stack_bottom = .;
         . += __stack_size;
         __stack_top = .;
 

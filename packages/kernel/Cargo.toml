@@ -27,4 +27,5 @@ bincode = { version = "2.0.0-rc.3", default-features = false, features = [
     "derive",
 ] }
 vex-v5-qemu-protocol = { path = "../protocol" }
+printf-compat = { version = "0.2.1", default-features = false }
 talc = "4.4.1"
