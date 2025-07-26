@@ -110,7 +110,7 @@ async fn main() -> anyhow::Result<()> {
         let mut out = stdout();
 
         loop {
-            let mut buf = vec![0; 1024];
+            let mut buf = vec![0; 2048];
             let n = usb.read(&mut buf).await.unwrap();
             if n == 0 {
                 break;

@@ -19,6 +19,7 @@ pub struct Usb {
     tx: Sender<KernelBoundPacket>,
     rx: Receiver<Vec<u8>>,
     read_buf: Vec<u8>,
+    eof: bool,
 }
 
 impl Usb {
@@ -27,6 +28,7 @@ impl Usb {
             tx,
             rx,
             read_buf: Vec::new(),
+            eof: false,
         }
     }
 
@@ -46,18 +48,21 @@ impl AsyncRead for Usb {
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        let poll = self.rx.poll_recv(cx);
-        let eof = match poll {
-            Poll::Ready(Some(data)) => {
-                self.read_buf.extend(data);
-                false
+        loop {
+            match self.rx.poll_recv(cx) {
+                Poll::Ready(Some(data)) => {
+                    self.read_buf.extend(data);
+                }
+                Poll::Ready(None) => {
+                    self.eof = true;
+                    break;
+                }
+                Poll::Pending => break,
             }
-            Poll::Pending => false,
-            Poll::Ready(None) => true,
-        };
+        }
 
         let read_len = buf.remaining().min(self.read_buf.len());
-        if read_len == 0 && !eof {
+        if read_len == 0 && !self.eof {
             return Poll::Pending;
         }
 
