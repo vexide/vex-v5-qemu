@@ -41,7 +41,7 @@ pub static DISPLAY: Mutex<Display> = Mutex::new(Display::new(
     },
 ));
 
-struct Display {
+pub struct Display {
     foreground: Color,
     background: Color,
     clip_region: Rect,

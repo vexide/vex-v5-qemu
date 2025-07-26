@@ -268,11 +268,11 @@ fn dfsr() -> u32 {
 }
 
 const fn decode_dfsr(dfsr: u32) -> &'static str {
-    match dfsr & 0xF0000 {
+    match dfsr & 0xf0000 {
         0x10000 => "Undefined error !",
         0x20000 => "Prefetch error !",
         _ => {
-            let status = (dfsr >> 0) & 0b1111 | ((dfsr >> 6) & 0b100000);
+            let status = (dfsr << 24) >> 28;
             match status {
                 9 => "PL Access error !",
                 _ => "Memory Permission error !",

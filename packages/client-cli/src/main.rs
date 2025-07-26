@@ -12,13 +12,13 @@ use vex_v5_qemu_host::brain::{Binary, Brain};
 #[cfg(debug_assertions)]
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../target/armv7a-none-eabi/debug/kernel"
+    "/../kernel/target/armv7a-none-eabi/debug/kernel"
 );
 
 #[cfg(not(debug_assertions))]
 const DEFAULT_KERNEL: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../target/armv7a-none-eabi/release/kernel"
+    "/../kernel/target/armv7a-none-eabi/release/kernel"
 );
 
 /// Simulate a VEX V5 robot program

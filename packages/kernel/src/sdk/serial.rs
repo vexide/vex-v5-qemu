@@ -110,6 +110,9 @@ pub extern "C" fn vexSerialWriteFree(channel: u32) -> i32 {
     }
 }
 
+/// # Safety
+///
+/// [`VaList`]s are *very* unsafe. The passed `format` and `args` parameter must be a valid [`printf` format string](http://www.cplusplus.com/reference/cstdio/printf/).
 pub unsafe extern "C" fn vex_printf(format: *const c_char, args: VaList<'_, '_>) -> i32 {
     let mut buffer = String::new();
 
@@ -121,6 +124,9 @@ pub unsafe extern "C" fn vex_printf(format: *const c_char, args: VaList<'_, '_>)
 
     result
 }
+/// # Safety
+///
+/// [`VaList`]s are *very* unsafe. The passed `format` and `args` parameter must be a valid [`printf` format string](http://www.cplusplus.com/reference/cstdio/printf/).
 pub unsafe extern "C" fn vex_sprintf(
     out: *mut c_char,
     format: *const c_char,
@@ -137,6 +143,9 @@ pub unsafe extern "C" fn vex_sprintf(
         num_bytes
     }
 }
+/// # Safety
+///
+/// [`VaList`]s are *very* unsafe. The passed `format` and `args` parameter must be a valid [`printf` format string](http://www.cplusplus.com/reference/cstdio/printf/).
 pub unsafe extern "C" fn vex_snprintf(
     out: *mut c_char,
     max_len: u32,
