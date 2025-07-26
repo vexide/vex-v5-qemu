@@ -2,10 +2,12 @@
 members = [
     "./packages/kernel",
     "./packages/host",
-    "./packages/display",
     "./packages/protocol",
     "./packages/client-cli",
     "./packages/client/src-tauri",
+]
+exclude = [
+    "./packages/display", # broken for now
 ]
 resolver = "2"
 

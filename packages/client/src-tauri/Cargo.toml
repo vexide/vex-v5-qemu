@@ -38,7 +38,7 @@ tokio = { version = "1.39.2", features = ["full"] }
 
 vex-v5-qemu-protocol = { path = "../../protocol", features = ["serde"] }
 vex-v5-qemu-host = { path = "../../host" }
-vex-v5-display-simulator = { version = "0.1.0", path = "../../display" }
+# vex-v5-display-simulator = { version = "0.1.0", path = "../../display" }
 bincode = "2.0.0-rc.3"
 log = "0.4.22"
 time = { version = "0.3.36", features = ["formatting"] }

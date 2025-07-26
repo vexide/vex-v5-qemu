@@ -102,7 +102,7 @@ macro_rules! impl_bincode_bitflags {
             }
         }
 
-        impl bincode::de::Decode for $flags {
+        impl<C> bincode::de::Decode<C> for $flags {
             fn decode<D: bincode::de::Decoder>(
                 decoder: &mut D,
             ) -> Result<Self, bincode::error::DecodeError> {
@@ -110,7 +110,7 @@ macro_rules! impl_bincode_bitflags {
             }
         }
 
-        impl<'de> bincode::BorrowDecode<'de> for $flags {
+        impl<'de, C> bincode::BorrowDecode<'de, C> for $flags {
             fn borrow_decode<D: bincode::de::BorrowDecoder<'de>>(
                 decoder: &mut D,
             ) -> Result<Self, bincode::error::DecodeError> {
