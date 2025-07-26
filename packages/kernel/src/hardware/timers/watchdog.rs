@@ -140,7 +140,7 @@ impl WatchdogTimer {
         unsafe { XScuWdt_IsWdtExpired(&self.instance) }
     }
 
-    pub fn raw_mut(&mut self) -> &mut XScuWdt {
+    pub const fn raw_mut(&mut self) -> &mut XScuWdt {
         &mut self.instance
     }
 }

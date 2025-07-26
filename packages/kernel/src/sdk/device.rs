@@ -3,7 +3,7 @@
 use core::ffi::{c_double, c_int};
 
 use vex_sdk::*;
-use vex_v5_qemu_protocol::{KernelBoundPacket, SmartPortData};
+use vex_v5_qemu_protocol::SmartPortData;
 
 use super::BATTERY;
 use crate::sync::Mutex;
@@ -88,7 +88,7 @@ impl Device for SmartPort {
         if let Some(data) = &self.data {
             match data {
                 SmartPortData::DistanceSensor(_) => V5_DeviceType::kDeviceTypeDistanceSensor,
-                _ => V5_DeviceType::kDeviceTypeNoSensor,
+                // _ => V5_DeviceType::kDeviceTypeNoSensor,
             }
         } else {
             V5_DeviceType::kDeviceTypeNoSensor
@@ -137,8 +137,11 @@ pub extern "C" fn vexDeviceFlagsGetByIndex(index: u32) -> u32 {
     Default::default()
 }
 pub extern "C" fn vexDeviceGetStatus(devices: *mut V5_DeviceType) -> i32 {
-    Default::default()
+    -1
 }
+/// # Safety
+///
+/// - `device` must be a valid pointer to a device handle
 pub unsafe extern "C" fn vexDeviceGetTimestamp(device: V5_DeviceT) -> u32 {
     let port_index = unsafe { *device }.zero_indexed_port;
 

@@ -9,7 +9,7 @@
 //! file: <https://github.com/Xilinx/embeddedsw/blob/5688620af40994a0012ef5db3c873e1de3f20e9f/lib/bsp/standalone/src/arm/cortexa9/armcc/asm_vectors.s>
 
 use core::{
-    arch::{asm, global_asm},
+    arch::{global_asm, naked_asm},
     ffi::c_void,
 };
 
@@ -65,51 +65,48 @@ pub unsafe fn set_vbar(addr: u32) {
 /// Since each exception requires its own stack, we will briefly switch the
 /// processor to each exception mode, load the respective stack section into sp,
 /// then branch to [`_start`].
-#[no_mangle]
-#[naked]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn reset() -> ! {
-    unsafe {
-        asm!(
-            "
-            mrs r0, cpsr         @ Load CPSR
+    naked_asm!(
+        "
+        mrs r0, cpsr         @ Load CPSR
 
-                                 @ Set up stacks for each mode, writing only
-                                 @ the lower 8 bits, which contain the state
+                                @ Set up stacks for each mode, writing only
+                                @ the lower 8 bits, which contain the state
 
-            bic r0, r0, #0b11111 @ FIQ
-            orr r0, r0, #0b10001
-            msr cpsr_c, r0
-            ldr sp, =__fiq_stack_top
+        bic r0, r0, #0b11111 @ FIQ
+        orr r0, r0, #0b10001
+        msr cpsr_c, r0
+        ldr sp, =__fiq_stack_top
 
-            bic r0, r0, #0b11111 @ IRQ
-            orr r0, r0, #0b10010
-            msr cpsr_c, r0
-            ldr sp, =__irq_stack_top
+        bic r0, r0, #0b11111 @ IRQ
+        orr r0, r0, #0b10010
+        msr cpsr_c, r0
+        ldr sp, =__irq_stack_top
 
-            bic r0, r0, #0b11111 @ SVC
-            orr r0, r0, #0b10011
-            msr cpsr_c, r0
-            ldr sp, =__svc_stack_top
+        bic r0, r0, #0b11111 @ SVC
+        orr r0, r0, #0b10011
+        msr cpsr_c, r0
+        ldr sp, =__svc_stack_top
 
-            bic r0, r0, #0b11111 @ Abort
-            orr r0, r0, #0b10111
-            msr cpsr_c, r0
-            ldr sp, =__abort_stack_top
+        bic r0, r0, #0b11111 @ Abort
+        orr r0, r0, #0b10111
+        msr cpsr_c, r0
+        ldr sp, =__abort_stack_top
 
-            bic r0, r0, #0b11111 @ Undefined
-            orr r0, r0, #0b11011
-            msr cpsr_c, r0
-            ldr sp, =__undefined_stack_top
+        bic r0, r0, #0b11111 @ Undefined
+        orr r0, r0, #0b11011
+        msr cpsr_c, r0
+        ldr sp, =__undefined_stack_top
 
-            orr r0, r0, #0b11111 @ Sys
-            msr cpsr_c, r0
-            ldr sp, =__stack_top
+        orr r0, r0, #0b11111 @ Sys
+        msr cpsr_c, r0
+        ldr sp, =__stack_top
 
-            b _start             @ Jump to Rust entrypoint
-            ",
-            options(noreturn)
-        )
-    }
+        b _start             @ Jump to Rust entrypoint
+        ",
+    )
 }
 
 /// Undefined Instruction Vector
@@ -120,24 +117,21 @@ pub extern "C" fn reset() -> ! {
 ///
 /// This exception occurs when the CPU's instruction pipelining encounters and
 /// attempts to execute an instrction it does not recognize.
-#[no_mangle]
-#[naked]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn undefined_instruction() -> ! {
-    unsafe {
-        asm!(
-            "
-            stmdb sp!,{{r0-r3,r12,lr}}  @ state save from compiled code
-            ldr r0, =UndefinedExceptionAddr
-            sub r1, lr,#4
-            str r1, [r0]                @ Address of instruction causing undefined exception
-            bl UndefinedException       @ UndefinedException: call C function here
-            ldmia sp!, {{r0-r3,r12,lr}} @ state restore from compiled code
+    naked_asm!(
+        "
+        stmdb sp!,{{r0-r3,r12,lr}}  @ state save from compiled code
+        ldr r0, =UndefinedExceptionAddr
+        sub r1, lr,#4
+        str r1, [r0]                @ Address of instruction causing undefined exception
+        bl UndefinedException       @ UndefinedException: call C function here
+        ldmia sp!, {{r0-r3,r12,lr}} @ state restore from compiled code
 
-            movs pc, lr
-            ",
-            options(noreturn)
-        )
-    }
+        movs pc, lr
+        ",
+    )
 }
 
 /// Supervisor Call Vector
@@ -145,23 +139,20 @@ pub extern "C" fn undefined_instruction() -> ! {
 /// This function is jumped to when the CPU receives a software interrupt
 /// (SWI/SVC). It currently just saves the program state/registers and calls
 /// `SWInterrupt` from libxil.
-#[no_mangle]
-#[naked]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn svc() -> ! {
-    unsafe {
-        asm!(
-            "
-            stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
-            tst	r0, #0x20              @ check the T bit
-            ldreq r0, [lr,#-4]         @ ARM mode
-            biceq r0, r0, #0xff000000  @ ARM mode
-            bl SWInterrupt             @ SWInterrupt: call C function here
-            ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
-            movs pc, lr                @ adjust return
-            ",
-            options(noreturn)
-        )
-    }
+    naked_asm!(
+        "
+        stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
+        tst	r0, #0x20              @ check the T bit
+        ldreq r0, [lr,#-4]         @ ARM mode
+        biceq r0, r0, #0xff000000  @ ARM mode
+        bl SWInterrupt             @ SWInterrupt: call C function here
+        ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
+        movs pc, lr                @ adjust return
+        ",
+    )
 }
 
 /// Prefetch Abort Vector
@@ -172,23 +163,20 @@ pub extern "C" fn svc() -> ! {
 /// instruction, then proceeds to attempt to execute at that location.
 ///
 /// See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Prefetch-Abort-exception>
-#[no_mangle]
-#[naked]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn prefetch_abort() -> ! {
-    unsafe {
-        asm!(
-            "
-                stmdb sp!,{{r0-r3,r12,lr}}  @ state save from compiled code
-                ldr r0, =PrefetchAbortAddr
-                sub r1, lr,#4
-                str r1, [r0]              @ Address of instruction causing prefetch abort
-                bl PrefetchAbortInterrupt @ PrefetchAbortInterrupt: call C function here
-                ldmia sp!,{{r0-r3,r12,lr}}  @ state restore from compiled code
-                subs pc, lr, #4           @ adjust return
-            ",
-            options(noreturn)
-        )
-    }
+    naked_asm!(
+        "
+            stmdb sp!,{{r0-r3,r12,lr}}  @ state save from compiled code
+            ldr r0, =PrefetchAbortAddr
+            sub r1, lr,#4
+            str r1, [r0]              @ Address of instruction causing prefetch abort
+            bl PrefetchAbortInterrupt @ PrefetchAbortInterrupt: call C function here
+            ldmia sp!,{{r0-r3,r12,lr}}  @ state restore from compiled code
+            subs pc, lr, #4           @ adjust return
+        ",
+    )
 }
 
 /// Data Abort Vector
@@ -198,11 +186,11 @@ pub extern "C" fn prefetch_abort() -> ! {
 /// Data aborts typically occur as a result of illegal memory accesses.
 ///
 /// See: <https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/Exceptions/Data-Abort-exception>
-#[no_mangle]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn data_abort() -> ! {
-    unsafe {
-        asm!(
-            "
+    naked_asm!(
+        "
             stmdb sp!,{{r0-r3, r12, lr}} @ state save from compiled code
             ldr r0, =DataAbortAddr
             sub r1, lr,#8
@@ -211,69 +199,61 @@ pub extern "C" fn data_abort() -> ! {
             ldmia sp!,{{r0-r3, r12, lr}} @ state restore from compiled code
             subs pc, lr, #8			     @ adjust return
             ",
-            options(noreturn)
-        )
-    }
+    )
 }
 
 /// Interrupt Request Vector
 ///
 /// This function is jumped to when the CPU receives an IRQ. It currently just
 /// saves the program state/registers and calls `IRQInterrupt` from libxil.
-#[no_mangle]
-#[naked]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn irq() -> ! {
-    unsafe {
-        asm!(
-            "
-                stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
-                vpush {{d0-d7}}
-                vpush {{d16-d31}}
-                vmrs r1, FPSCR
-                push {{r1}}
-                vmrs r1, FPEXC
-                push {{r1}}
-                bl IRQInterrupt            @ IRQ vector
-                pop {{r1}}
-                vmsr FPEXC, r1
-                pop {{r1}}
-                vmsr FPSCR, r1
-                vpop {{d16-d31}}
-                vpop {{d0-d7}}
-                ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
-                subs pc, lr, #4            @ adjust return
-            ",
-            options(noreturn)
-        )
-    }
+    naked_asm!(
+        "
+            stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
+            vpush {{d0-d7}}
+            vpush {{d16-d31}}
+            vmrs r1, FPSCR
+            push {{r1}}
+            vmrs r1, FPEXC
+            push {{r1}}
+            bl IRQInterrupt            @ IRQ vector
+            pop {{r1}}
+            vmsr FPEXC, r1
+            pop {{r1}}
+            vmsr FPSCR, r1
+            vpop {{d16-d31}}
+            vpop {{d0-d7}}
+            ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
+            subs pc, lr, #4            @ adjust return
+        ",
+    )
 }
 
-#[no_mangle]
-#[naked]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
 pub extern "C" fn fiq() -> ! {
-    unsafe {
-        asm!(
-            "
-                stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
-                vpush {{d0-d7}}
-                vpush {{d16-d31}}
-                vmrs r1, FPSCR
-                push {{r1}}
-                vmrs r1, FPEXC
-                push {{r1}}
-                bl FIQInterrupt			   @ FIQ vector
-                pop {{r1}}
-                vmsr FPEXC, r1
-                pop {{r1}}
-                vmsr FPSCR, r1
-                vpop {{d16-d31}}
-                vpop {{d0-d7}}
-                ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
-                subs pc, lr, #4            @ adjust return
-            ",
-            options(noreturn)
-        )
-    }
+    naked_asm!(
+        "
+            stmdb sp!,{{r0-r3,r12,lr}} @ state save from compiled code
+            vpush {{d0-d7}}
+            vpush {{d16-d31}}
+            vmrs r1, FPSCR
+            push {{r1}}
+            vmrs r1, FPEXC
+            push {{r1}}
+            bl FIQInterrupt			   @ FIQ vector
+            pop {{r1}}
+            vmsr FPEXC, r1
+            pop {{r1}}
+            vmsr FPSCR, r1
+            vpop {{d16-d31}}
+            vpop {{d0-d7}}
+            ldmia sp!,{{r0-r3,r12,lr}} @ state restore from compiled code
+            subs pc, lr, #4            @ adjust return
+        ",
+    )
 }
 
 /// VEX handles the user-facing part of exceptions through xilinx's own

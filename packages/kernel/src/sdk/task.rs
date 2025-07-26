@@ -2,10 +2,11 @@
 
 use core::ffi::{c_char, c_int, c_void};
 
+use embedded_io::Write;
 use vex_v5_qemu_protocol::KernelBoundPacket;
 
 use super::{BATTERY, SMARTPORTS};
-use crate::{peripherals::UART1, protocol::recv_packet};
+use crate::{peripherals::UART1, protocol::recv_packet, sdk::USB1};
 
 /// Adds a new simple task to the task scheduler.
 pub extern "C" fn vexTaskAdd(
@@ -43,6 +44,8 @@ pub extern "C" fn vexBackgroundProcessing() {}
 /// This more importantly handles many device reads and flushes
 /// serial.
 pub extern "C" fn vexTasksRun() {
+    USB1.lock().flush().unwrap(); // flush outgoing serial
+
     while !UART1.lock().is_rx_empty() {
         if let Some(packet) = recv_packet().unwrap() {
             match packet {

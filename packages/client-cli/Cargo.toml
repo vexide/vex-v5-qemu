@@ -17,10 +17,10 @@ workspace = true
 tokio = { version = "1.23.0", features = ["full"] }
 miette = { version = "7.2.0", features = ["fancy"] }
 clap = { version = "4.5.1", features = ["derive", "env"] }
+clap-num = "1.2.0"
 anyhow = "1.0.86"
 bincode = "2.0.0-rc.3"
 vex-v5-qemu-host = { path = "../host" }
 thiserror = "1.0.63"
 log = "0.4.22"
 simplelog = "0.12.2"
-clap-num = "1.1.1"

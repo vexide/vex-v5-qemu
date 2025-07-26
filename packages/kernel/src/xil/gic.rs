@@ -15,7 +15,7 @@ pub type Xil_InterruptHandler = Option<unsafe extern "C" fn(data: *mut c_void)>;
 /// The callback reference is the base address of the interrupting device
 /// for the low level driver and an instance pointer for the high level driver.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct XScuGic_VectorTableEntry {
     /// Interrupt Handler
     pub handler: Xil_InterruptHandler,
@@ -27,7 +27,7 @@ pub struct XScuGic_VectorTableEntry {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct XScuGic_Config {
     pub Name: *const c_char,
     pub DistBaseAddress: u32,
@@ -36,7 +36,7 @@ pub struct XScuGic_Config {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct XScuGic {
     pub Config: *mut XScuGic_Config,
     pub IsReady: u32,

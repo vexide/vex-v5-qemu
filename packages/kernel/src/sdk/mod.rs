@@ -64,6 +64,8 @@ pub use task::*;
 pub use touch::*;
 pub use vision::*;
 
+use crate::vexStartup;
+
 const SYSTEM_VERSION: u32 = u32::from_be_bytes([1, 1, 4, 19]);
 const STDLIB_VERSION: u32 = 0; // only relevant for vexcode
 
@@ -81,6 +83,8 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
     let mut table = [unshimmed_syscall as _; 0x1000];
 
     jump_table!(table, {
+        0x0 => vexStartup,
+
         // Rotation Sensor
         0x488 => vexDeviceAbsEncReset,
         0x48c => vexDeviceAbsEncPositionSet,

@@ -75,7 +75,7 @@ impl UartDriver {
         UartDriverError::try_from_xst_status(status)
     }
 
-    pub fn raw_mut(&mut self) -> &mut XUartPs {
+    pub const fn raw_mut(&mut self) -> &mut XUartPs {
         &mut self.instance
     }
 

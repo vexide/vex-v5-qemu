@@ -413,7 +413,7 @@ pub type XUartPs_Handler = extern "C" fn(CallBackRef: *mut c_void, Event: u32, E
 /// structure is passed around by functions to refer to a specific driver
 /// instance.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct XUartPs {
     /// Configuration data structure
     pub Config: XUartPs_Config,
