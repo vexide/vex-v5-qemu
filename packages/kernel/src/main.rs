@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(c_variadic)]
-#![allow(static_mut_refs)]
+#![allow(static_mut_refs, clippy::empty_loop)]
 
 extern crate alloc;
 
@@ -16,12 +16,13 @@ pub mod sync;
 pub mod vectors;
 pub mod xil;
 
-use crate::{protocol::exit, sdk::vexSystemMemoryDump};
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
 use sdk::vexSystemLinkAddrGet;
 use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
+
+use crate::{protocol::exit, sdk::draw_error_box};
 
 extern "C" {
     /// Entrypoint of the user program. (located at 0x03800020)
@@ -63,7 +64,7 @@ pub extern "C" fn _start() -> ! {
         vectors::set_vbar(core::ptr::addr_of!(VECTORS_START) as u32);
 
         // Register SDK exception handlers for data/prefetch/undefined aborts.
-        vectors::register_sdk_exception_handlers();
+        vectors::register_abort_handlers();
 
         // Enable hardware floating-point instructions
         hardware::fpu::enable_vfp();
@@ -71,7 +72,8 @@ pub extern "C" fn _start() -> ! {
         // Enable MMU
         hardware::mmu::enable_mmu();
 
-        // Enable IRQ and FIQ interrupts by masking CPSR with the IRQ and FIQ enable bits.
+        // Enable IRQ and FIQ interrupts by masking CPSR with the IRQ and FIQ enable
+        // bits.
         core::arch::asm!("cpsie if");
 
         // Initialize heap memory
@@ -98,18 +100,22 @@ pub extern "C" fn _start() -> ! {
     // FreeRTOS if needed.
     peripherals::setup_private_timer().unwrap();
 
-    let code_header = unsafe {
-        core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const u32)
-    };
-    if code_header == u32::from_le_bytes(*b"\x7FELF") {
-        log::error!("Invalid user program! Hint: did you use the elf instead of the bin file?");
+    let code_header =
+        unsafe { core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const u32) };
+
+    const ELF_HEADER: u32 = u32::from_le_bytes(*b"\x7FELF");
+    if code_header == ELF_HEADER {
+        draw_error_box([Some("Invalid user program !"), None, None]);
+        log::error!("Note: This program appears to have an ELF header. `--program` only supports objcopied binaries, not ELFs.");
         exit(102);
     }
-    let code_signature = CodeSignature::try_from(
-        unsafe {
-            core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
-        },
-    ).unwrap_or_else(|()| {log::error!("Invalid user program!"); exit(102); });
+    let code_signature = CodeSignature::try_from(unsafe {
+        core::ptr::read(core::ptr::addr_of!(USER_MEMORY_START) as *const vex_sdk::vcodesig)
+    })
+    .unwrap_or_else(|()| {
+        draw_error_box([Some("Invalid user program !"), None, None]);
+        exit(102);
+    });
     // Send user code signature to host.
     log::debug!("Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(code_signature)).unwrap();
@@ -117,7 +123,10 @@ pub extern "C" fn _start() -> ! {
     // Execute user program's entrypoint function.
     //
     // This is located 32 bytes after the code signature at 0x03800020.
-    log::debug!("Link address is {:#02x}. Calling user code.", vexSystemLinkAddrGet());
+    log::debug!(
+        "Link address is {:#02x}. Calling user code.",
+        vexSystemLinkAddrGet()
+    );
     unsafe {
         vexStartup();
     }

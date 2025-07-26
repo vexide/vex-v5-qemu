@@ -1,6 +1,9 @@
 //! Brain Display
 
-use alloc::{string::String, vec::Vec};
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use core::{
     ffi::{c_char, CStr, VaList},
     num::NonZeroU16,
@@ -9,9 +12,7 @@ use core::{
 
 use vex_sdk::*;
 use vex_v5_qemu_protocol::{
-    display::{
-        Color, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize,
-    },
+    display::{Color, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize},
     geometry::{Point2, Rect},
     DisplayCommand, HostBoundPacket,
 };
@@ -25,7 +26,7 @@ const HEADER_HEIGHT: i32 = 32;
 const RESOLUTION_X: i32 = 480;
 const RESOLUTION_Y: i32 = 272;
 
-static DISPLAY: Mutex<Display> = Mutex::new(Display::new(
+pub static DISPLAY: Mutex<Display> = Mutex::new(Display::new(
     Color(0xFFFFFF),
     Color(0x000000),
     Rect {
@@ -182,6 +183,44 @@ impl Display {
                 clip_region: self.clip_region,
             },
         })
+    }
+}
+
+pub fn draw_error_box(message: [Option<&str>; 3]) {
+    let mut display = DISPLAY.lock();
+    display.fill(
+        Shape::Rectangle {
+            top_left: Point2 { x: 50, y: 50 },
+            bottom_right: Point2 { x: 340, y: 140 },
+        },
+        Color(0x8b0000),
+    ).unwrap();
+
+    display.stroke(
+        Shape::Rectangle {
+            top_left: Point2 { x: 50, y: 50 },
+            bottom_right: Point2 { x: 340, y: 140 },
+        },
+        Color(0xffffff),
+    ).unwrap();
+
+    for (n, line) in message.iter().enumerate() {
+        if let Some(text) = line {
+            log::error!("{text}");
+
+            display
+                .draw_text(
+                    text.to_string(),
+                    TextSize::Small,
+                    TextLocation::Coordinates(Point2 {
+                        x: 80,
+                        y: 70 + 20 * (n as i32),
+                    }),
+                    false,
+                    Color(0x8b0000),
+                )
+                .unwrap()
+        }
     }
 }
 

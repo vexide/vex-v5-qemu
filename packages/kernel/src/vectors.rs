@@ -14,12 +14,11 @@ use core::{
 };
 
 use crate::{
-    sdk::{
-        vexSystemDataAbortInterrupt, vexSystemPrefetchAbortInterrupt, vexSystemUndefinedException,
-    },
+    sdk::draw_error_box,
     xil::exception::{
-        Xil_ExceptionRegisterHandler, XIL_EXCEPTION_ID_DATA_ABORT_INT,
-        XIL_EXCEPTION_ID_PREFETCH_ABORT_INT, XIL_EXCEPTION_ID_UNDEFINED_INT,
+        DataAbortAddr, PrefetchAbortAddr, UndefinedExceptionAddr, Xil_ExceptionRegisterHandler,
+        XIL_EXCEPTION_ID_DATA_ABORT_INT, XIL_EXCEPTION_ID_PREFETCH_ABORT_INT,
+        XIL_EXCEPTION_ID_UNDEFINED_INT,
     },
 };
 
@@ -256,40 +255,94 @@ pub extern "C" fn fiq() -> ! {
     )
 }
 
+/// Reads the Data Fault Status Register
+#[inline(always)]
+fn dfsr() -> u32 {
+    let mut dfsr: u32;
+
+    unsafe {
+        core::arch::asm!("mrc p15, 0, {}, c5, c0, 0", out(reg) dfsr);
+    }
+
+    dfsr
+}
+
+const fn decode_dfsr(dfsr: u32) -> &'static str {
+    match dfsr & 0xF0000 {
+        0x10000 => "Undefined error !",
+        0x20000 => "Prefetch error !",
+        _ => {
+            let status = (dfsr >> 0) & 0b1111 | ((dfsr >> 6) & 0b100000);
+            match status {
+                9 => "PL Access error !",
+                _ => "Memory Permission error !",
+            }
+        }
+    }
+}
+
+fn user_abort_handler(addr: u32, dfsr: u32) {
+    draw_error_box([
+        Some(decode_dfsr(dfsr)),
+        Some(&alloc::format!("{:08x}", addr)),
+        None,
+    ]);
+}
+
+pub extern "C" fn data_abort_handler(_: *mut c_void) {
+    let dfsr = dfsr();
+    let addr = unsafe { DataAbortAddr };
+    log::error!("Data abort with Data Fault Status Register  {:x}", dfsr);
+    log::error!("Address of Instruction causing Data abort {:x}", addr);
+    user_abort_handler(dfsr, addr);
+    loop {}
+}
+
+pub extern "C" fn prefetch_abort_handler(_: *mut c_void) {
+    let dfsr = dfsr();
+    let addr = unsafe { PrefetchAbortAddr };
+    log::error!("Prefetch abort with Data Fault Status Register  {:x}", dfsr);
+    log::error!("Address of Instruction causing prefetch abort {:x}", addr);
+    user_abort_handler(dfsr, addr);
+    loop {}
+}
+
+pub extern "C" fn undefined_instruction_handler(_: *mut c_void) {
+    let dfsr = dfsr();
+    let addr = unsafe { UndefinedExceptionAddr };
+    log::error!(
+        "Undefined exception with Data Fault Status Register  {:x}",
+        dfsr
+    );
+    log::error!(
+        "Address of Instruction causing undefined exception {:x}",
+        addr
+    );
+    user_abort_handler(dfsr, addr);
+    loop {}
+}
+
 /// VEX handles the user-facing part of exceptions through xilinx's own
 /// exception table API, so this function registers those on the table.
 ///
 /// Those functions are what actually convey to the user that an exception
 /// occurs (for example vexSystemDataAbortInterrupt is responsible for drawing a
 /// red box to the screen).
-pub fn register_sdk_exception_handlers() {
-    #[inline]
-    pub extern "C" fn data_abort_handler_thunk(_: *mut c_void) {
-        vexSystemDataAbortInterrupt();
-    }
-    #[inline]
-    pub extern "C" fn undefined_instruction_handler_thunk(_: *mut c_void) {
-        vexSystemUndefinedException();
-    }
-    #[inline]
-    pub extern "C" fn prefetch_abort_handler_thunk(_: *mut c_void) {
-        vexSystemPrefetchAbortInterrupt();
-    }
-
+pub fn register_abort_handlers() {
     unsafe {
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_DATA_ABORT_INT,
-            Some(data_abort_handler_thunk),
+            Some(data_abort_handler),
             core::ptr::null_mut(),
         );
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_UNDEFINED_INT,
-            Some(undefined_instruction_handler_thunk),
+            Some(undefined_instruction_handler),
             core::ptr::null_mut(),
         );
         Xil_ExceptionRegisterHandler(
             XIL_EXCEPTION_ID_PREFETCH_ABORT_INT,
-            Some(prefetch_abort_handler_thunk),
+            Some(prefetch_abort_handler),
             core::ptr::null_mut(),
         );
     }

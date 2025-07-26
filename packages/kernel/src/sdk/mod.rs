@@ -5,7 +5,7 @@
     non_upper_case_globals,
     non_snake_case,
     clippy::too_many_arguments,
-    clippy::missing_const_for_fn,
+    clippy::missing_const_for_fn
 )]
 
 pub mod abs_enc;
@@ -35,6 +35,8 @@ pub mod system;
 pub mod task;
 pub mod touch;
 pub mod vision;
+
+use alloc::format;
 
 pub use abs_enc::*;
 pub use adi::*;
@@ -70,7 +72,7 @@ const SYSTEM_VERSION: u32 = u32::from_be_bytes([1, 1, 4, 19]);
 const STDLIB_VERSION: u32 = 0; // only relevant for vexcode
 
 macro_rules! jump_table {
-    ($table:ident, { $($offset:expr => $fun:ident,)* }) => {
+    ($table:ident, { $($offset:expr => $fun:expr,)* }) => {
         $(
             $table[$offset / 4] = $fun as _;
         )*
@@ -416,7 +418,7 @@ pub static mut JUMP_TABLE: [*const (); 0x1000] = {
         // System
         0x10 => vexStdlibMismatchError,
         0x20 => vexPrivateApiDisable,
-        0x01c => vexScratchMemoryPtr,
+        0x01c => core::ptr::null_mut(), // vexScratchMemoryPtr
         0x998 => vexScratchMemoryLock,
         0x99c => vexScratchMemoryUnock,
         0x118 => vexSystemTimeGet,
@@ -492,6 +494,13 @@ pub extern "C" fn unshimmed_syscall() -> ! {
         core::arch::asm!("mov {}, sp", out(reg) sp_value);
         core::arch::asm!("adr {}, .", out(reg) pc)
     };
+
+    draw_error_box([
+        Some("Jump Table error !"),
+        Some(&format!("{:08x}", core::ptr::addr_of!(pc) as u32)),
+        None,
+    ]);
+
     unimplemented!(
         "Attempted to call unimplemented jumptable function! pc = {}, sp = {}",
         core::ptr::addr_of!(pc) as u32,

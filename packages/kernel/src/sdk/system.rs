@@ -1,5 +1,6 @@
 //! VEXos System Functions
 
+use alloc::format;
 use core::{
     arch::asm,
     ffi::c_void,
@@ -17,8 +18,8 @@ use crate::{
         timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
     },
     protocol::exit,
+    sdk::draw_error_box,
     xil::{
-        exception::{DataAbortAddr, PrefetchAbortAddr, UndefinedExceptionAddr},
         gic::XSCUGIC_MAX_NUM_INTR_INPUTS,
         timer::XScuTimer,
         XST_FAILURE, XST_SUCCESS,
@@ -31,12 +32,25 @@ extern "C" {
 }
 
 pub extern "C" fn vexPrivateApiDisable(sig: u32) {}
-pub extern "C" fn vexStdlibMismatchError(param_1: u32, param_2: u32) {}
-pub extern "C" fn vexScratchMemoryPtr(ptr: *mut *mut core::ffi::c_void) -> i32 {
-    Default::default()
+pub extern "C" fn vexStdlibMismatchError(installed_version: u32, required_version: u32) {
+    draw_error_box([
+        Some("C++ Library mismatch !"),
+        Some(&format!(
+            "Installed {}.{}.{}",
+            installed_version >> 0x18,
+            (installed_version << 8) >> 24,
+            (installed_version << 16) >> 24
+        )),
+        Some(&format!(
+            "Required  {}.{}.{}",
+            required_version >> 0x18,
+            (required_version << 8) >> 24,
+            (required_version << 16) >> 24
+        )),
+    ]);
 }
 pub extern "C" fn vexScratchMemoryLock() -> bool {
-    Default::default()
+    false
 }
 pub extern "C" fn vexScratchMemoryUnock() {}
 pub extern "C" fn vexSystemTimeGet() -> u32 {
@@ -146,11 +160,16 @@ pub extern "C" fn vexSystemPowerupTimeGet() -> u64 {
 pub extern "C" fn vexSystemLinkAddrGet() -> u32 {
     unsafe { LINK_ADDR }
 }
-pub extern "C" fn vexSystemTimerGet(param_1: u32) -> u32 {
-    Default::default()
+pub extern "C" fn vexSystemTimerGet(timer: u32) -> u32 {
+    // normally the timer argument here would select from a few different, counters
+    // such as the vsync interrupt timer, but none of that is applicable here.
+    0
 }
 pub extern "C" fn vexSystemUsbStatus() -> u32 {
-    Default::default()
+    // USB connected, no controller
+    //
+    // TODO: wire this up to controller once that is implemented
+    0x3
 }
 pub extern "C" fn vexSystemTimerStop() {
     let mut timer = PRIVATE_TIMER.lock();
@@ -256,41 +275,26 @@ pub extern "C" fn vexSystemWatchdogReinitRtos() -> i32 {
 pub extern "C" fn vexSystemWatchdogGet() -> u32 {
     WATCHDOG_TIMER.lock().counter()
 }
-pub extern "C" fn vexSystemBoot() {}
-
-pub extern "C" fn vexSystemUndefinedException() {
-    unsafe {
-        log::error!("Undefined instruction exception: {UndefinedExceptionAddr:#x}");
-    }
-    // TODO: draw the funny red box to the screen
-    loop {
-        core::hint::spin_loop();
-    }
-}
 
 // These three are noops for now since to my knowledge
 // they aren't used or another handler takes its place
 // (in the case of IRQs XScuGic_InterruptHandler) is
 // registered on the exception table for IRQs.
-pub extern "C" fn vexSystemFIQInterrupt() {}
-pub extern "C" fn vexSystemIQRQnterrupt() {}
-pub extern "C" fn vexSystemSWInterrupt() {}
-
+pub extern "C" fn vexSystemUndefinedException() {
+    loop {}
+}
+pub extern "C" fn vexSystemFIQInterrupt() {
+    loop {}
+}
+pub extern "C" fn vexSystemIQRQnterrupt() {
+    loop {}
+}
+pub extern "C" fn vexSystemSWInterrupt() {
+    loop {}
+}
 pub extern "C" fn vexSystemDataAbortInterrupt() {
-    unsafe {
-        log::error!("Data abort exception: {DataAbortAddr:#x}");
-    }
-    // TODO: draw the funny red box to the screen
-    loop {
-        core::hint::spin_loop();
-    }
+    loop {}
 }
 pub extern "C" fn vexSystemPrefetchAbortInterrupt() {
-    unsafe {
-        log::error!("Prefetch abort exception: {PrefetchAbortAddr:#x}");
-    }
-    // TODO: draw the funny red box to the screen
-    loop {
-        core::hint::spin_loop();
-    }
+    loop {}
 }
