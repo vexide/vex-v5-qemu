@@ -87,6 +87,8 @@ async fn main() -> anyhow::Result<()> {
         qemu.args(["-S", "-s"]);
     }
 
+    qemu.args(opt.qemu_args);
+
     brain
         .run_program(
             qemu,
