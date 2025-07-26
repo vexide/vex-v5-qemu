@@ -1,13 +1,14 @@
 [workspace]
 members = [
-    "./packages/kernel",
     "./packages/host",
+    "./packages/qplugin",
     "./packages/protocol",
     "./packages/client-cli",
     "./packages/client/src-tauri",
 ]
 exclude = [
     "./packages/display", # broken for now
+    "./packages/kernel", # makes rust-analyzer really slow
 ]
 resolver = "2"
 
