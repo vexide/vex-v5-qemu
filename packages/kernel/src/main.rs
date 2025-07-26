@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
-#![feature(c_variadic, naked_functions)]
+#![feature(c_variadic)]
+#![allow(static_mut_refs)]
 
 extern crate alloc;
 
@@ -15,14 +16,12 @@ pub mod sync;
 pub mod vectors;
 pub mod xil;
 
-use alloc::format;
-use core::{num::NonZeroU32, sync::atomic::Ordering};
 use crate::protocol::exit;
 use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
-use sdk::{vexSystemTimeGet, vexSystemLinkAddrGet};
-use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket, KernelBoundPacket};
+use sdk::vexSystemLinkAddrGet;
+use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
 
 extern "C" {
     /// Entrypoint of the user program. (located at 0x03800020)

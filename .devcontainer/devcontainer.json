@@ -6,7 +6,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers/features/rust:1": {
-			"version": "nightly-2024-06-20",
+			"version": "nightly-2025-02-18",
 			"profile": "default",
 			"targets": "armv7a-none-eabi"
 		},

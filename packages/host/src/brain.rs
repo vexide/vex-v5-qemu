@@ -1,11 +1,9 @@
 use std::{
-    ffi::OsString,
     io,
-    num::NonZeroU32,
     option::Option,
     path::PathBuf,
     process::{ExitStatus, Stdio},
-    sync::{Arc, atomic::{AtomicU32, Ordering}},
+    sync::Arc,
     vec::Vec
 };
 
@@ -28,9 +26,9 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Program {
+pub struct Binary {
     pub path: PathBuf,
-    pub load_addr: NonZeroU32
+    pub load_addr: u32,
 }
 
 #[derive(Debug)]
@@ -39,7 +37,6 @@ pub struct Brain {
     connection: Arc<Mutex<Option<QemuConnection>>>,
     task: AbortHandle,
     barrier: Arc<Barrier>,
-    link_addr: Arc<AtomicU32>
 }
 
 impl Brain {
@@ -47,7 +44,6 @@ impl Brain {
     pub fn new() -> Self {
         let connection = Arc::new(Mutex::new(None));
         let barrier = Arc::new(Barrier::new(2));
-        let link_addr = Arc::new(AtomicU32::new(0));
 
         let (peripherals_tx, peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
 
@@ -82,7 +78,6 @@ impl Brain {
         Self {
             connection: connection.clone(),
             barrier: barrier.clone(),
-            link_addr: link_addr.clone(),
             task: tokio::task::spawn(async move {
                 let mut peripherals_rx = peripherals_rx;
                 let smartport_senders: [Sender<SmartPortCommand>; 21] = [
@@ -131,9 +126,6 @@ impl Brain {
                                 log::info!("Kernel exited with code {code}.");
                             }
 
-                            HostBoundPacket::LinkAddressRequest => {
-                            }
-
                             // The kernel has sent a device command packet to a specific smartport,
                             // so we must forward that packet to the respective smartport's
                             // receiver.
@@ -150,8 +142,8 @@ impl Brain {
                                 _ = display_tx.send(command).await;
                             }
 
-                            // Not implemented yet.
-                            _ => {}
+                            // // Not implemented yet.
+                            // _ => {}
                         }
                     } else {
                         barrier.wait().await;
@@ -194,10 +186,10 @@ impl Brain {
         &mut self,
         mut qemu_command: Command,
         kernel: PathBuf,
-        main_binary: Program,
-        linked_binary: Option<Program>,
+        main_binary: Binary,
+        linked_binary: Option<Binary>,
     ) -> io::Result<()> {
-        let link_addr : u32 = linked_binary.clone().map_or(0, |v| v.load_addr.into());
+        let link_addr : u32 = linked_binary.clone().map_or(0, |v| v.load_addr);
         let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])

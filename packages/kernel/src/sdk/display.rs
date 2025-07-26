@@ -10,7 +10,7 @@ use core::{
 use vex_sdk::*;
 use vex_v5_qemu_protocol::{
     display::{
-        Color, DisplayRenderMode, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize,
+        Color, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize,
     },
     geometry::{Point2, Rect},
     DisplayCommand, HostBoundPacket,

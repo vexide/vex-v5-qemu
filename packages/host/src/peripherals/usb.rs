@@ -1,10 +1,15 @@
 use std::{
-    io, pin::Pin, task::{Context, Poll}
+    io,
+    pin::Pin,
+    task::{Context, Poll},
 };
 
 use tokio::{
     io::{AsyncRead, AsyncWrite, ReadBuf},
-    sync::mpsc::{error::{RecvError, SendError, TrySendError}, Receiver, Sender},
+    sync::mpsc::{
+        error::{SendError, TrySendError},
+        Receiver, Sender,
+    },
 };
 use vex_v5_qemu_protocol::KernelBoundPacket;
 

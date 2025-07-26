@@ -2,10 +2,8 @@ use std::{borrow::BorrowMut, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tokio::{
-    process::Command,
-    sync::Mutex,
-};
+use tokio::{process::Command, sync::Mutex};
+use vex_v5_qemu_host::brain::Binary;
 
 use crate::AppState;
 
@@ -42,7 +40,15 @@ pub async fn spawn_qemu(
     cmd.borrow_mut().args(opts.qemu_args);
 
     brain
-        .run_program(cmd, opts.kernel, opts.binary)
+        .run_program(
+            cmd,
+            opts.kernel,
+            Binary {
+                path: opts.binary,
+                load_addr: 0x03800000,
+            },
+            None,
+        )
         .await
         .map_err(|_| "Failed to start QEMU process.")?;
 

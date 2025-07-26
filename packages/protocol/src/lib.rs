@@ -9,7 +9,7 @@ use bincode::{Decode, Encode};
 use code_signature::CodeSignature;
 use controller::{ControllerData, ControllerId};
 use core::{option::Option, num::NonZeroU32};
-use display::{Color, DisplayRenderMode, DrawCommand, ScrollLocation};
+use display::{Color, DrawCommand, ScrollLocation};
 use distance_sensor::DistanceSensorData;
 use geometry::Rect;
 #[cfg(feature = "serde")]
@@ -31,7 +31,6 @@ pub enum HostBoundPacket {
     KernelSerial(Vec<u8>),
     CodeSignature(CodeSignature),
     ExitRequest(i32),
-    LinkAddressRequest,
     DisplayCommand { command: DisplayCommand },
     SmartPortCommand { port: u8, command: SmartPortCommand },
 }

@@ -113,7 +113,7 @@ impl PrivateTimer {
         unsafe { XScuTimer_IsExpired(&self.instance) }
     }
 
-    pub fn raw_mut(&mut self) -> &mut XScuTimer {
+    pub const fn raw_mut(&mut self) -> &mut XScuTimer {
         &mut self.instance
     }
 }
