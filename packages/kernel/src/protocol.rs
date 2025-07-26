@@ -22,7 +22,7 @@ pub fn send_packet(packet: HostBoundPacket) -> Result<(), ProtocolError> {
     bytes.extend((encoded.len() as u32).to_le_bytes());
     bytes.extend(encoded);
 
-    UART1.lock().write_all(&bytes).unwrap();
+    _ = UART1.lock().write(&bytes);
 
     Ok(())
 }
@@ -59,7 +59,7 @@ pub fn recv_packet() -> Result<Option<KernelBoundPacket>, ProtocolError> {
 }
 
 pub fn exit(code: i32) -> ! {
-    protocol::send_packet(HostBoundPacket::ExitRequest(code)).ok();
+    _ = protocol::send_packet(HostBoundPacket::ExitRequest(code));
 
     loop {
         core::hint::spin_loop();

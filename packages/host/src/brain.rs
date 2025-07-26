@@ -142,7 +142,7 @@ impl Brain {
                                 _ = display_tx.send(command).await;
                             }
 
-                            // // Not implemented yet.
+                            // Not implemented yet.
                             // _ => {}
                         }
                     } else {

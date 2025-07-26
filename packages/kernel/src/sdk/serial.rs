@@ -58,7 +58,7 @@ impl<const TX: usize, const RX: usize> Write for SerialChannel<TX, RX> {
     }
 }
 
-pub static USB1: Mutex<SerialChannel<4096, 2048>> = Mutex::new(SerialChannel::new());
+pub static USB1: Mutex<SerialChannel<2048, 4096>> = Mutex::new(SerialChannel::new());
 
 pub extern "C" fn vexSerialWriteChar(channel: u32, c: u8) -> i32 {
     match channel {
