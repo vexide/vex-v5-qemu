@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "./packages/host",
-    # "./packages/qplugin",
     "./packages/protocol",
     "./packages/client-cli",
     "./packages/client/src-tauri",
