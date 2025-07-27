@@ -1,7 +1,6 @@
 use tokio::sync::mpsc::Sender;
 use vex_v5_qemu_protocol::{battery::BatteryData, KernelBoundPacket};
 
-#[derive(Debug)]
 pub struct Battery {
     data: BatteryData,
     tx: Sender<KernelBoundPacket>,
@@ -22,6 +21,11 @@ impl Battery {
             data: self.data,
             timestamp: 0,
         }).await.unwrap(); // OK to unwrap, since the channel can't be closed.
+    }
+
+    pub async fn set_data(&mut self, data: BatteryData) {
+        self.data = data;
+        self.update().await
     }
 
     pub async fn set_voltage(&mut self, voltage: i32) {
@@ -58,5 +62,9 @@ impl Battery {
 
     pub const fn temperature(&self) -> f64 {
         self.data.temperature
+    }
+
+    pub const fn data(&self) -> BatteryData {
+        self.data
     }
 }

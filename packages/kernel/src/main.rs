@@ -20,6 +20,7 @@ use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
 use sdk::vexSystemLinkAddrGet;
+use vex_sdk::vexTasksRun;
 use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
 
 use crate::{protocol::exit, sdk::draw_error_box};
@@ -128,6 +129,7 @@ pub extern "C" fn _start() -> ! {
         vexSystemLinkAddrGet()
     );
     unsafe {
+        vexTasksRun(); // update devices once before running user code
         vexStartup();
     }
 

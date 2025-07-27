@@ -1,12 +1,8 @@
 use std::{
-    io,
-    option::Option,
-    path::PathBuf,
-    process::{ExitStatus, Stdio},
-    sync::Arc,
-    vec::Vec
+    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, time::Duration, vec::Vec
 };
 
+use shared_memory::{Shmem, ShmemConf, ShmemError};
 use tokio::{
     io::AsyncWriteExt,
     process::Command,
@@ -14,6 +10,7 @@ use tokio::{
         mpsc::{self, Sender},
         Barrier, Mutex,
     },
+    time::sleep,
     task::AbortHandle,
 };
 use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
@@ -31,12 +28,15 @@ pub struct Binary {
     pub load_addr: u32,
 }
 
-#[derive(Debug)]
 pub struct Brain {
     pub peripherals: Option<Peripherals>,
     connection: Arc<Mutex<Option<QemuConnection>>>,
     task: AbortHandle,
     barrier: Arc<Barrier>,
+}
+
+pub fn guest_memory() -> Shmem {
+    ShmemConf::new().flink("ram").open().unwrap()
 }
 
 impl Brain {
@@ -140,11 +140,13 @@ impl Brain {
 
                             HostBoundPacket::DisplayCommand { command } => {
                                 _ = display_tx.send(command).await;
-                            }
-
-                            // Not implemented yet.
-                            // _ => {}
+                            } /* Not implemented yet.
+                               * _ => {} */
                         }
+                        // unsafe {
+                        //     let mem = guest_memory();
+                            // println!("{}", mem.as_ptr().offset(0x03800000).cast::<u32>().read());
+                        // }
                     } else {
                         barrier.wait().await;
                     }
@@ -189,11 +191,24 @@ impl Brain {
         main_binary: Binary,
         linked_binary: Option<Binary>,
     ) -> io::Result<()> {
-        let link_addr : u32 = linked_binary.clone().map_or(0, |v| v.load_addr);
+        let guest_mem = ShmemConf::new()
+            .size(0x10000000)
+            .flink("ram")
+            .force_create_flink()
+            .create()
+            .unwrap();
+
+        let link_addr: u32 = linked_binary.clone().map_or(0, |v| v.load_addr);
         let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])
-            .args(["-object", "memory-backend-ram,id=mem,size=256M"])
+            .args([
+                "-object",
+                &format!(
+                    "memory-backend-file,mem-path={},share=on,id=mem,size=256M",
+                    guest_mem.get_flink_path().unwrap().display()
+                ),
+            ])
             .args([
                 "-device",
                 &format!("loader,addr=0x200,data={},data-len=4,cpu-num=0", link_addr),
@@ -211,12 +226,12 @@ impl Brain {
                 ),
             ]);
         if let Some(linked_binary) = linked_binary {
-                qemu_command.arg("-device");
-                qemu_command.arg(format!(
-                    "loader,file={},force-raw=on,addr={}",
-                    linked_binary.path.display(),
-                    linked_binary.load_addr
-                ));
+            qemu_command.arg("-device");
+            qemu_command.arg(format!(
+                "loader,file={},force-raw=on,addr={}",
+                linked_binary.path.display(),
+                linked_binary.load_addr
+            ));
         }
         qemu_command
             .args(["-display", "none"])
@@ -236,6 +251,10 @@ impl Brain {
             stdout: child.stdout.take().unwrap(),
             child,
         });
+
+        // unsafe {
+        //     println!("{}", guest_mem.as_ptr().offset(0x03800020).cast::<u32>().read());
+        // }
 
         Ok(())
     }

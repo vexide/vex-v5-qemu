@@ -7,7 +7,6 @@ use tokio::{
 };
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
-#[derive(Debug)]
 pub struct QemuConnection {
     pub child: Child,
     pub stdin: ChildStdin,

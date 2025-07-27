@@ -24,3 +24,7 @@ vex-v5-qemu-host = { path = "../host" }
 thiserror = "1.0.63"
 log = "0.4.22"
 simplelog = "0.12.2"
+typed_shmem = "0.3.0"
+
+[target.'cfg(any(target_os = "macos", target_os = "ios", target_os = "linux", target_os = "windows", target_os = "dragonfly", target_os = "freebsd"))'.dependencies]
+battery = "0.7.8"

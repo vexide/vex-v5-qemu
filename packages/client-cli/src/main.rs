@@ -1,13 +1,33 @@
-use std::{option::Option, path::PathBuf};
+use std::{option::Option, path::PathBuf, time::Duration};
 
 use anyhow::Context;
 use log::LevelFilter;
+// use shared_memory::{Shmem, ShmemConf};
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::{
     io::{stdout, AsyncReadExt, AsyncWriteExt},
     process::Command,
+    time::sleep,
 };
-use vex_v5_qemu_host::brain::{Binary, Brain};
+#[cfg(any(
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "linux",
+    target_os = "windows",
+    target_os = "dragonfly",
+    target_os = "freebsd"
+))]
+use battery::{
+    units::{
+        electric_potential::millivolt, ratio::part_per_hundred,
+        thermodynamic_temperature::degree_celsius, electric_current::milliampere
+    },
+    Manager,
+};
+use vex_v5_qemu_host::{
+    brain::{Binary, Brain},
+    protocol::battery::BatteryData,
+};
 
 #[cfg(debug_assertions)]
 const DEFAULT_KERNEL: &str = concat!(
@@ -65,6 +85,10 @@ struct Opt {
     qemu_args: Vec<String>,
 }
 
+// pub fn guest_memory() -> Shmem {
+//     ShmemConf::new().flink("ram").open().unwrap()
+// }
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();
@@ -105,7 +129,45 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("Failed to start QEMU.")?;
 
-    let usb_task = tokio::task::spawn(async move {
+    #[cfg(any(
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "linux",
+        target_os = "windows",
+        target_os = "dragonfly",
+        target_os = "freebsd"
+    ))]
+    if let Ok(Ok(mut batteries)) = Manager::new().map(|mgr| mgr.batteries()) {
+        if let Some(Ok(mut battery)) = batteries.next() {
+            tokio::task::spawn(async move {
+                let mut battery_peripheral = peripherals.battery;
+                loop {
+                    let current = battery.energy_rate() / battery.voltage();
+
+                    battery_peripheral
+                        .set_data(BatteryData {
+                            voltage: battery.voltage().get::<millivolt>() as _,
+                            current: current.get::<milliampere>() as _,
+                            temperature: battery
+                                .temperature()
+                                .unwrap_or_default()
+                                .get::<degree_celsius>()
+                                as _,
+                            capacity: battery.state_of_charge().get::<part_per_hundred>() as _,
+                        })
+                        .await;
+
+                    if battery.refresh().is_err() {
+                        return;
+                    }
+
+                    sleep(Duration::from_millis(20)).await;
+                }
+            });
+        }
+    }
+
+    tokio::task::spawn(async move {
         let mut usb = peripherals.usb;
         let mut out = stdout();
 
@@ -122,7 +184,6 @@ async fn main() -> anyhow::Result<()> {
     });
 
     brain.wait_for_exit().await?;
-    usb_task.abort();
 
     Ok(())
 }
