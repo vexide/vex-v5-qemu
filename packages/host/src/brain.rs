@@ -34,10 +34,6 @@ pub struct Brain {
     barrier: Arc<Barrier>,
 }
 
-pub fn guest_memory() -> Shmem {
-    ShmemConf::new().flink("ram").open().unwrap()
-}
-
 impl Brain {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
