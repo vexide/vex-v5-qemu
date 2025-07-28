@@ -2,7 +2,6 @@ use std::{option::Option, path::PathBuf, time::Duration};
 
 use anyhow::Context;
 use log::LevelFilter;
-// use shared_memory::{Shmem, ShmemConf};
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::{
     io::{stdout, AsyncReadExt, AsyncWriteExt},

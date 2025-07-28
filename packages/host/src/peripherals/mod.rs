@@ -8,6 +8,7 @@ use display::Display;
 use smartport::SmartPort;
 use usb::Usb;
 
+#[derive(Debug)]
 pub struct Peripherals {
     pub battery: Battery,
     pub usb: Usb,

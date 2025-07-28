@@ -23,5 +23,3 @@ log = "0.4.22"
 image = { version = "0.25.2", default-features = false }
 # vex-v5-display-simulator = { version = "0.1.0", path = "../display" }
 bytemuck = "1.17.0"
-shared_memory = "0.12.4"
-typed_shmem = "0.3.0"

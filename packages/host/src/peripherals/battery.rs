@@ -1,6 +1,7 @@
 use tokio::sync::mpsc::Sender;
 use vex_v5_qemu_protocol::{battery::BatteryData, KernelBoundPacket};
 
+#[derive(Debug)]
 pub struct Battery {
     data: BatteryData,
     tx: Sender<KernelBoundPacket>,

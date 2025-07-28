@@ -2,7 +2,6 @@ use std::{
     io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, time::Duration, vec::Vec
 };
 
-use shared_memory::{Shmem, ShmemConf, ShmemError};
 use tokio::{
     io::AsyncWriteExt,
     process::Command,
@@ -191,24 +190,11 @@ impl Brain {
         main_binary: Binary,
         linked_binary: Option<Binary>,
     ) -> io::Result<()> {
-        let guest_mem = ShmemConf::new()
-            .size(0x10000000)
-            .flink("ram")
-            .force_create_flink()
-            .create()
-            .unwrap();
-
         let link_addr: u32 = linked_binary.clone().map_or(0, |v| v.load_addr);
         let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
             .args(["-cpu", "cortex-a9"])
-            .args([
-                "-object",
-                &format!(
-                    "memory-backend-file,mem-path={},share=on,id=mem,size=256M",
-                    guest_mem.get_flink_path().unwrap().display()
-                ),
-            ])
+            .args(["-object", "memory-backend-ram,id=mem,size=256M"])
             .args([
                 "-device",
                 &format!("loader,addr=0x200,data={},data-len=4,cpu-num=0", link_addr),
