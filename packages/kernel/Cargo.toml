@@ -11,7 +11,6 @@ forced-target = "armv7a-none-eabi"
 
 [dependencies]
 heapless = "0.8.0"
-# host_call = { path = "../host_call" }
 lock_api = "0.4.12"
 snafu = { version = "0.8.4", default-features = false, features = [
     "unstable-core-error",
@@ -30,3 +29,4 @@ vex-v5-qemu-protocol = { path = "../protocol" }
 printf-compat = { version = "0.2.1", default-features = false }
 talc = "4.4.1"
 cortex-ar = "0.2.0"
+semihosting = { version = "0.1.13", features = ["stdio"] }

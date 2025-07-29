@@ -6,7 +6,7 @@ set history remove-duplicates 128
 layout asm
 set print asm-demangle on
 
-file target/armv7a-none-eabi/debug/kernel
+file packages/kernel/target/armv7a-none-eabi/release/kernel
 
 target remote localhost:1234
 

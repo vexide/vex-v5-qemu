@@ -20,10 +20,9 @@ use log::LevelFilter;
 use logger::KernelLogger;
 use peripherals::{GIC, PRIVATE_TIMER, UART1, WATCHDOG_TIMER};
 use sdk::vexSystemLinkAddrGet;
-use vex_sdk::vexTasksRun;
 use vex_v5_qemu_protocol::{code_signature::CodeSignature, HostBoundPacket};
 
-use crate::{protocol::exit, sdk::draw_error_box};
+use crate::{protocol::exit, sdk::{draw_error_box, vexTasksRun}};
 
 extern "C" {
     /// Entrypoint of the user program. (located at 0x03800020)
@@ -117,6 +116,7 @@ pub extern "C" fn _start() -> ! {
         draw_error_box([Some("Invalid user program !"), None, None]);
         exit(102);
     });
+
     // Send user code signature to host.
     log::debug!("Sending code signature to host.");
     protocol::send_packet(HostBoundPacket::CodeSignature(code_signature)).unwrap();
@@ -128,6 +128,7 @@ pub extern "C" fn _start() -> ! {
         "Link address is {:#02x}. Calling user code.",
         vexSystemLinkAddrGet()
     );
+
     unsafe {
         vexTasksRun(); // update devices once before running user code
         vexStartup();

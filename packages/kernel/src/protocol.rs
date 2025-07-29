@@ -1,7 +1,10 @@
+use core::sync::atomic::AtomicU32;
+
 use alloc::{vec, vec::Vec};
 
 use bincode::error::{DecodeError, EncodeError};
-use embedded_io::{Read, ReadExactError, Write};
+use embedded_io::{Read as EIORead, Write as EIOWrite, ReadExactError};
+use semihosting::io::{self, stdin, stdout, ErrorKind, Read, Write};
 use snafu::Snafu;
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
@@ -13,6 +16,17 @@ pub enum ProtocolError {
     Encode { inner: EncodeError },
 }
 
+fn semihosting_write_with_retry(bytes: &[u8]) -> Result<(), semihosting::io::Error> {
+    match stdout().unwrap().write_all(bytes) {
+        Err(err) if err.kind() == ErrorKind::Other && err.raw_os_error() == Some(0) => {
+            semihosting_write_with_retry(bytes) // no idea what the fuck is going on here but sure whatever man
+        }
+        res => {
+            res
+        },
+    }
+}
+
 pub fn send_packet(packet: HostBoundPacket) -> Result<(), ProtocolError> {
     let encoded = bincode::encode_to_vec(packet, bincode::config::standard())
         .map_err(|err| ProtocolError::Encode { inner: err })?;
@@ -22,7 +36,21 @@ pub fn send_packet(packet: HostBoundPacket) -> Result<(), ProtocolError> {
     bytes.extend((encoded.len() as u32).to_le_bytes());
     bytes.extend(encoded);
 
-    _ = UART1.lock().write(&bytes);
+    semihosting_write_with_retry(&bytes).unwrap();
+
+    Ok(())
+}
+
+pub fn send_packet_uart(packet: HostBoundPacket) -> Result<(), ProtocolError> {
+    let encoded = bincode::encode_to_vec(packet, bincode::config::standard())
+        .map_err(|err| ProtocolError::Encode { inner: err })?;
+
+    let mut bytes = Vec::new();
+
+    bytes.extend((encoded.len() as u32).to_le_bytes());
+    bytes.extend(encoded);
+
+    _ = EIOWrite::write(&mut *UART1.lock(), &bytes);
 
     Ok(())
 }
@@ -34,7 +62,7 @@ pub fn recv_packet() -> Result<Option<KernelBoundPacket>, ProtocolError> {
     let len = {
         let mut buf = [0; 4];
 
-        if let Err(err) = uart.read_exact(&mut buf) {
+        if let Err(err) = EIORead::read_exact(&mut *uart, &mut buf) {
             if err == ReadExactError::UnexpectedEof {
                 return Ok(None);
             } else {
@@ -48,8 +76,7 @@ pub fn recv_packet() -> Result<Option<KernelBoundPacket>, ProtocolError> {
     // Read packet payload
     let mut packet_bytes = vec![0; len as usize];
 
-    uart.read_exact(&mut packet_bytes)
-        .expect("packet was not of expected length");
+    EIORead::read_exact(&mut *uart, &mut packet_bytes).expect("packet was not of expected length");
 
     Ok(Some(
         bincode::decode_from_slice(&packet_bytes, bincode::config::standard())

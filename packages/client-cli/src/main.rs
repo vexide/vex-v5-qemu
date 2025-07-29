@@ -84,10 +84,6 @@ struct Opt {
     qemu_args: Vec<String>,
 }
 
-// pub fn guest_memory() -> Shmem {
-//     ShmemConf::new().flink("ram").open().unwrap()
-// }
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let opt = <Opt as clap::Parser>::parse();

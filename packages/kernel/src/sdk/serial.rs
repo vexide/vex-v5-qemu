@@ -48,10 +48,12 @@ impl<const TX: usize, const RX: usize> Write for SerialChannel<TX, RX> {
     fn flush(&mut self) -> Result<(), Self::Error> {
         let pos = self.tx.position() as usize;
 
-        protocol::send_packet(HostBoundPacket::UsbSerial(
-            self.tx.get_ref()[0..pos].to_vec(),
-        ))
-        .unwrap();
+        if pos != 0 {
+            protocol::send_packet(HostBoundPacket::UsbSerial(
+                self.tx.get_ref()[0..pos].to_vec(),
+            ))
+            .unwrap();
+        }
 
         self.tx.set_position(0);
 

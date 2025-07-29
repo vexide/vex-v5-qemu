@@ -1,5 +1,5 @@
 use std::{
-    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, time::Duration, vec::Vec
+    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, vec::Vec
 };
 
 use tokio::{
@@ -9,7 +9,6 @@ use tokio::{
         mpsc::{self, Sender},
         Barrier, Mutex,
     },
-    time::sleep,
     task::AbortHandle,
 };
 use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
@@ -135,13 +134,8 @@ impl Brain {
 
                             HostBoundPacket::DisplayCommand { command } => {
                                 _ = display_tx.send(command).await;
-                            } /* Not implemented yet.
-                               * _ => {} */
+                            }
                         }
-                        // unsafe {
-                        //     let mem = guest_memory();
-                            // println!("{}", mem.as_ptr().offset(0x03800000).cast::<u32>().read());
-                        // }
                     } else {
                         barrier.wait().await;
                     }
@@ -206,7 +200,21 @@ impl Brain {
                     main_binary.path.display(),
                     main_binary.load_addr
                 ),
-            ]);
+            ])
+            .args(["-display", "none"])
+            .args([
+                "-semihosting",
+                "-semihosting-config",
+                "enable=on,target=native",
+            ])
+            .args(["-chardev", "stdio,id=uart"])
+            .args(["-serial", "null"])
+            .args(["-serial", "chardev:uart"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .kill_on_drop(true);
+
         if let Some(linked_binary) = linked_binary {
             qemu_command.arg("-device");
             qemu_command.arg(format!(
@@ -215,15 +223,6 @@ impl Brain {
                 linked_binary.load_addr
             ));
         }
-        qemu_command
-            .args(["-display", "none"])
-            .args(["-chardev", "stdio,id=char0"])
-            .args(["-serial", "null"])
-            .args(["-serial", "chardev:char0"])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::inherit())
-            .kill_on_drop(true);
 
         let mut child = qemu_command.spawn()?;
 
@@ -233,10 +232,6 @@ impl Brain {
             stdout: child.stdout.take().unwrap(),
             child,
         });
-
-        // unsafe {
-        //     println!("{}", guest_mem.as_ptr().offset(0x03800020).cast::<u32>().read());
-        // }
 
         Ok(())
     }
