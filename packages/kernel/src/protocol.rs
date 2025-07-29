@@ -1,10 +1,8 @@
-use core::sync::atomic::AtomicU32;
-
 use alloc::{vec, vec::Vec};
 
 use bincode::error::{DecodeError, EncodeError};
 use embedded_io::{Read as EIORead, Write as EIOWrite, ReadExactError};
-use semihosting::io::{self, stdin, stdout, ErrorKind, Read, Write};
+use semihosting::io::{stdout, ErrorKind, Write};
 use snafu::Snafu;
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
