@@ -36,15 +36,17 @@ impl ToSkia for Shape {
                 Rect::from_ltrb(
                     top_left.x as _,
                     top_left.y as _,
-                    bottom_right.x as _,
-                    bottom_right.y as _,
+                    // ensure that rects of width/height 0 are drawn as hairline borders
+                    // TODO: test if this applies to circles with r=0
+                    (top_left.x + (bottom_right.x - top_left.x).max(1)) as _,
+                    (top_left.y + (bottom_right.y - top_left.y).max(1)) as _,
                 )
                 .unwrap(),
             ),
             Shape::Circle { center, radius } => {
-                PathBuilder::from_circle(center.x as _, center.y as _, radius as _).unwrap()
+                PathBuilder::from_circle(center.x as _, center.y as _, radius.max(1) as _).unwrap()
             }
-            Shape::Line { start, end } => {
+            Shape::Line { start, end }  => {
                 let mut builder = PathBuilder::new();
                 builder.move_to(start.x as f32, start.y as f32);
                 builder.line_to(end.x as f32, end.y as f32);
