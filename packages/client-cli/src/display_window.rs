@@ -49,8 +49,6 @@ impl ApplicationHandler for DisplayWindow {
         _window_id: WindowId,
         event: WindowEvent,
     ) {
-        log::info!("winit: {event:?}");
-
         match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
