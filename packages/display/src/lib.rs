@@ -4,23 +4,26 @@ use fontdue::{
     layout::{CoordinateSystem, Layout, LayoutSettings, TextStyle, VerticalAlign},
     Font, FontSettings,
 };
-use kurbo::{Point, Rect as KRect};
+use kurbo::{Circle, Point, Rect as KRect};
 use tiny_skia::{
-    BlendMode, FillRule, Mask, Paint, Path, PathBuilder, Pixmap, PixmapMut, PixmapPaint, PixmapRef,
-    Rect, Shader, Stroke, Transform,
+    BlendMode, Color, ColorU8, FillRule, Mask, Paint, Path, PathBuilder, Pixmap, PixmapMut,
+    PixmapPaint, PixmapRef, Rect, Shader, Stroke, Transform,
 };
-use vex_v5_qemu_protocol::display::{Color, Shape, TextSize};
+use vex_v5_qemu_protocol::{
+    display::{Shape, TextSize},
+    geometry::Point2,
+};
 
-use crate::convert::ToSkia;
+use crate::convert::{const_color_from_rgba8, ToSkia};
 
 mod convert;
 
 /// https://internals.vexide.dev/sdk/display#foreground-and-background-colors - #c0c0ff
-pub const DEFAULT_FOREGROUND: Color = Color::from_rgb8(0xc0, 0xc0, 0xff);
+pub const DEFAULT_FOREGROUND: Color = const_color_from_rgba8(0xc0, 0xc0, 0xff, 0xff).unwrap();
 /// https://internals.vexide.dev/sdk/display#foreground-and-background-colors - #000000
-pub const DEFAULT_BACKGROUND: Color = Color::BLACK;
+pub const DEFAULT_BACKGROUND: Color = const_color_from_rgba8(0, 0, 0, 0xff).unwrap();
 /// https://internals.vexide.dev/sdk/display#code-signature - #ffffff
-pub const INVERTED_BACKGROUND: Color = Color::from_rgb8(0xff, 0xff, 0xff);
+pub const INVERTED_BACKGROUND: Color = const_color_from_rgba8(0xff, 0xff, 0xff, 0xff).unwrap();
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct TextLine(pub i32);
@@ -118,13 +121,13 @@ pub enum ColorTheme {
 
 impl ColorTheme {
     pub const fn default_fg(&self) -> Color {
-        Color::from_rgb8(0xc0, 0xc0, 0xff)
+        DEFAULT_FOREGROUND
     }
 
     pub const fn default_bg(&self) -> Color {
         match self {
-            Self::Dark => Color::BLACK,
-            Self::Light => Color::WHITE,
+            Self::Dark => DEFAULT_BACKGROUND,
+            Self::Light => INVERTED_BACKGROUND,
         }
     }
 }
@@ -145,7 +148,7 @@ pub const DISPLAY_HEIGHT: u32 = 272;
 pub const DISPLAY_WIDTH: u32 = 480;
 pub const HEADER_HEIGHT: u32 = 32;
 
-pub const HEADER_BG: Color = Color::from_rgb8(0x00, 0x99, 0xCC);
+pub const HEADER_BG: Color = const_color_from_rgba8(0x00, 0x99, 0xCC, 0xff).unwrap();
 
 // struct TextLayout {
 //     text: String,
@@ -197,7 +200,7 @@ impl DisplayRenderer {
         let font = include_bytes!("../fonts/NotoMono-Regular.ttf") as &[u8];
         let font = Font::from_bytes(font, FontSettings::default()).unwrap();
 
-        canvas.fill(theme.default_bg().to_skia());
+        canvas.fill(theme.default_bg());
 
         let path = PathBuilder::from_rect(
             Rect::from_ltrb(
@@ -242,7 +245,13 @@ impl DisplayRenderer {
         self.context.clip_region = None;
 
         self.draw(
-            KRect::new(0.0, 0.0, DISPLAY_WIDTH as f64, HEADER_HEIGHT as f64).into(),
+            Shape::Rectangle {
+                top_left: Point2 { x: 0, y: 0 },
+                bottom_right: Point2 {
+                    x: DISPLAY_WIDTH as _,
+                    y: HEADER_HEIGHT as _,
+                },
+            },
             false,
         );
 
@@ -306,12 +315,12 @@ impl DisplayRenderer {
 
     /// Erases the display by filling it with the default background color.
     pub fn erase(&mut self) {
-        self.canvas.fill(self.context.background_color.to_skia());
+        self.canvas.fill(self.context.background_color);
     }
 
     fn fg_paint(&self) -> Paint<'static> {
         Paint {
-            shader: Shader::SolidColor(self.context.foreground_color.to_skia()),
+            shader: Shader::SolidColor(self.context.foreground_color),
             anti_alias: false,
             ..Default::default()
         }
@@ -320,11 +329,7 @@ impl DisplayRenderer {
     /// Draws or strokes a shape on the display, using the current foreground
     /// color.
     pub fn draw(&mut self, shape: Shape, stroke: bool) {
-        let path = match shape {
-            Shape::Rectangle(shape) => PathBuilder::from_rect(shape.to_skia()),
-            Shape::Circle(shape) => shape.to_skia(),
-            Shape::Line(shape) => shape.to_skia(),
-        };
+        let path = shape.to_skia();
 
         if stroke {
             self.canvas.stroke_path(
@@ -460,7 +465,7 @@ impl DisplayRenderer {
         let px = options.size.font_size();
         layout.append(fonts, &TextStyle::new(&text, px, 0));
 
-        self.text_scratch.fill(Color::TRANSPARENT.to_skia());
+        self.text_scratch.fill(Color::TRANSPARENT);
         let pixels = self.text_scratch.pixels_mut();
 
         for glyph in layout.glyphs() {
@@ -474,12 +479,15 @@ impl DisplayRenderer {
             for rel_y in 0..metrics.height {
                 for rel_x in 0..metrics.width {
                     let coverage = bitmap[rel_x + rel_y * metrics.width] as f32 / u8::MAX as f32;
-                    let color = self.context.foreground_color.multiply_alpha(coverage);
+                    let color = {
+                        let mut fg = self.context.foreground_color;
+                        fg.set_alpha(fg.alpha() * coverage);
+                        fg
+                    };
 
                     let x = glyph.x as usize + rel_x;
                     let y = glyph.y as usize + rel_y;
-                    pixels[x + y * DISPLAY_WIDTH as usize] =
-                        color.to_skia().to_color_u8().premultiply();
+                    pixels[x + y * DISPLAY_WIDTH as usize] = color.to_color_u8().premultiply();
                 }
             }
         }
