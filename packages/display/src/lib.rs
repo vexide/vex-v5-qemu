@@ -1,7 +1,7 @@
 use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use fontdue::{
-    layout::{CoordinateSystem, Layout, LayoutSettings, TextStyle, VerticalAlign},
+    layout::{CoordinateSystem, Layout, LayoutSettings, TextStyle},
     Font, FontSettings,
 };
 pub use tiny_skia::Pixmap;
@@ -179,6 +179,7 @@ pub struct DisplayRenderer {
     /// When the display is in double buffered mode, this field holds the
     /// previous frame while the current frame is being drawn.
     pub prev_canvas: Option<Pixmap>,
+    pub header_brain_image: Pixmap,
     text_scratch: Pixmap,
     user_mono: Font,
     user_proportional: Font,
@@ -203,13 +204,13 @@ impl DisplayRenderer {
         let mut mask = Mask::new(DISPLAY_WIDTH, DISPLAY_HEIGHT).unwrap();
 
         let monospace = Font::from_bytes(
-            include_bytes!("../fonts/NotoMono-Regular.ttf") as &[u8],
+            include_bytes!("../assets/NotoMono-Regular.ttf") as &[u8],
             FontSettings::default(),
         )
         .unwrap();
 
         let proportional = Font::from_bytes(
-            include_bytes!("../fonts/NotoSans-Regular.ttf") as &[u8],
+            include_bytes!("../assets/NotoSans-Regular.ttf") as &[u8],
             FontSettings::default(),
         )
         .unwrap();
@@ -236,6 +237,7 @@ impl DisplayRenderer {
             context_stack: vec![],
             user_mono: monospace,
             user_proportional: proportional,
+            header_brain_image: Pixmap::decode_png(include_bytes!("../assets/brain.png")).unwrap(),
             canvas,
             prev_canvas: None,
             text_scratch,
@@ -256,6 +258,7 @@ impl DisplayRenderer {
     pub fn draw_header(&mut self, name: String, time: Duration) {
         self.save();
 
+        // Background
         self.context.foreground_color = HEADER_BG;
         self.context.clip_region = None;
         self.draw(
@@ -269,6 +272,7 @@ impl DisplayRenderer {
             false,
         );
 
+        // Program name
         self.context.foreground_color = ProtocolColor(0);
         self.draw_text(
             name.to_string(),
@@ -279,6 +283,8 @@ impl DisplayRenderer {
                 family: V5FontFamily::Proportional,
             },
         );
+
+        // Timer
         let secs = time.as_secs();
         self.draw_text(
             format!("{}:{:02}", secs / 60, secs % 60),
@@ -289,6 +295,36 @@ impl DisplayRenderer {
                 family: V5FontFamily::Monospace,
             },
         );
+
+        // Brain icon
+        self.canvas.draw_pixmap(
+            441,
+            -1,
+            self.header_brain_image.as_ref(),
+            &PixmapPaint::default(),
+            Transform::identity(),
+            None,
+        );
+
+        // Battery icon
+        self.context.foreground_color = ProtocolColor(0);
+        self.draw(Shape::Rectangle {
+            top_left: Point2 { x: 453, y: 23 },
+            bottom_right: Point2 { x: 466, y: 32 },
+        }, false);
+        self.draw(
+            Shape::Rectangle {
+                top_left: Point2 { x: 466, y: 26 },
+                bottom_right: Point2 { x: 468, y: 29 },
+            },
+            false,
+        );
+
+        self.context.foreground_color = ProtocolColor(0x93c83f);
+        self.draw(Shape::Rectangle {
+            top_left: Point2 { x: 454, y: 24 },
+            bottom_right: Point2 { x: 465, y: 31 },
+        }, false);
 
         self.restore();
     }
