@@ -1,6 +1,9 @@
 # Dev tools
 qemu-system-arm
 
+# Example output
+*.png
+
 # GDB
 .gdb_history
 

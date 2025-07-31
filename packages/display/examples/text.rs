@@ -1,20 +1,22 @@
 use std::time::Instant;
 
+use kurbo::Point;
 use vex_v5_display_simulator::{
-    DisplayRenderer, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND,
+    ColorTheme, DisplayRenderer, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND
 };
-use vex_v5_qemu_protocol::geometry::Point2;
 
 pub fn main() {
-    let mut display = DisplayRenderer::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND);
+    let mut display = DisplayRenderer::new(ColorTheme::Dark);
+
+    display.draw_header();
 
     display.write_text(
         "Hello, world!".to_string(),
-        Point2 { x: 50, y: 50 },
+        Point::new(50.0, 50.0),
         false,
         TextOptions::default(),
     );
 
-    display.render(false);
-    display.canvas.show();
+    let pix = display.render(false).unwrap();
+    pix.save_png("result.png").unwrap();
 }

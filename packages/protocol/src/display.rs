@@ -1,25 +1,21 @@
 use alloc::{string::String, vec::Vec};
+use derive_more::From;
 use core::num::NonZeroU16;
 
-use bincode::{Decode, Encode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::geometry::{Point2, Rect};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Encode, Decode, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Color(pub u32);
+pub type Color = color::AlphaColor<color::Srgb>;
 
 /// An instruction for drawing to the robot LCD screen.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DrawCommand {
     Fill(Shape),
     Stroke(Shape),
     CopyBuffer {
-        top_left: Point2<i32>,
-        bottom_right: Point2<i32>,
+        top_left: kurbo::Point,
+        bottom_right: kurbo::Point,
         stride: NonZeroU16,
         buffer: Vec<u32>,
     },
@@ -32,27 +28,27 @@ pub enum DrawCommand {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TextLocation {
-    Coordinates(Point2<i32>),
+    Coordinates(kurbo::Point),
     Line(i32),
 }
 
 impl Default for TextLocation {
     fn default() -> Self {
-        Self::Coordinates(Point2 { x: 0, y: 0 })
+        Self::Coordinates(kurbo::Point::ZERO)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ScrollLocation {
-    Rect(Rect),
+    Rect(kurbo::Rect),
     Line(i32),
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TextSize {
     Small,
@@ -61,7 +57,7 @@ pub enum TextSize {
     Large,
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DisplayRenderMode {
     #[default]
@@ -70,19 +66,10 @@ pub enum DisplayRenderMode {
 }
 
 /// A shape that can be drawn to the robot LCD screen.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Encode, Decode)]
+#[derive(Debug, Clone, Copy, PartialEq, From)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Shape {
-    Rectangle {
-        top_left: Point2<i32>,
-        bottom_right: Point2<i32>,
-    },
-    Circle {
-        center: Point2<i32>,
-        radius: u16,
-    },
-    Line {
-        start: Point2<i32>,
-        end: Point2<i32>,
-    },
+    Rectangle(kurbo::Rect),
+    Circle(kurbo::Circle),
+    Line(kurbo::Line),
 }

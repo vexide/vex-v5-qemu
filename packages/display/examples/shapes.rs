@@ -1,37 +1,30 @@
 use std::time::Instant;
 
-use vex_v5_display_simulator::{DisplayRenderer, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
-use vex_v5_qemu_protocol::{display::Shape, geometry::Point2};
+use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
+use vex_v5_qemu_protocol::{display::{Color, Shape}, Circle, Rect};
 
 pub fn main() {
-    let mut display = DisplayRenderer::new(DEFAULT_FOREGROUND, DEFAULT_BACKGROUND);
+    let mut display = DisplayRenderer::new(ColorTheme::Dark);
+
+    display.draw_header();
 
     display.draw(
-        Shape::Rectangle {
-            top_left: Point2 { x: 50, y: 50 },
-            bottom_right: Point2 { x: 150, y: 150 },
-        },
+        Rect::new(50.0, 50.0, 150.0, 150.0).into(),
         false,
     );
 
-    display.foreground_color = [0, 0, 255];
+    display.context.foreground_color = Color::from_rgb8(0, 0, 255);
 
     display.draw(
-        Shape::Rectangle {
-            top_left: Point2 { x: 75, y: 75 },
-            bottom_right: Point2 { x: 175, y: 175 },
-        },
+        Rect::new(75.0, 75.0, 175.0, 175.0).into(),
         false,
     );
 
     display.draw(
-        Shape::Circle {
-            center: Point2 { x: 100, y: 100 },
-            radius: 50,
-        },
+        Circle::new((50.0, 50.0), 50.0).into(),
         true,
     );
 
-    display.render(false);
-    display.canvas.show();
+    let pix = display.render(false).unwrap();
+    pix.save_png("result.png").unwrap();
 }
