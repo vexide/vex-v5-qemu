@@ -27,6 +27,11 @@ use vex_v5_qemu_host::{
     brain::{Binary, Brain},
     protocol::battery::BatteryData,
 };
+use winit::event_loop::EventLoop;
+
+use crate::display_window::DisplayWindow;
+
+mod display_window;
 
 #[cfg(debug_assertions)]
 const DEFAULT_KERNEL: &str = concat!(
@@ -176,6 +181,13 @@ async fn main() -> anyhow::Result<()> {
             out.write_all(&buf[..n]).await.unwrap();
             out.flush().await.unwrap();
         }
+    });
+
+    let _ = tokio::task::block_in_place(move || {
+        let event_loop = EventLoop::new().unwrap();
+        let mut app = DisplayWindow::new(peripherals.display);
+
+        event_loop.run_app(&mut app)
     });
 
     brain.wait_for_exit().await?;

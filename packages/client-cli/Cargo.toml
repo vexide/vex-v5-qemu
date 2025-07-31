@@ -25,6 +25,10 @@ thiserror = "1.0.63"
 log = "0.4.22"
 simplelog = "0.12.2"
 typed_shmem = "0.3.0"
+winit = "0.30.12"
+softbuffer = "0.4.6"
+tiny-skia = "0.11.4"
+
 
 [target.'cfg(any(target_os = "macos", target_os = "ios", target_os = "linux", target_os = "windows", target_os = "dragonfly", target_os = "freebsd"))'.dependencies]
 battery = "0.7.8"
