@@ -1,19 +1,18 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use fontdue::{
     layout::{CoordinateSystem, Layout, LayoutSettings, TextStyle, VerticalAlign},
     Font, FontSettings,
 };
+pub use tiny_skia::Pixmap;
 use tiny_skia::{
-    Color, FillRule, Mask, Paint, PathBuilder, PixmapPaint, PixmapRef, Rect, Shader,
-    Stroke, Transform,
+    Color, FillRule, Mask, Paint, PathBuilder, PixmapPaint, PixmapRef, Rect, Shader, Stroke,
+    Transform,
 };
 use vex_v5_qemu_protocol::{
     display::{Color as ProtocolColor, Shape, TextSize},
     geometry::Point2,
 };
-
-pub use tiny_skia::Pixmap;
 
 use crate::convert::ToSkia;
 
@@ -32,6 +31,7 @@ pub enum V5FontSize {
     #[default]
     Normal,
     Big,
+    Header,
 }
 
 impl From<TextSize> for V5FontSize {
@@ -45,15 +45,15 @@ impl From<TextSize> for V5FontSize {
 }
 
 impl V5FontSize {
-    /// Multiplier for the X axis scale of the font.
-    pub const fn x_scale() -> f32 {
-        0.9
-    }
+    // /// Multiplier for the X axis scale of the font.
+    // pub const fn x_scale() -> f32 {
+    //     0.9
+    // }
 
-    /// Extra spacing in pixels between characters (x-axis).
-    pub const fn x_spacing() -> f32 {
-        1.1
-    }
+    // /// Extra spacing in pixels between characters (x-axis).
+    // pub const fn x_spacing() -> f32 {
+    //     1.1
+    // }
 
     /// Font size in pixels.
     pub const fn font_size(&self) -> i32 {
@@ -61,40 +61,52 @@ impl V5FontSize {
             V5FontSize::Small => 15,
             V5FontSize::Normal => 16,
             V5FontSize::Big => 32,
+            V5FontSize::Header => 22,
         }
     }
 
-    /// Y-axis offset applied before rendering.
-    pub const fn y_offset(&self) -> i32 {
-        match self {
-            V5FontSize::Small => -2,
-            V5FontSize::Normal => -2,
-            V5FontSize::Big => -1,
-        }
-    }
+    // /// Y-axis offset applied before rendering.
+    // pub const fn y_offset(&self) -> i32 {
+    //     match self {
+    //         V5FontSize::Small => -2,
+    //         V5FontSize::Normal => -2,
+    //         V5FontSize::Big => -1,
+    //         V5FontSize::Header => -2,
+    //     }
+    // }
 
-    /// Line height of the highlighted area behind text.
-    pub const fn line_height(&self) -> i32 {
-        match self {
-            V5FontSize::Small => 13,
-            V5FontSize::Normal => 2,
-            V5FontSize::Big => 2,
-        }
-    }
+    // /// Line height of the highlighted area behind text.
+    // pub const fn line_height(&self) -> i32 {
+    //     match self {
+    //         V5FontSize::Small => 13,
+    //         V5FontSize::Normal => 2,
+    //         V5FontSize::Big => 2,
+    //         V5FontSize::Header => 0, // N/A
+    //     }
+    // }
 
-    /// Y-axis offset applied to the highlighted area behind text.
-    pub const fn backdrop_y_offset(&self) -> i32 {
-        match self {
-            V5FontSize::Small => 2,
-            V5FontSize::Normal => 0,
-            V5FontSize::Big => 0,
-        }
-    }
+    // /// Y-axis offset applied to the highlighted area behind text.
+    // pub const fn backdrop_y_offset(&self) -> i32 {
+    //     match self {
+    //         V5FontSize::Small => 2,
+    //         V5FontSize::Normal => 0,
+    //         V5FontSize::Big => 0,
+    //         V5FontSize::Header => 0, // N/A
+    //     }
+    // }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum V5FontFamily {
+    #[default]
+    Monospace,
+    Proportional,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct TextOptions {
     pub size: V5FontSize,
+    pub family: V5FontFamily,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -169,6 +181,7 @@ pub struct DisplayRenderer {
     pub prev_canvas: Option<Pixmap>,
     text_scratch: Pixmap,
     user_mono: Font,
+    user_proportional: Font,
     // /// Cache for text layout calculations, to avoid re-calculating the same
     // /// text layout multiple times in a row.
     // text_layout_cache: Cell<Option<TextLayout>>,
@@ -189,8 +202,17 @@ impl DisplayRenderer {
         let text_scratch = canvas.clone();
         let mut mask = Mask::new(DISPLAY_WIDTH, DISPLAY_HEIGHT).unwrap();
 
-        let font = include_bytes!("../fonts/NotoMono-Regular.ttf") as &[u8];
-        let font = Font::from_bytes(font, FontSettings::default()).unwrap();
+        let monospace = Font::from_bytes(
+            include_bytes!("../fonts/NotoMono-Regular.ttf") as &[u8],
+            FontSettings::default(),
+        )
+        .unwrap();
+
+        let proportional = Font::from_bytes(
+            include_bytes!("../fonts/NotoSans-Regular.ttf") as &[u8],
+            FontSettings::default(),
+        )
+        .unwrap();
 
         canvas.fill(theme.default_bg().to_skia());
 
@@ -212,7 +234,8 @@ impl DisplayRenderer {
                 clip_region: Some(Arc::new(mask)),
             },
             context_stack: vec![],
-            user_mono: font,
+            user_mono: monospace,
+            user_proportional: proportional,
             canvas,
             prev_canvas: None,
             text_scratch,
@@ -230,12 +253,11 @@ impl DisplayRenderer {
         }
     }
 
-    pub fn draw_header(&mut self) {
+    pub fn draw_header(&mut self, name: String, time: Duration) {
         self.save();
 
         self.context.foreground_color = HEADER_BG;
         self.context.clip_region = None;
-
         self.draw(
             Shape::Rectangle {
                 top_left: Point2 { x: 0, y: 0 },
@@ -245,6 +267,27 @@ impl DisplayRenderer {
                 },
             },
             false,
+        );
+
+        self.context.foreground_color = ProtocolColor(0);
+        self.draw_text(
+            name.to_string(),
+            Point2 { x: 8, y: 7 },
+            true,
+            TextOptions {
+                size: V5FontSize::Header,
+                family: V5FontFamily::Proportional,
+            },
+        );
+        let secs = time.as_secs();
+        self.draw_text(
+            format!("{}:{:02}", secs / 60, secs % 60),
+            Point2 { x: 247, y: 7 },
+            true,
+            TextOptions {
+                size: V5FontSize::Header,
+                family: V5FontFamily::Monospace,
+            },
         );
 
         self.restore();
@@ -446,14 +489,18 @@ impl DisplayRenderer {
 
         let px = options.size.font_size();
 
+        let font = match options.family {
+            V5FontFamily::Monospace => &self.user_mono,
+            V5FontFamily::Proportional => &self.user_proportional,
+        };
         // Fix gap above text
-        let fullheight_metrics = self.user_mono.metrics('M', px as f32);
-        let font_metrics = self.user_mono.horizontal_line_metrics(px as f32).unwrap();
+        let fullheight_metrics = font.metrics('M', px as f32);
+        let font_metrics = font.horizontal_line_metrics(px as f32).unwrap();
         let y_offset = fullheight_metrics.height as i32 - font_metrics.ascent as i32;
         coords.y += y_offset;
 
         let mut layout = Layout::new(CoordinateSystem::PositiveYDown);
-        let fonts = &[&self.user_mono];
+        let fonts = &[font];
 
         layout.reset(&LayoutSettings {
             x: coords.x as f32,
@@ -481,7 +528,7 @@ impl DisplayRenderer {
                     let color = {
                         let mut fg = self.context.foreground_color.to_skia();
                         let alpha = fg.alpha() * coverage;
-                        let alpha  = -(alpha - 1.0).powi(2) + 1.0;
+                        let alpha = -(alpha - 1.0).powi(2) + 1.0;
                         fg.set_alpha(alpha);
                         fg
                     };

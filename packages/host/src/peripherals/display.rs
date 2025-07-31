@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{sync::Mutex, time::{Duration, Instant}};
 
 use tokio::{
     sync::{
@@ -24,9 +24,9 @@ impl Display {
         let (data_tx, data_rx) = watch::channel(Mutex::new(None));
         Self {
             task: tokio::spawn(async move {
+                let start = Instant::now();
+                let mut prev_draw = start.elapsed();
                 let mut renderer = DisplayRenderer::new(ColorTheme::Dark);
-
-                renderer.draw_header();
 
                 while let Some(command) = rx.recv().await {
                     let mut new_frame = None;
@@ -36,6 +36,11 @@ impl Display {
                             color,
                             clip_region: _,
                         } => {
+                            let elapsed = start.elapsed();
+                            if prev_draw.as_secs() != elapsed.as_secs() {
+                                renderer.draw_header("User".to_string(), elapsed);
+                            }
+                            prev_draw = elapsed;
                             renderer.context.foreground_color = color;
                             match command {
                                 DrawCommand::Fill(shape) => {
@@ -57,7 +62,7 @@ impl Display {
                                         data,
                                         position,
                                         !opaque,
-                                        TextOptions { size: size.into() },
+                                        TextOptions { size: size.into(), ..Default::default() },
                                     );
                                 }
                                 DrawCommand::CopyBuffer {
