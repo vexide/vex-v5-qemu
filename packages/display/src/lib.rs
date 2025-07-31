@@ -1,38 +1,28 @@
-use std::{cell::Cell, fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 use fontdue::{
     layout::{CoordinateSystem, Layout, LayoutSettings, TextStyle, VerticalAlign},
     Font, FontSettings,
 };
-use kurbo::{Circle, Point, Rect as KRect};
 use tiny_skia::{
-    BlendMode, Color, ColorU8, FillRule, Mask, Paint, Path, PathBuilder, Pixmap, PixmapMut,
+    Color, FillRule, Mask, Paint, PathBuilder, Pixmap,
     PixmapPaint, PixmapRef, Rect, Shader, Stroke, Transform,
 };
 use vex_v5_qemu_protocol::{
-    display::{Shape, TextSize},
-    geometry::Point2,
+    display::{Shape, TextSize, Color as ProtocolColor},
+    geometry::{Point2, Rect as ProtocolRect},
 };
 
-use crate::convert::{const_color_from_rgba8, ToSkia};
+use crate::convert::ToSkia;
 
 mod convert;
 
 /// https://internals.vexide.dev/sdk/display#foreground-and-background-colors - #c0c0ff
-pub const DEFAULT_FOREGROUND: Color = const_color_from_rgba8(0xc0, 0xc0, 0xff, 0xff).unwrap();
+pub const DEFAULT_FOREGROUND: ProtocolColor = ProtocolColor(0xc0c0ff);
 /// https://internals.vexide.dev/sdk/display#foreground-and-background-colors - #000000
-pub const DEFAULT_BACKGROUND: Color = const_color_from_rgba8(0, 0, 0, 0xff).unwrap();
+pub const DEFAULT_BACKGROUND: ProtocolColor = ProtocolColor(0);
 /// https://internals.vexide.dev/sdk/display#code-signature - #ffffff
-pub const INVERTED_BACKGROUND: Color = const_color_from_rgba8(0xff, 0xff, 0xff, 0xff).unwrap();
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct TextLine(pub i32);
-
-impl TextLine {
-    pub const fn coords(&self) -> kurbo::Point {
-        kurbo::Point::new(0.0, (self.0 as f64) * 20.0 + 34.0)
-    }
-}
+pub const INVERTED_BACKGROUND: ProtocolColor = ProtocolColor(0xFFFFFF);
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum V5FontSize {
@@ -120,11 +110,11 @@ pub enum ColorTheme {
 }
 
 impl ColorTheme {
-    pub const fn default_fg(&self) -> Color {
+    pub const fn default_fg(&self) -> ProtocolColor {
         DEFAULT_FOREGROUND
     }
 
-    pub const fn default_bg(&self) -> Color {
+    pub const fn default_bg(&self) -> ProtocolColor {
         match self {
             Self::Dark => DEFAULT_BACKGROUND,
             Self::Light => INVERTED_BACKGROUND,
@@ -148,7 +138,7 @@ pub const DISPLAY_HEIGHT: u32 = 272;
 pub const DISPLAY_WIDTH: u32 = 480;
 pub const HEADER_HEIGHT: u32 = 32;
 
-pub const HEADER_BG: Color = const_color_from_rgba8(0x00, 0x99, 0xCC, 0xff).unwrap();
+pub const HEADER_BG: ProtocolColor = ProtocolColor(0x0099CC);
 
 // struct TextLayout {
 //     text: String,
@@ -161,9 +151,9 @@ pub const HEADER_BG: Color = const_color_from_rgba8(0x00, 0x99, 0xCC, 0xff).unwr
 #[derive(Debug, Clone)]
 pub struct DrawContext {
     /// The display's saved foreground color.
-    pub foreground_color: Color,
+    pub foreground_color: ProtocolColor,
     /// The display's saved background color.
-    pub background_color: Color,
+    pub background_color: ProtocolColor,
     pub clip_region: Option<Arc<Mask>>,
 }
 
@@ -200,7 +190,7 @@ impl DisplayRenderer {
         let font = include_bytes!("../fonts/NotoMono-Regular.ttf") as &[u8];
         let font = Font::from_bytes(font, FontSettings::default()).unwrap();
 
-        canvas.fill(theme.default_bg());
+        canvas.fill(theme.default_bg().to_skia());
 
         let path = PathBuilder::from_rect(
             Rect::from_ltrb(
@@ -259,11 +249,9 @@ impl DisplayRenderer {
     }
 
     /// Copies a buffer of pixels to the display.
-    pub fn draw_buffer(&mut self, buf: &[u8], rect: KRect, stride: usize) {
-        let x = rect.x0 as i32;
-        let y = rect.y0 as i32;
-        let width = rect.width() as u32;
-        let height = rect.height() as u32;
+    pub fn draw_buffer(&mut self, buf: &[u8], rect: ProtocolRect, stride: usize) {
+        let width = (rect.bottom_right.x - rect.top_left.x) as u32;
+        let height = (rect.bottom_right.y - rect.top_left.y) as u32;
 
         if height == 0 || width == 0 {
             return;
@@ -276,8 +264,8 @@ impl DisplayRenderer {
         let pixmap = PixmapRef::from_bytes(buf, width, height).expect("nonzero");
 
         self.canvas.draw_pixmap(
-            x,
-            y,
+            rect.top_left.x,
+            rect.top_left.y,
             pixmap,
             &PixmapPaint::default(),
             Transform::identity(),
@@ -315,12 +303,12 @@ impl DisplayRenderer {
 
     /// Erases the display by filling it with the default background color.
     pub fn erase(&mut self) {
-        self.canvas.fill(self.context.background_color);
+        self.canvas.fill(self.context.background_color.to_skia());
     }
 
     fn fg_paint(&self) -> Paint<'static> {
         Paint {
-            shader: Shader::SolidColor(self.context.foreground_color),
+            shader: Shader::SolidColor(self.context.foreground_color.to_skia()),
             anti_alias: false,
             ..Default::default()
         }
@@ -440,8 +428,8 @@ impl DisplayRenderer {
     pub fn write_text(
         &mut self,
         text: String,
-        mut coords: Point,
-        transparent: bool,
+        mut coords: Point2<i32>,
+        _transparent: bool,
         options: TextOptions,
     ) {
         if text.is_empty() {
@@ -450,14 +438,14 @@ impl DisplayRenderer {
 
         // The V5's text is all offset vertically from ours, so this adjustment makes it
         // consistent.
-        coords.y += options.size.y_offset() as f64;
+        coords.y += options.size.y_offset();
 
         let mut layout = Layout::new(CoordinateSystem::PositiveYDown);
         let fonts = &[&self.user_mono];
 
         layout.reset(&LayoutSettings {
-            x: coords.x.round() as f32,
-            y: coords.y.round() as f32,
+            x: coords.x as f32,
+            y: coords.y as f32,
             vertical_align: VerticalAlign::Top,
             ..LayoutSettings::default()
         });
@@ -480,7 +468,7 @@ impl DisplayRenderer {
                 for rel_x in 0..metrics.width {
                     let coverage = bitmap[rel_x + rel_y * metrics.width] as f32 / u8::MAX as f32;
                     let color = {
-                        let mut fg = self.context.foreground_color;
+                        let mut fg = self.context.foreground_color.to_skia();
                         fg.set_alpha(fg.alpha() * coverage);
                         fg
                     };

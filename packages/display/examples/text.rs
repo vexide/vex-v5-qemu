@@ -1,9 +1,5 @@
-use std::time::Instant;
-
-use kurbo::Point;
-use vex_v5_display_simulator::{
-    ColorTheme, DisplayRenderer, TextOptions, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND
-};
+use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, TextOptions};
+use vex_v5_qemu_protocol::geometry::Point2;
 
 pub fn main() {
     let mut display = DisplayRenderer::new(ColorTheme::Dark);
@@ -12,7 +8,7 @@ pub fn main() {
 
     display.write_text(
         "Hello, world!".to_string(),
-        Point::new(50.0, 50.0),
+        Point2 { x: 50, y: 50 },
         false,
         TextOptions::default(),
     );

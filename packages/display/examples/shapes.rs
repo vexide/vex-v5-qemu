@@ -1,7 +1,12 @@
 use std::time::Instant;
 
-use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND};
-use vex_v5_qemu_protocol::{display::{Color, Shape}, Circle, Rect};
+use vex_v5_display_simulator::{
+    ColorTheme, DisplayRenderer, DEFAULT_BACKGROUND, DEFAULT_FOREGROUND,
+};
+use vex_v5_qemu_protocol::{
+    display::{Color, Shape},
+    geometry::{Point2, Rect},
+};
 
 pub fn main() {
     let mut display = DisplayRenderer::new(ColorTheme::Dark);
@@ -9,19 +14,20 @@ pub fn main() {
     display.draw_header();
 
     display.draw(
-        Rect::new(50.0, 50.0, 150.0, 150.0).into(),
+        Shape::Rectangle {
+            top_left: Point2 { x: 50, y: 50 },
+            bottom_right: Point2 { x: 150, y: 150 },
+        },
         false,
     );
 
-    display.context.foreground_color = Color::from_rgb8(0, 0, 255);
-
+    display.context.foreground_color = Color(0x0000FF);
+    display.draw(Rect::new(75.0, 75.0, 175.0, 175.0).into(), false);
     display.draw(
-        Rect::new(75.0, 75.0, 175.0, 175.0).into(),
-        false,
-    );
-
-    display.draw(
-        Circle::new((50.0, 50.0), 50.0).into(),
+        Shape::Circle {
+            center: Point2 { x: 50, y: 50 },
+            radius: 50,
+        },
         true,
     );
 

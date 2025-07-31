@@ -4,10 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# ab_glyph = "0.2.28"
 fontdue = "0.9.3"
 image = { version = "0.25.2", default-features = false }
-kurbo = "0.11.3"
 tiny-skia = "0.11.4"
 vex-v5-qemu-protocol = { version = "0.0.1", path = "../protocol" }
 
