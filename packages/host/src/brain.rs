@@ -1,5 +1,5 @@
 use std::{
-    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, vec::Vec
+    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, time::Instant, vec::Vec
 };
 
 use tokio::{
@@ -11,7 +11,7 @@ use tokio::{
     },
     task::AbortHandle,
 };
-use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
+use vex_v5_qemu_protocol::{display::DrawCommand, DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
 
 use crate::{
     connection::QemuConnection,
@@ -73,6 +73,7 @@ impl Brain {
             connection: connection.clone(),
             barrier: barrier.clone(),
             task: tokio::task::spawn(async move {
+                let mut start = std::time::Instant::now();
                 let mut peripherals_rx = peripherals_rx;
                 let smartport_senders: [Sender<SmartPortCommand>; 21] = [
                     port_1_tx, port_2_tx, port_3_tx, port_4_tx, port_5_tx, port_6_tx, port_7_tx,
@@ -101,9 +102,7 @@ impl Brain {
                                 _ = usb_tx.send(data).await;
                             }
 
-                            // I'm not sure if this should be handled as part of the USB
-                            // peripheral in the future or not, since it's kernel log output
-                            // and panic messages.
+                            // Kernel debugging stuff (logs mainly) goes to stderr
                             HostBoundPacket::KernelSerial(data) => {
                                 let mut stderr = tokio::io::stderr();
                                 stderr.write_all(&data).await.unwrap();

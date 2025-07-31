@@ -19,9 +19,7 @@ fn semihosting_write_with_retry(bytes: &[u8]) -> Result<(), semihosting::io::Err
         Err(err) if err.kind() == ErrorKind::Other && err.raw_os_error() == Some(0) => {
             semihosting_write_with_retry(bytes) // no idea what the fuck is going on here but sure whatever man
         }
-        res => {
-            res
-        },
+        res => res,
     }
 }
 
