@@ -25,7 +25,7 @@ impl Display {
         Self {
             task: tokio::spawn(async move {
                 let start = Instant::now();
-                let mut prev_draw = start.elapsed();
+                let mut prev_draw = Duration::from_secs(1); // start at 1 so prev_draw != elapsed
                 let mut renderer = DisplayRenderer::new(ColorTheme::Dark);
 
                 while let Some(command) = rx.recv().await {

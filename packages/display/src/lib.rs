@@ -535,7 +535,10 @@ impl DisplayRenderer {
 
                     let x = glyph.x as usize + rel_x;
                     let y = glyph.y as usize + rel_y;
-                    pixels[x + y * DISPLAY_WIDTH as usize] = color.to_color_u8().premultiply();
+
+                    if let Some(pixel) = pixels.get_mut(x + y * DISPLAY_WIDTH as usize) {
+                        *pixel = color.to_color_u8().premultiply();
+                    }
                 }
             }
         }

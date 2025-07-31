@@ -333,7 +333,7 @@ pub extern "C" fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         // it's a line so we don't stroke
-        .fill_with_foreground(Shape::Line {
+        .stroke_with_foreground(Shape::Line {
             start: Point2 { x: x1, y: y1 },
             end: Point2 { x: x2, y: y2 },
         })
@@ -342,7 +342,7 @@ pub extern "C" fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
 pub extern "C" fn vexDisplayLineClear(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
-        .fill_with_background(Shape::Line {
+        .stroke_with_background(Shape::Line {
             start: Point2 { x: x1, y: y1 },
             end: Point2 { x: x2, y: y2 },
         })
