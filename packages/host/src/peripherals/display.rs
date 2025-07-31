@@ -104,7 +104,7 @@ impl Display {
                     }
 
                     if let Some(frame) = new_frame {
-                        frame.save_png("frame.png").unwrap();
+                        frame.save_png("frame.png");
                         _ = data_tx.send(Mutex::new(Some(frame)));
                     }
                 }

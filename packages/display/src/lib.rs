@@ -406,7 +406,7 @@ impl DisplayRenderer {
     pub fn draw(&mut self, shape: Shape, stroke: bool) {
         let path = shape.to_skia();
 
-        if stroke {
+        if stroke || matches!(shape, Shape::Line { start: _, end: _ }) {
             self.canvas.stroke_path(
                 &path,
                 &self.fg_paint(),
