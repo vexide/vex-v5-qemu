@@ -44,7 +44,7 @@ impl ToSkia for Shape {
                 .unwrap(),
             ),
             Shape::Circle { center, radius } => {
-                PathBuilder::from_circle(center.x as _, center.y as _, radius.max(1) as _).unwrap()
+                PathBuilder::from_circle(center.x as _, center.y as _, radius as _).unwrap()
             }
             Shape::Line { start, end }  => {
                 let mut builder = PathBuilder::new();

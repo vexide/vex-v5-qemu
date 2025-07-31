@@ -376,15 +376,20 @@ pub extern "C" fn vexDisplayRectFill(x1: i32, y1: i32, x2: i32, y2: i32) {
         .unwrap()
 }
 pub extern "C" fn vexDisplayCircleDraw(xc: i32, yc: i32, radius: i32) {
-    DISPLAY
-        .lock()
-        .stroke_with_foreground(Shape::Circle {
-            center: Point2 { x: xc, y: yc },
-            radius: radius as _,
-        })
-        .unwrap()
+    if radius > 0 {
+        DISPLAY
+            .lock()
+            .stroke_with_foreground(Shape::Circle {
+                center: Point2 { x: xc, y: yc },
+                radius: radius as _,
+            })
+            .unwrap()
+
+    }
 }
 pub extern "C" fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
+    if radius > 0 {
+
     DISPLAY
         .lock()
         .fill_with_background(Shape::Circle {
@@ -392,15 +397,18 @@ pub extern "C" fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
             radius: radius as _,
         })
         .unwrap()
+    }
 }
 pub extern "C" fn vexDisplayCircleFill(xc: i32, yc: i32, radius: i32) {
-    DISPLAY
-        .lock()
-        .fill_with_foreground(Shape::Circle {
-            center: Point2 { x: xc, y: yc },
-            radius: radius as _,
-        })
-        .unwrap()
+    if radius > 0 {
+        DISPLAY
+            .lock()
+            .fill_with_foreground(Shape::Circle {
+                center: Point2 { x: xc, y: yc },
+                radius: radius as _,
+            })
+            .unwrap()
+    }
 }
 pub extern "C" fn vexDisplayTextSize(n: u32, d: u32) {}
 pub extern "C" fn vexDisplayFontNamedSet(pFontName: *const c_char) {}
