@@ -5382,6 +5382,7 @@ dependencies = [
  "miette",
  "thiserror 1.0.69",
  "tokio",
+ "vex-v5-display-simulator",
  "vex-v5-qemu-protocol",
 ]
 

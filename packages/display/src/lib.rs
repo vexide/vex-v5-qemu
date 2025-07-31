@@ -5,13 +5,15 @@ use fontdue::{
     Font, FontSettings,
 };
 use tiny_skia::{
-    Color, FillRule, Mask, Paint, PathBuilder, Pixmap,
-    PixmapPaint, PixmapRef, Rect, Shader, Stroke, Transform,
+    Color, FillRule, Mask, Paint, PathBuilder, PixmapPaint, PixmapRef, Rect, Shader,
+    Stroke, Transform,
 };
 use vex_v5_qemu_protocol::{
-    display::{Shape, TextSize, Color as ProtocolColor},
-    geometry::{Point2, Rect as ProtocolRect},
+    display::{Color as ProtocolColor, Shape, TextSize},
+    geometry::Point2,
 };
+
+pub use tiny_skia::Pixmap;
 
 use crate::convert::ToSkia;
 
@@ -23,6 +25,18 @@ pub const DEFAULT_FOREGROUND: ProtocolColor = ProtocolColor(0xc0c0ff);
 pub const DEFAULT_BACKGROUND: ProtocolColor = ProtocolColor(0);
 /// https://internals.vexide.dev/sdk/display#code-signature - #ffffff
 pub const INVERTED_BACKGROUND: ProtocolColor = ProtocolColor(0xFFFFFF);
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct TextLine(pub i32);
+
+impl TextLine {
+    pub const fn coords(&self) -> Point2<i32> {
+        Point2 {
+            x: 0,
+            y: self.0 * 20 + 34,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum V5FontSize {
@@ -249,9 +263,15 @@ impl DisplayRenderer {
     }
 
     /// Copies a buffer of pixels to the display.
-    pub fn draw_buffer(&mut self, buf: &[u8], rect: ProtocolRect, stride: usize) {
-        let width = (rect.bottom_right.x - rect.top_left.x) as u32;
-        let height = (rect.bottom_right.y - rect.top_left.y) as u32;
+    pub fn draw_buffer(
+        &mut self,
+        buf: &[u8],
+        top_left: Point2<i32>,
+        bottom_right: Point2<i32>,
+        stride: usize,
+    ) {
+        let width = (bottom_right.x - top_left.x) as u32;
+        let height = (bottom_right.y - top_left.y) as u32;
 
         if height == 0 || width == 0 {
             return;
@@ -264,8 +284,8 @@ impl DisplayRenderer {
         let pixmap = PixmapRef::from_bytes(buf, width, height).expect("nonzero");
 
         self.canvas.draw_pixmap(
-            rect.top_left.x,
-            rect.top_left.y,
+            top_left.x,
+            top_left.y,
             pixmap,
             &PixmapPaint::default(),
             Transform::identity(),

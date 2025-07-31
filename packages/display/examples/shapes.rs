@@ -22,7 +22,10 @@ pub fn main() {
     );
 
     display.context.foreground_color = Color(0x0000FF);
-    display.draw(Rect::new(75.0, 75.0, 175.0, 175.0).into(), false);
+    display.draw(Shape::Rectangle {
+        top_left: Point2 { x: 75, y: 75 },
+        bottom_right: Point2 { x: 175, y: 175 },
+    }, false);
     display.draw(
         Shape::Circle {
             center: Point2 { x: 50, y: 50 },
