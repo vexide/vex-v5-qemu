@@ -22,7 +22,7 @@ pub fn main() {
     display.context.foreground_color = Color(0xFFFFFF);
     display.draw(container, true);
 
-    display.write_text(
+    display.draw_text(
         "Memory Permission error !".to_string(),
         Point2 {
             x: 80,
@@ -32,7 +32,7 @@ pub fn main() {
         TextOptions::default(),
     );
 
-    display.write_text(
+    display.draw_text(
         "03800128".to_string(),
         Point2 {
             x: 80,
@@ -42,18 +42,18 @@ pub fn main() {
         TextOptions::default(),
     );
 
-    display.context.foreground_color = Color(0x44FF44);
-    let container = Shape::Rectangle {
-        top_left: Point2 {
-            x: 80,
-            y: 70,
-        },
-        bottom_right: Point2 {
-            x: 81,
-            y: 71,
-        },
-    };
-    display.draw(container, false);
+    // display.context.foreground_color = Color(0x44FF44);
+    // let container = Shape::Rectangle {
+    //     top_left: Point2 {
+    //         x: 80,
+    //         y: 70,
+    //     },
+    //     bottom_right: Point2 {
+    //         x: 81,
+    //         y: 71,
+    //     },
+    // };
+    // display.draw(container, false);
 
     let pix = display.render(false).unwrap();
     pix.save_png("result.png").unwrap();

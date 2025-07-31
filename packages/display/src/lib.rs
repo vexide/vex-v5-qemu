@@ -480,7 +480,9 @@ impl DisplayRenderer {
                     let coverage = bitmap[rel_x + rel_y * metrics.width] as f32 / u8::MAX as f32;
                     let color = {
                         let mut fg = self.context.foreground_color.to_skia();
-                        fg.set_alpha(fg.alpha() * coverage);
+                        let alpha = fg.alpha() * coverage;
+                        let alpha  = -(alpha - 1.0).powi(2) + 1.0;
+                        fg.set_alpha(alpha);
                         fg
                     };
 
