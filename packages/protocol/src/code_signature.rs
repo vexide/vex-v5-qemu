@@ -1,16 +1,19 @@
 use core::result::Result;
 
+use bincode::{Decode, Encode};
 use bitflags::bitflags;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use vex_sdk::{vcodesig, V5_SIG_MAGIC};
+
+use crate::impl_bincode_bitflags;
 
 /// Program Code Signature
 ///
 /// The first 16 bytes of a VEX user code binary contain a user code signature,
 /// containing some basic metadata and startup flags about the program. This
 /// signature must be at the start of the binary for booting to occur.
-#[derive(Debug, Clone, Eq, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CodeSignature {
     pub magic: u32,
@@ -43,7 +46,7 @@ impl TryFrom<vcodesig> for CodeSignature {
 /// Identifies the type of binary to VEXos.
 #[repr(u32)]
 #[non_exhaustive]
-#[derive(Debug, Clone, Eq, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ProgramType {
     /// User program binary.
@@ -52,7 +55,7 @@ pub enum ProgramType {
 
 /// The owner (originator) of the user program
 #[repr(u32)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ProgramOwner {
     /// Program is a system binary.
@@ -84,3 +87,5 @@ bitflags! {
         const THEMED_DEFAULT_GRAPHICS = 1 << 2;
     }
 }
+
+impl_bincode_bitflags!(ProgramFlags);
