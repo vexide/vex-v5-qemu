@@ -4,9 +4,9 @@ members = [
     "./packages/protocol",
     "./packages/client-cli",
     "./packages/client/src-tauri",
+    "./packages/display",
 ]
 exclude = [
-    "./packages/display", # broken for now
     "./packages/kernel", # makes rust-analyzer really slow
 ]
 resolver = "2"

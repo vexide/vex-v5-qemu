@@ -1,11 +1,8 @@
-use bincode::{Decode, Encode};
 use bitflags::bitflags;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::impl_bincode_bitflags;
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MotorData {
     pub velocity: f64,
@@ -36,7 +33,6 @@ bitflags! {
         const DRIVER_OVER_CURRENT = 0x08;
     }
 }
-impl_bincode_bitflags!(MotorFaults);
 
 bitflags! {
     /// The status bits returned by a [`Motor`].
@@ -53,4 +49,3 @@ bitflags! {
         const ZERO_POSITION = 0x04;
     }
 }
-impl_bincode_bitflags!(MotorFlags);
