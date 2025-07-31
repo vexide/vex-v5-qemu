@@ -6,7 +6,7 @@ pub fn main() {
 
     display.draw_header();
 
-    display.write_text(
+    display.draw_text(
         "Hello, world!".to_string(),
         Point2 { x: 50, y: 50 },
         false,

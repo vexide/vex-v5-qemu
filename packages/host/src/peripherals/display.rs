@@ -7,9 +7,9 @@ use tokio::{
     },
     task::AbortHandle,
 };
-use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, Pixmap, TextLine, TextOptions};
+use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, Pixmap, TextOptions};
 use vex_v5_qemu_protocol::{
-    display::{DrawCommand, TextLocation},
+    display::DrawCommand,
     DisplayCommand, KernelBoundPacket,
 };
 
@@ -25,6 +25,8 @@ impl Display {
         Self {
             task: tokio::spawn(async move {
                 let mut renderer = DisplayRenderer::new(ColorTheme::Dark);
+
+                renderer.draw_header();
 
                 while let Some(command) = rx.recv().await {
                     let mut new_frame = None;
@@ -45,19 +47,15 @@ impl Display {
                                 DrawCommand::Text {
                                     data,
                                     size,
-                                    location,
+                                    position,
                                     opaque,
                                     background,
                                 } => {
                                     renderer.context.background_color = background;
-                                    let coords = match location {
-                                        TextLocation::Coordinates(coords) => coords,
-                                        TextLocation::Line(line) => TextLine(line).coords(),
-                                    };
 
-                                    renderer.write_text(
+                                    renderer.draw_text(
                                         data,
-                                        coords,
+                                        position,
                                         !opaque,
                                         TextOptions { size: size.into() },
                                     );
@@ -101,6 +99,7 @@ impl Display {
                     }
 
                     if let Some(frame) = new_frame {
+                        frame.save_png("frame.png").unwrap();
                         _ = data_tx.send(Mutex::new(Some(frame)));
                     }
                 }

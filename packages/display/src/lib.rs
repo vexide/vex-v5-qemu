@@ -27,18 +27,6 @@ pub const DEFAULT_BACKGROUND: ProtocolColor = ProtocolColor(0);
 pub const INVERTED_BACKGROUND: ProtocolColor = ProtocolColor(0xFFFFFF);
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct TextLine(pub i32);
-
-impl TextLine {
-    pub const fn coords(&self) -> Point2<i32> {
-        Point2 {
-            x: 0,
-            y: self.0 * 20 + 34,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum V5FontSize {
     Small,
     #[default]
@@ -277,7 +265,7 @@ impl DisplayRenderer {
             return;
         }
 
-        if stride as u32 != width {
+        if stride as u32 != width + 1 {
             unimplemented!("stride != width")
         }
 
@@ -445,7 +433,7 @@ impl DisplayRenderer {
     /// * `transparent`: Whether the text should be written without a
     ///   background.
     /// * `options`: The options to use when rendering the text.
-    pub fn write_text(
+    pub fn draw_text(
         &mut self,
         text: String,
         mut coords: Point2<i32>,
