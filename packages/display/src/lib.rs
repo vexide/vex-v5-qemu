@@ -56,11 +56,11 @@ impl V5FontSize {
     }
 
     /// Font size in pixels.
-    pub const fn font_size(&self) -> f32 {
+    pub const fn font_size(&self) -> i32 {
         match self {
-            V5FontSize::Small => 15.0,
-            V5FontSize::Normal => 16.0,
-            V5FontSize::Big => 32.0,
+            V5FontSize::Small => 15,
+            V5FontSize::Normal => 16,
+            V5FontSize::Big => 32,
         }
     }
 
@@ -444,9 +444,13 @@ impl DisplayRenderer {
             return;
         }
 
-        // The V5's text is all offset vertically from ours, so this adjustment makes it
-        // consistent.
-        coords.y += options.size.y_offset();
+        let px = options.size.font_size();
+
+        // Fix gap above text
+        let fullheight_metrics = self.user_mono.metrics('M', px as f32);
+        let font_metrics = self.user_mono.horizontal_line_metrics(px as f32).unwrap();
+        let y_offset = fullheight_metrics.height as i32 - font_metrics.ascent as i32;
+        coords.y += y_offset;
 
         let mut layout = Layout::new(CoordinateSystem::PositiveYDown);
         let fonts = &[&self.user_mono];
@@ -454,12 +458,11 @@ impl DisplayRenderer {
         layout.reset(&LayoutSettings {
             x: coords.x as f32,
             y: coords.y as f32,
-            vertical_align: VerticalAlign::Top,
+            wrap_hard_breaks: false,
             ..LayoutSettings::default()
         });
 
-        let px = options.size.font_size();
-        layout.append(fonts, &TextStyle::new(&text, px, 0));
+        layout.append(fonts, &TextStyle::new(&text, px as f32, 0));
 
         self.text_scratch.fill(Color::TRANSPARENT);
         let pixels = self.text_scratch.pixels_mut();
