@@ -12,8 +12,7 @@ use core::{
 
 use vex_sdk::*;
 use vex_v5_qemu_protocol::{
-    display::{Color, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize},
-    DisplayCommand, HostBoundPacket, Rect,
+    display::{Color, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize}, geometry::{Point2, Rect}, DisplayCommand, HostBoundPacket
 };
 
 use crate::{
@@ -26,14 +25,18 @@ const RESOLUTION_X: i32 = 480;
 const RESOLUTION_Y: i32 = 272;
 
 pub static DISPLAY: Mutex<Display> = Mutex::new(Display::new(
-    Color::from_rgb8(0xFF, 0xFF, 0xFF),
-    Color::BLACK,
-    Rect::new(
-        0.0,
-        HEADER_HEIGHT as f64,
-        RESOLUTION_X as f64,
-        RESOLUTION_Y as f64,
-    ),
+    Color(0xFFFFFF),
+    Color(0x000000),
+    Rect {
+        top_left: Point2 {
+            x: 0,
+            y: HEADER_HEIGHT,
+        },
+        bottom_right: Point2 {
+            x: RESOLUTION_X,
+            y: RESOLUTION_Y,
+        },
+    },
 ));
 
 pub struct Display {
@@ -380,10 +383,10 @@ pub extern "C" fn vexDisplayCircleFill(xc: i32, yc: i32, radius: i32) {
 pub extern "C" fn vexDisplayTextSize(n: u32, d: u32) {}
 pub extern "C" fn vexDisplayFontNamedSet(pFontName: *const c_char) {}
 pub extern "C" fn vexDisplayForegroundColorGet() -> u32 {
-    DISPLAY.lock().foreground().to_rgba8().to_u32()
+    DISPLAY.lock().foreground().0
 }
 pub extern "C" fn vexDisplayBackgroundColorGet() -> u32 {
-    DISPLAY.lock().background().to_rgba8().to_u32()
+    DISPLAY.lock().background().0
 }
 
 /// # Safety
