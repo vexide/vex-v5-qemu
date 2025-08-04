@@ -1,11 +1,11 @@
-use std::{sync::Mutex, time::{Duration, Instant}};
+use std::{pin::Pin, sync::Mutex, time::{Duration, Instant}};
 
 use tokio::{
     sync::{
         mpsc::{Receiver, Sender},
         watch,
     },
-    task::AbortHandle, time::sleep,
+    task::AbortHandle, time::{sleep, Sleep},
 };
 use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, Pixmap, TextOptions};
 use vex_v5_qemu_protocol::{
@@ -30,10 +30,11 @@ impl Display {
                 let start = Instant::now();
                 let mut renderer = DisplayRenderer::new(ColorTheme::Dark);
                 renderer.draw_header("User".to_string(), start.elapsed());
+                let mut interval = tokio::time::interval(Duration::from_secs(1));
 
                 loop {
                     tokio::select! {
-                        _ = sleep(Duration::from_secs(1)) => {
+                        _ = interval.tick() => {
                             renderer.draw_header("User".to_string(), start.elapsed());
 
                             if let Some(frame) = renderer.render(false) {
