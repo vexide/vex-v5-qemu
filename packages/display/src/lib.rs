@@ -344,7 +344,7 @@ impl DisplayRenderer {
             return;
         }
 
-        if stride as u32 != width + 1 {
+        if stride as u32 != width {
             unimplemented!("stride != width")
         }
 

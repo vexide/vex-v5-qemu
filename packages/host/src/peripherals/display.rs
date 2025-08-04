@@ -5,7 +5,7 @@ use tokio::{
         mpsc::{Receiver, Sender},
         watch,
     },
-    task::AbortHandle,
+    task::AbortHandle, time::sleep,
 };
 use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, Pixmap, TextOptions};
 use vex_v5_qemu_protocol::{
@@ -20,91 +20,104 @@ pub struct Display {
 }
 
 impl Display {
+    pub const WIDTH: u32 = 480;
+    pub const HEIGHT: u32 = 272;
+
     pub fn new(_tx: Sender<KernelBoundPacket>, mut rx: Receiver<DisplayCommand>) -> Self {
         let (data_tx, data_rx) = watch::channel(Mutex::new(None));
         Self {
             task: tokio::spawn(async move {
                 let start = Instant::now();
-                let mut prev_draw = Duration::from_secs(1); // start at 1 so prev_draw != elapsed
                 let mut renderer = DisplayRenderer::new(ColorTheme::Dark);
+                renderer.draw_header("User".to_string(), start.elapsed());
 
-                while let Some(command) = rx.recv().await {
-                    let mut new_frame = None;
-                    match command {
-                        DisplayCommand::Draw {
-                            command,
-                            color,
-                            clip_region: _,
-                        } => {
-                            let elapsed = start.elapsed();
-                            if prev_draw.as_secs() != elapsed.as_secs() {
-                                renderer.draw_header("User".to_string(), elapsed);
-                            }
-                            prev_draw = elapsed;
-                            renderer.context.foreground_color = color;
-                            match command {
-                                DrawCommand::Fill(shape) => {
-                                    renderer.draw(shape, false);
-                                }
-                                DrawCommand::Stroke(shape) => {
-                                    renderer.draw(shape, true);
-                                }
-                                DrawCommand::Text {
-                                    data,
-                                    size,
-                                    position,
-                                    opaque,
-                                    background,
-                                } => {
-                                    renderer.context.background_color = background;
+                loop {
+                    tokio::select! {
+                        _ = sleep(Duration::from_secs(1)) => {
+                            renderer.draw_header("User".to_string(), start.elapsed());
 
-                                    renderer.draw_text(
-                                        data,
-                                        position,
-                                        !opaque,
-                                        TextOptions { size: size.into(), ..Default::default() },
-                                    );
-                                }
-                                DrawCommand::CopyBuffer {
-                                    top_left,
-                                    bottom_right,
-                                    stride,
-                                    buffer,
-                                } => {
-                                    let buffer = bytemuck::cast_slice(&buffer);
-                                    renderer.draw_buffer(
-                                        buffer,
-                                        top_left,
-                                        bottom_right,
-                                        stride.get().into(),
-                                    );
-                                }
+                            if let Some(frame) = renderer.render(false) {
+                                _ = data_tx.send(Mutex::new(Some(frame)));
                             }
                         }
-                        DisplayCommand::Erase {
-                            color,
-                            clip_region: _,
-                        } => {
-                            renderer.context.foreground_color = color;
-                            renderer.erase();
-                        }
-                        DisplayCommand::Render => {
-                            new_frame = renderer.render(true);
-                        }
-                        DisplayCommand::DisableDoubleBuffering => {
-                            renderer.disable_double_buffer();
-                        }
-                        DisplayCommand::Scroll { .. } => {
-                            todo!()
-                        }
-                    }
+                        command = rx.recv() => {
+                            if let Some(command) = command {
+                                let mut new_frame = None;
+                                match command {
+                                    DisplayCommand::Draw {
+                                        command,
+                                        color,
+                                        clip_region: _,
+                                    } => {
+                                        renderer.context.foreground_color = color;
+                                        match command {
+                                            DrawCommand::Fill(shape) => {
+                                                renderer.draw(shape, false);
+                                            }
+                                            DrawCommand::Stroke(shape) => {
+                                                renderer.draw(shape, true);
+                                            }
+                                            DrawCommand::Text {
+                                                data,
+                                                size,
+                                                position,
+                                                opaque,
+                                                background,
+                                            } => {
+                                                renderer.context.background_color = background;
 
-                    if new_frame.is_none() {
-                        new_frame = renderer.render(false);
-                    }
+                                                renderer.draw_text(
+                                                    data,
+                                                    position,
+                                                    !opaque,
+                                                    TextOptions { size: size.into(), ..Default::default() },
+                                                );
+                                            }
+                                            DrawCommand::CopyBuffer {
+                                                top_left,
+                                                bottom_right,
+                                                stride,
+                                                buffer,
+                                            } => {
+                                                let buffer = bytemuck::cast_slice(&buffer);
+                                                renderer.draw_buffer(
+                                                    buffer,
+                                                    top_left,
+                                                    bottom_right,
+                                                    stride.get().into(),
+                                                );
+                                            }
+                                        }
+                                    }
+                                    DisplayCommand::Erase {
+                                        color,
+                                        clip_region: _,
+                                    } => {
+                                        renderer.context.foreground_color = color;
+                                        renderer.erase();
+                                    }
+                                    DisplayCommand::Render => {
+                                        new_frame = renderer.render(true);
+                                    }
+                                    DisplayCommand::DisableDoubleBuffering => {
+                                        renderer.disable_double_buffer();
+                                    }
+                                    DisplayCommand::Scroll { .. } => {
+                                        todo!()
+                                    }
+                                }
 
-                    if let Some(frame) = new_frame {
-                        _ = data_tx.send(Mutex::new(Some(frame)));
+                                if new_frame.is_none() {
+                                    new_frame = renderer.render(false);
+                                }
+
+                                if let Some(frame) = new_frame {
+                                    _ = data_tx.send(Mutex::new(Some(frame)));
+                                }
+                            } else {
+                                break;
+                            }
+                        }
                     }
                 }
             })
