@@ -26,24 +26,12 @@ pub enum DrawCommand {
     Text {
         data: String,
         size: TextSize,
-        location: TextLocation,
+        position: Point2<i32>,
         opaque: bool,
         background: Color,
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum TextLocation {
-    Coordinates(Point2<i32>),
-    Line(i32),
-}
-
-impl Default for TextLocation {
-    fn default() -> Self {
-        Self::Coordinates(Point2 { x: 0, y: 0 })
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
