@@ -6,7 +6,7 @@ use embedded_io::Write;
 use vex_v5_qemu_protocol::KernelBoundPacket;
 
 use super::{BATTERY, SMARTPORTS};
-use crate::{peripherals::UART1, protocol::recv_packet, sdk::USB1};
+use crate::{peripherals::UART1, protocol::recv_packet, sdk::{TOUCH, USB1}};
 
 /// Adds a new simple task to the task scheduler.
 pub extern "C" fn vexTaskAdd(
@@ -67,7 +67,10 @@ pub extern "C" fn vexTasksRun() {
                     id,
                     data,
                     timestamp,
-                } => {}
+                } => {},
+                KernelBoundPacket::Touch(data) => {
+                    TOUCH.lock().data = data;
+                }
                 _ => panic!("Unexpected kernel-bound packet {:?}", packet),
             }
         }

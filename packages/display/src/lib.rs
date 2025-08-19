@@ -7,7 +7,7 @@ use fontdue::{
 pub use tiny_skia::Pixmap;
 use tiny_skia::{
     Color, FillRule, Mask, Paint, PathBuilder, PixmapPaint, PixmapRef, Rect, Shader, Stroke,
-    Transform,
+    Transform, BlendMode,
 };
 use vex_v5_qemu_protocol::{
     display::{Color as ProtocolColor, Shape, TextSize},
@@ -354,7 +354,10 @@ impl DisplayRenderer {
             top_left.x,
             top_left.y,
             pixmap,
-            &PixmapPaint::default(),
+            &PixmapPaint {
+                blend_mode: BlendMode::SourceOver,
+                ..Default::default()
+            },
             Transform::identity(),
             None,
         );

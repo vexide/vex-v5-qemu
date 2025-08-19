@@ -15,6 +15,8 @@ use geometry::Rect;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::touch::TouchData;
+
 pub mod battery;
 pub mod code_signature;
 pub mod controller;
@@ -22,6 +24,7 @@ pub mod display;
 pub mod distance_sensor;
 pub mod geometry;
 pub mod motor;
+pub mod touch;
 
 /// A message sent from the guest to the host.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
@@ -77,6 +80,7 @@ pub enum KernelBoundPacket {
         data: BatteryData,
         timestamp: u32,
     },
+    Touch(TouchData),
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
@@ -85,7 +89,7 @@ pub enum SmartPortData {
     DistanceSensor(DistanceSensorData),
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Encode, Decode)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SmartPortCommand {}
 

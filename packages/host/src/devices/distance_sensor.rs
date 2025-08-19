@@ -33,7 +33,7 @@ impl DistanceSensor {
             task: tokio::task::spawn(async move {
                 loop {
                     port.send(
-                        SmartPortData::DistanceSensor(data.lock().await.clone()),
+                        SmartPortData::DistanceSensor(*data.lock().await),
                         start.elapsed().as_millis() as u32,
                     )
                     .await;
