@@ -36,18 +36,18 @@ We currently pipe serial from the user program (stdin/stdout) through ARM's [sem
 
 ## Running the Thing
 
-To run the sim, you'll first need [`qemu-system-arm`](https://www.qemu.org/docs/master/system/target-arm.html) v8.x.x installed on your machine (9.x.x currently breaks for unknown reasons). You will likely have to compile it yourself. From there, you can build the kernel for its appropriate ARM target.
+To run the sim, you'll first need [`qemu-system-arm`](https://www.qemu.org/docs/master/system/target-arm.html) installed on your machine. From there, you can build the kernel for its appropriate ARM target.
 
 ```bash
-cd kernel
+cd packages/kernel
 cargo build
 ```
 
 and then run the simulator as a CLI using
 
 ```bash
-cd simulator
-cargo run -- <PATH_TO_USER_PROGRAM_BIN>
+cd packages/client-cli
+cargo run -- --monolith=<PATH_TO_USER_PROGRAM_BIN>
 ```
 
 ### Debugging
@@ -58,7 +58,7 @@ Start by passing `--gdb` as an argument to the simulator CLI, which will cause Q
 
 ```bash
 cd simulator
-cargo run -- <PATH_TO_USER_PROGRAM_BIN> --gdb
+cargo run -- --monolith=<PATH_TO_USER_PROGRAM_BIN> --gdb
 ```
 
 In GDB, start by connecting to the simulator on port 1234:
