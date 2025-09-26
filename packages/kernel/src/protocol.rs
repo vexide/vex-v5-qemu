@@ -2,7 +2,7 @@ use alloc::{vec, vec::Vec};
 
 use bincode::error::{DecodeError, EncodeError};
 use embedded_io::{Read as EIORead, Write as EIOWrite, ReadExactError};
-use semihosting::io::{stdout, ErrorKind, Write};
+use semihosting::io::{stdout, Write};
 use snafu::Snafu;
 use vex_v5_qemu_protocol::{HostBoundPacket, KernelBoundPacket};
 
@@ -14,25 +14,15 @@ pub enum ProtocolError {
     Encode { inner: EncodeError },
 }
 
-fn semihosting_write_with_retry(bytes: &[u8]) -> Result<(), semihosting::io::Error> {
-    match stdout().unwrap().write_all(bytes) {
-        Err(err) if err.kind() == ErrorKind::Other && err.raw_os_error() == Some(0) => {
-            semihosting_write_with_retry(bytes) // no idea what the fuck is going on here but sure whatever man
-        }
-        res => res,
-    }
-}
-
 pub fn send_packet(packet: HostBoundPacket) -> Result<(), ProtocolError> {
     let encoded = bincode::encode_to_vec(packet, bincode::config::standard())
         .map_err(|err| ProtocolError::Encode { inner: err })?;
 
     let mut bytes = Vec::new();
-
     bytes.extend((encoded.len() as u32).to_le_bytes());
     bytes.extend(encoded);
 
-    semihosting_write_with_retry(&bytes).unwrap();
+    stdout().unwrap().write_all(&bytes).unwrap();
 
     Ok(())
 }

@@ -23,11 +23,14 @@ impl SmartPort {
 
     pub async fn send(&mut self, data: SmartPortData, timestamp: u32) {
         // Safe to unwrap since we are dropped at the same time as the receiver.
-        self.tx.send(KernelBoundPacket::SmartPortUpdate {
-            port_index: self.index,
-            data,
-            timestamp,
-        }).await.unwrap()
+        self.tx
+            .send(KernelBoundPacket::SmartPortUpdate {
+                port_index: self.index,
+                data,
+                timestamp,
+            })
+            .await
+            .unwrap()
     }
 
     pub async fn recv(&mut self) -> SmartPortCommand {

@@ -2,7 +2,7 @@
 
 use alloc::format;
 use core::{
-    arch::asm,
+    arch::{asm, naked_asm},
     ffi::c_void,
     sync::atomic::{AtomicBool, Ordering},
 };
@@ -13,17 +13,13 @@ use crate::{
     hardware::{
         gic::InterruptTrigger,
         timers::{global_timer_counter, PrivateTimer, WatchdogTimerMode},
-    },
-    peripherals::{
+    }, peripherals::{
         timer_interrupt_handler, GIC, PERIPHCLK, PRIVATE_TIMER, SYSTEM_TIME, WATCHDOG_TIMER,
-    },
-    protocol::exit,
-    sdk::draw_error_box,
-    xil::{
+    }, protocol::exit, sdk::draw_error_box, vectors::undefined_instruction_handler, xil::{
         gic::XSCUGIC_MAX_NUM_INTR_INPUTS,
         timer::XScuTimer,
         XST_FAILURE, XST_SUCCESS,
-    },
+    }
 };
 
 extern "C" {
@@ -276,25 +272,41 @@ pub extern "C" fn vexSystemWatchdogGet() -> u32 {
     WATCHDOG_TIMER.lock().counter()
 }
 
-// These three are noops for now since to my knowledge
-// they aren't used or another handler takes its place
-// (in the case of IRQs XScuGic_InterruptHandler) is
-// registered on the exception table for IRQs.
+#[unsafe(naked)]
 pub extern "C" fn vexSystemUndefinedException() {
-    loop {}
+    naked_asm!("b UndefinedException");
 }
-pub extern "C" fn vexSystemFIQInterrupt() {
-    loop {}
-}
-pub extern "C" fn vexSystemIQRQnterrupt() {
-    loop {}
-}
-pub extern "C" fn vexSystemSWInterrupt() {
-    loop {}
-}
+
+#[unsafe(naked)]
 pub extern "C" fn vexSystemDataAbortInterrupt() {
-    loop {}
+    naked_asm!("b DataAbortInterrupt");
 }
+
+#[unsafe(naked)]
 pub extern "C" fn vexSystemPrefetchAbortInterrupt() {
-    loop {}
+    naked_asm!("b PrefetchAbortInterrupt");
+}
+
+/// # Safety
+/// Must be called from an FIQ handler.
+/// This function does not preserve callee-saved registers.
+#[unsafe(naked)]
+pub unsafe extern "C" fn vexSystemFIQInterrupt() {
+    naked_asm!("b FIQInterrupt");
+}
+
+/// # Safety
+/// Must be called from an IRQ handler.
+/// This function does not preserve callee-saved registers.
+#[unsafe(naked)]
+pub unsafe extern "C" fn vexSystemIQRQnterrupt() {
+    naked_asm!("b IRQInterrupt");
+}
+
+/// # Safety
+/// Must be called from an SVC handler.
+/// This function does not preserve callee-saved registers.
+#[unsafe(naked)]
+pub unsafe extern "C" fn vexSystemSWInterrupt() {
+    naked_asm!("b SWInterrupt");
 }

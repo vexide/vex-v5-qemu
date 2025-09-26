@@ -5,7 +5,7 @@ use std::{
 
 use tokio::{sync::Mutex, task::AbortHandle, time::sleep};
 use vex_v5_qemu_protocol::{
-    distance_sensor::{DistanceSensorData, DistanceObject},
+    distance_sensor::{DistanceObject, DistanceSensorData},
     SmartPortData,
 };
 
@@ -33,7 +33,7 @@ impl DistanceSensor {
             task: tokio::task::spawn(async move {
                 loop {
                     port.send(
-                        SmartPortData::DistanceSensor(data.lock().await.clone()),
+                        SmartPortData::DistanceSensor(*data.lock().await),
                         start.elapsed().as_millis() as u32,
                     )
                     .await;

@@ -1,16 +1,6 @@
-use std::{option::Option, path::PathBuf, time::Duration};
+use std::{option::Option, path::PathBuf};
 
-use anyhow::Context;
-use log::LevelFilter;
-use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
-use tokio::{
-    io::{stdout, AsyncReadExt, AsyncWriteExt},
-    process::Command,
-    time::sleep,
-};
 #[cfg(any(
-    target_os = "macos",
-    target_os = "ios",
     target_os = "linux",
     target_os = "windows",
     target_os = "dragonfly",
@@ -18,15 +8,23 @@ use tokio::{
 ))]
 use battery::{
     units::{
-        electric_potential::millivolt, ratio::part_per_hundred,
-        thermodynamic_temperature::degree_celsius, electric_current::milliampere
+        electric_current::milliampere, electric_potential::millivolt, ratio::part_per_hundred,
+        thermodynamic_temperature::degree_celsius,
     },
     Manager,
 };
-use vex_v5_qemu_host::{
-    brain::{Binary, Brain},
-    protocol::battery::BatteryData,
+use log::LevelFilter;
+use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
+use tokio::{
+    io::{stdout, AsyncReadExt, AsyncWriteExt},
+    process::Command,
 };
+use vex_v5_qemu_host::brain::{Binary, Brain};
+use winit::event_loop::EventLoop;
+
+use crate::display_window::DisplayWindow;
+
+mod display_window;
 
 #[cfg(debug_assertions)]
 const DEFAULT_KERNEL: &str = concat!(
@@ -98,35 +96,28 @@ async fn main() -> anyhow::Result<()> {
     )
     .unwrap();
 
-    let mut brain = Brain::new();
-    let peripherals = brain.peripherals.take().unwrap();
-
     let mut qemu = Command::new("qemu-system-arm");
+    qemu.args(opt.qemu_args);
     if opt.gdb {
         qemu.args(["-S", "-s"]);
     }
 
-    qemu.args(opt.qemu_args);
-
-    brain
-        .run_program(
-            qemu,
-            opt.kernel,
-            Binary {
-                path: opt.program,
-                load_addr: opt.load_addr.unwrap_or(0x03800000),
-            },
-            opt.link.map(|link| Binary {
-                path: link,
-                load_addr: opt.link_addr.unwrap(),
-            }),
-        )
-        .await
-        .context("Failed to start QEMU.")?;
+    let mut brain = Brain::new(
+        qemu,
+        opt.kernel,
+        Binary {
+            path: opt.program,
+            load_addr: opt.load_addr.unwrap_or(0x03800000),
+        },
+        opt.link.map(|link| Binary {
+            path: link,
+            load_addr: opt.link_addr.unwrap(),
+        }),
+    )
+    .unwrap();
+    let peripherals = brain.peripherals.take().unwrap();
 
     #[cfg(any(
-        target_os = "macos",
-        target_os = "ios",
         target_os = "linux",
         target_os = "windows",
         target_os = "dragonfly",
@@ -178,9 +169,16 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    brain.wait_for_exit().await?;
+    let _ = tokio::task::block_in_place(move || {
+        let event_loop = EventLoop::new().unwrap();
+        let mut app = DisplayWindow::new(peripherals.display, peripherals.touch);
 
-    Ok(())
+        event_loop.run_app(&mut app)
+    });
+
+    brain.terminate().await?;
+
+    std::process::exit(0);
 }
 
 fn validate_address_range(s: &str) -> Result<u32, String> {

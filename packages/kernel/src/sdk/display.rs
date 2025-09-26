@@ -12,7 +12,7 @@ use core::{
 
 use vex_sdk::*;
 use vex_v5_qemu_protocol::{
-    display::{Color, DrawCommand, ScrollLocation, Shape, TextLocation, TextSize},
+    display::{Color, DrawCommand, ScrollLocation, Shape, TextSize},
     geometry::{Point2, Rect},
     DisplayCommand, HostBoundPacket,
 };
@@ -166,8 +166,9 @@ impl Display {
         &mut self,
         data: String,
         size: TextSize,
-        location: TextLocation,
+        position: Point2<i32>,
         opaque: bool,
+        foreground: Color,
         background: Color,
     ) -> Result<(), ProtocolError> {
         protocol::send_packet(HostBoundPacket::DisplayCommand {
@@ -175,34 +176,56 @@ impl Display {
                 command: DrawCommand::Text {
                     data,
                     size,
-                    location,
+                    position,
                     opaque,
                     background,
                 },
-                color: self.foreground,
+                color: foreground,
                 clip_region: self.clip_region,
             },
         })
+    }
+
+    #[allow(unused)]
+    pub fn draw_text_with_foreground(
+        &mut self,
+        data: String,
+        size: TextSize,
+        position: Point2<i32>,
+        opaque: bool,
+    ) -> Result<(), ProtocolError> {
+        self.draw_text(
+            data,
+            size,
+            position,
+            opaque,
+            self.foreground,
+            self.background,
+        )
     }
 }
 
 pub fn draw_error_box(message: [Option<&str>; 3]) {
     let mut display = DISPLAY.lock();
-    display.fill(
-        Shape::Rectangle {
-            top_left: Point2 { x: 50, y: 50 },
-            bottom_right: Point2 { x: 340, y: 140 },
-        },
-        Color(0x8b0000),
-    ).unwrap();
+    display
+        .fill(
+            Shape::Rectangle {
+                top_left: Point2 { x: 50, y: 50 },
+                bottom_right: Point2 { x: 340, y: 120 },
+            },
+            Color(0x8b0000),
+        )
+        .unwrap();
 
-    display.stroke(
-        Shape::Rectangle {
-            top_left: Point2 { x: 50, y: 50 },
-            bottom_right: Point2 { x: 340, y: 140 },
-        },
-        Color(0xffffff),
-    ).unwrap();
+    display
+        .stroke(
+            Shape::Rectangle {
+                top_left: Point2 { x: 50, y: 50 },
+                bottom_right: Point2 { x: 340, y: 120 },
+            },
+            Color(0xffffff),
+        )
+        .unwrap();
 
     for (n, line) in message.iter().enumerate() {
         if let Some(text) = line {
@@ -212,11 +235,12 @@ pub fn draw_error_box(message: [Option<&str>; 3]) {
                 .draw_text(
                     text.to_string(),
                     TextSize::Small,
-                    TextLocation::Coordinates(Point2 {
+                    Point2 {
                         x: 80,
                         y: 70 + 20 * (n as i32),
-                    }),
+                    },
                     false,
+                    Color(0xffffff),
                     Color(0x8b0000),
                 )
                 .unwrap()
@@ -309,7 +333,7 @@ pub extern "C" fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
         // it's a line so we don't stroke
-        .fill_with_foreground(Shape::Line {
+        .stroke_with_foreground(Shape::Line {
             start: Point2 { x: x1, y: y1 },
             end: Point2 { x: x2, y: y2 },
         })
@@ -318,7 +342,7 @@ pub extern "C" fn vexDisplayLineDraw(x1: i32, y1: i32, x2: i32, y2: i32) {
 pub extern "C" fn vexDisplayLineClear(x1: i32, y1: i32, x2: i32, y2: i32) {
     DISPLAY
         .lock()
-        .fill_with_background(Shape::Line {
+        .stroke_with_background(Shape::Line {
             start: Point2 { x: x1, y: y1 },
             end: Point2 { x: x2, y: y2 },
         })
@@ -352,15 +376,20 @@ pub extern "C" fn vexDisplayRectFill(x1: i32, y1: i32, x2: i32, y2: i32) {
         .unwrap()
 }
 pub extern "C" fn vexDisplayCircleDraw(xc: i32, yc: i32, radius: i32) {
-    DISPLAY
-        .lock()
-        .stroke_with_foreground(Shape::Circle {
-            center: Point2 { x: xc, y: yc },
-            radius: radius as _,
-        })
-        .unwrap()
+    if radius > 0 {
+        DISPLAY
+            .lock()
+            .stroke_with_foreground(Shape::Circle {
+                center: Point2 { x: xc, y: yc },
+                radius: radius as _,
+            })
+            .unwrap()
+
+    }
 }
 pub extern "C" fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
+    if radius > 0 {
+
     DISPLAY
         .lock()
         .fill_with_background(Shape::Circle {
@@ -368,15 +397,18 @@ pub extern "C" fn vexDisplayCircleClear(xc: i32, yc: i32, radius: i32) {
             radius: radius as _,
         })
         .unwrap()
+    }
 }
 pub extern "C" fn vexDisplayCircleFill(xc: i32, yc: i32, radius: i32) {
-    DISPLAY
-        .lock()
-        .fill_with_foreground(Shape::Circle {
-            center: Point2 { x: xc, y: yc },
-            radius: radius as _,
-        })
-        .unwrap()
+    if radius > 0 {
+        DISPLAY
+            .lock()
+            .fill_with_foreground(Shape::Circle {
+                center: Point2 { x: xc, y: yc },
+                radius: radius as _,
+            })
+            .unwrap()
+    }
 }
 pub extern "C" fn vexDisplayTextSize(n: u32, d: u32) {}
 pub extern "C" fn vexDisplayFontNamedSet(pFontName: *const c_char) {}
@@ -441,52 +473,127 @@ pub extern "C" fn vexImagePngRead(
 ) -> u32 {
     Default::default()
 }
-pub extern "C" fn vexDisplayVPrintf(
+pub unsafe extern "C" fn vexDisplayVPrintf(
     xpos: i32,
     ypos: i32,
     bOpaque: i32,
     format: *const c_char,
+    mut args: VaList<'_, '_>,
+) {
+    let mut data = String::new();
+    unsafe {
+        _ = printf_compat::format(
+            format,
+            args.as_va_list(),
+            printf_compat::output::fmt_write(&mut data),
+        );
+    }
+    DISPLAY
+        .lock()
+        .draw_text_with_foreground(
+            data,
+            TextSize::Normal,
+            Point2 { x: xpos, y: ypos },
+            bOpaque == 1,
+        )
+        .unwrap();
+}
+pub unsafe extern "C" fn vexDisplayVString(
+    nLineNumber: i32,
+    format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    unsafe {
+        display_string_impl(
+            TextSize::Normal,
+            Point2 {
+                x: 0,
+                y: nLineNumber * 20 + 34,
+            },
+            format,
+            args,
+        );
+    }
 }
-pub extern "C" fn vexDisplayVString(nLineNumber: i32, format: *const c_char, args: VaList<'_, '_>) {
-}
-pub extern "C" fn vexDisplayVStringAt(
+pub unsafe extern "C" fn vexDisplayVStringAt(
     xpos: i32,
     ypos: i32,
     format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    unsafe {
+        display_string_impl(TextSize::Normal, Point2 { x: xpos, y: ypos }, format, args);
+    }
 }
-pub extern "C" fn vexDisplayVBigString(
+pub unsafe extern "C" fn vexDisplayVBigString(
     nLineNumber: i32,
     format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    todo!("measure line height for non-normal text sizes");
+    // unsafe {
+    //     display_string_impl(
+    //         TextSize::Large,
+    //         Point2 {
+    //             x: 0,
+    //             y: nLineNumber * ?? + 34,
+    //         },
+    //         format,
+    //         args,
+    //     );
+    // }
 }
-pub extern "C" fn vexDisplayVBigStringAt(
+pub unsafe extern "C" fn vexDisplayVBigStringAt(
     xpos: i32,
     ypos: i32,
     format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    unsafe {
+        display_string_impl(TextSize::Large, Point2 { x: xpos, y: ypos }, format, args);
+    }
 }
-pub extern "C" fn vexDisplayVSmallStringAt(
+pub unsafe extern "C" fn vexDisplayVSmallStringAt(
     xpos: i32,
     ypos: i32,
     format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    unsafe {
+        display_string_impl(TextSize::Small, Point2 { x: xpos, y: ypos }, format, args);
+    }
 }
-pub extern "C" fn vexDisplayVCenteredString(
+pub unsafe extern "C" fn vexDisplayVCenteredString(
     nLineNumber: i32,
     format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    todo!();
 }
-pub extern "C" fn vexDisplayVBigCenteredString(
+pub unsafe extern "C" fn vexDisplayVBigCenteredString(
     nLineNumber: i32,
     format: *const c_char,
     args: VaList<'_, '_>,
 ) {
+    todo!("measure line height for non-normal text sizes");
+}
+
+unsafe fn display_string_impl(
+    size: TextSize,
+    point: Point2<i32>,
+    format: *const c_char,
+    mut args: VaList<'_, '_>,
+) {
+    let mut data = String::new();
+    unsafe {
+        _ = printf_compat::format(
+            format,
+            args.as_va_list(),
+            printf_compat::output::fmt_write(&mut data),
+        );
+    }
+    DISPLAY
+        .lock()
+        .draw_text_with_foreground(data, size, point, false)
+        .unwrap();
 }

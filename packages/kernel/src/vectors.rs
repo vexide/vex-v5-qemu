@@ -13,6 +13,8 @@ use core::{
     ffi::c_void,
 };
 
+use cortex_ar::asm::{nop, wfi};
+
 use crate::{
     sdk::draw_error_box,
     xil::exception::{
@@ -295,7 +297,9 @@ pub extern "C" fn data_abort_handler(_: *mut c_void) {
     log::error!("Data abort with Data Fault Status Register  {:x}", dfsr);
     log::error!("Address of Instruction causing Data abort {:x}", addr);
     user_abort_handler(dfsr, addr);
-    loop {}
+    loop {
+        wfi();
+    }
 }
 
 pub extern "C" fn prefetch_abort_handler(_: *mut c_void) {
@@ -304,7 +308,9 @@ pub extern "C" fn prefetch_abort_handler(_: *mut c_void) {
     log::error!("Prefetch abort with Data Fault Status Register  {:x}", dfsr);
     log::error!("Address of Instruction causing prefetch abort {:x}", addr);
     user_abort_handler(dfsr, addr);
-    loop {}
+    loop {
+        wfi();
+    }
 }
 
 pub extern "C" fn undefined_instruction_handler(_: *mut c_void) {
@@ -319,7 +325,9 @@ pub extern "C" fn undefined_instruction_handler(_: *mut c_void) {
         addr
     );
     user_abort_handler(dfsr, addr);
-    loop {}
+    loop {
+        wfi();
+    }
 }
 
 /// VEX handles the user-facing part of exceptions through xilinx's own

@@ -1,23 +1,27 @@
 use std::{
-    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, time::Instant, vec::Vec
+    io,
+    option::Option,
+    path::PathBuf,
+    process::{ExitStatus, Stdio},
+    sync::Arc,
+    time::Duration,
+    vec::Vec,
 };
 
 use tokio::{
-    io::AsyncWriteExt,
-    process::Command,
+    io::{AsyncReadExt, AsyncWriteExt},
+    process::{Child, Command},
     sync::{
-        mpsc::{self, Sender},
-        Barrier, Mutex,
+        mpsc::{self}, Mutex,
     },
     task::AbortHandle,
+    time::sleep,
 };
-use vex_v5_qemu_protocol::{display::DrawCommand, DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
+use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
 
-use crate::{
-    connection::QemuConnection,
-    peripherals::{
-        battery::Battery, display::Display, smartport::SmartPort, usb::Usb, Peripherals,
-    },
+use crate::peripherals::{
+    battery::Battery, display::Display, smartport::SmartPort, touch::Touchscreen, usb::Usb,
+    Peripherals,
 };
 
 #[derive(Debug, Clone)]
@@ -28,157 +32,19 @@ pub struct Binary {
 
 pub struct Brain {
     pub peripherals: Option<Peripherals>,
-    connection: Arc<Mutex<Option<QemuConnection>>>,
-    task: AbortHandle,
-    barrier: Arc<Barrier>,
+    tx_task: AbortHandle,
+    rx_task: AbortHandle,
+    qemu: Arc<Mutex<Child>>,
 }
 
 impl Brain {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let connection = Arc::new(Mutex::new(None));
-        let barrier = Arc::new(Barrier::new(2));
-
-        let (peripherals_tx, peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
-
-        // Each of these channels represents a serial line for device commands from the
-        // kernel to a smartport. Commands sent to devices by the kernel are
-        // forwarded by the brain's packet event loop task as described later.
-        let (port_1_tx, port_1_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_2_tx, port_2_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_3_tx, port_3_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_4_tx, port_4_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_5_tx, port_5_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_6_tx, port_6_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_7_tx, port_7_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_8_tx, port_8_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_9_tx, port_9_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_10_tx, port_10_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_11_tx, port_11_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_12_tx, port_12_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_13_tx, port_13_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_14_tx, port_14_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_15_tx, port_15_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_16_tx, port_16_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_17_tx, port_17_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_18_tx, port_18_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_19_tx, port_19_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_20_tx, port_20_rx) = mpsc::channel::<SmartPortCommand>(1);
-        let (port_21_tx, port_21_rx) = mpsc::channel::<SmartPortCommand>(1);
-
-        let (usb_tx, usb_rx) = mpsc::channel::<Vec<u8>>(1);
-        let (display_tx, display_rx) = mpsc::channel::<DisplayCommand>(1);
-
-        Self {
-            connection: connection.clone(),
-            barrier: barrier.clone(),
-            task: tokio::task::spawn(async move {
-                let mut start = std::time::Instant::now();
-                let mut peripherals_rx = peripherals_rx;
-                let smartport_senders: [Sender<SmartPortCommand>; 21] = [
-                    port_1_tx, port_2_tx, port_3_tx, port_4_tx, port_5_tx, port_6_tx, port_7_tx,
-                    port_8_tx, port_9_tx, port_10_tx, port_11_tx, port_12_tx, port_13_tx,
-                    port_14_tx, port_15_tx, port_16_tx, port_17_tx, port_18_tx, port_19_tx,
-                    port_20_tx, port_21_tx,
-                ];
-
-                // This is the event loop that facilitates packet exchange with the QEMU
-                // process over the simulator protocol. It has (roughly) two jobs:
-                // - Receive packets from peripherals and send them to the kernel.
-                // - Receive packets from the kernel and forward them to peripherals.
-                loop {
-                    let mut connection_guard = connection.lock().await;
-                    if let Some(connection) = connection_guard.as_mut() {
-                        // Send the latest packet from peripherals to the kernel.
-                        if let Ok(peripherals_packet) = peripherals_rx.try_recv() {
-                            connection.send_packet(peripherals_packet).await.unwrap();
-                        }
-
-                        // If a child process is running, then receive kernel packets and forward
-                        // them to a respective peripheral's `Receiver`.
-                        match connection.recv_packet().await.unwrap() {
-                            // Forward sent data to usb peripheral.
-                            HostBoundPacket::UsbSerial(data) => {
-                                _ = usb_tx.send(data).await;
-                            }
-
-                            // Kernel debugging stuff (logs mainly) goes to stderr
-                            HostBoundPacket::KernelSerial(data) => {
-                                let mut stderr = tokio::io::stderr();
-                                stderr.write_all(&data).await.unwrap();
-                                stderr.flush().await.unwrap();
-                            }
-
-                            // Doesn't matter for now.
-                            HostBoundPacket::CodeSignature(_) => {}
-
-                            // Kill QEMU child process when kernel requests exit.
-                            HostBoundPacket::ExitRequest(code) => {
-                                connection.child.kill().await.unwrap();
-                                *connection_guard = None;
-                                log::info!("Kernel exited with code {code}.");
-                            }
-
-                            // The kernel has sent a device command packet to a specific smartport,
-                            // so we must forward that packet to the respective smartport's
-                            // receiver.
-                            HostBoundPacket::SmartPortCommand { port, command } => {
-                                if let Some(port_tx) = smartport_senders.get(port as usize) {
-                                    // We ignore errors if the packet send fails, since it means
-                                    // the user has dropped the smartport and by extension the
-                                    // receiver, meaning there's nothing to send to.
-                                    _ = port_tx.send(command).await;
-                                }
-                            }
-
-                            HostBoundPacket::DisplayCommand { command } => {
-                                _ = display_tx.send(command).await;
-                            }
-                        }
-                    } else {
-                        barrier.wait().await;
-                    }
-                }
-            })
-            .abort_handle(),
-            peripherals: Some(Peripherals {
-                battery: Battery::new(peripherals_tx.clone()),
-                usb: Usb::new(peripherals_tx.clone(), usb_rx),
-
-                port_1: SmartPort::new(0, peripherals_tx.clone(), port_1_rx),
-                port_2: SmartPort::new(1, peripherals_tx.clone(), port_2_rx),
-                port_3: SmartPort::new(2, peripherals_tx.clone(), port_3_rx),
-                port_4: SmartPort::new(3, peripherals_tx.clone(), port_4_rx),
-                port_5: SmartPort::new(4, peripherals_tx.clone(), port_5_rx),
-                port_6: SmartPort::new(5, peripherals_tx.clone(), port_6_rx),
-                port_7: SmartPort::new(6, peripherals_tx.clone(), port_7_rx),
-                port_8: SmartPort::new(7, peripherals_tx.clone(), port_8_rx),
-                port_9: SmartPort::new(8, peripherals_tx.clone(), port_9_rx),
-                port_10: SmartPort::new(9, peripherals_tx.clone(), port_10_rx),
-                port_11: SmartPort::new(10, peripherals_tx.clone(), port_11_rx),
-                port_12: SmartPort::new(11, peripherals_tx.clone(), port_12_rx),
-                port_13: SmartPort::new(12, peripherals_tx.clone(), port_13_rx),
-                port_14: SmartPort::new(13, peripherals_tx.clone(), port_14_rx),
-                port_15: SmartPort::new(14, peripherals_tx.clone(), port_15_rx),
-                port_16: SmartPort::new(15, peripherals_tx.clone(), port_16_rx),
-                port_17: SmartPort::new(16, peripherals_tx.clone(), port_17_rx),
-                port_18: SmartPort::new(17, peripherals_tx.clone(), port_18_rx),
-                port_19: SmartPort::new(18, peripherals_tx.clone(), port_19_rx),
-                port_20: SmartPort::new(19, peripherals_tx.clone(), port_20_rx),
-                port_21: SmartPort::new(20, peripherals_tx.clone(), port_21_rx),
-
-                display: Display::new(peripherals_tx.clone(), display_rx),
-            }),
-        }
-    }
-
-    pub async fn run_program(
-        &mut self,
+    pub fn new(
         mut qemu_command: Command,
         kernel: PathBuf,
         main_binary: Binary,
         linked_binary: Option<Binary>,
-    ) -> io::Result<()> {
+    ) -> io::Result<Self> {
         let link_addr: u32 = linked_binary.clone().map_or(0, |v| v.load_addr);
         let qemu_command = qemu_command
             .args(["-machine", "xilinx-zynq-a9,memory-backend=mem"])
@@ -223,38 +89,179 @@ impl Brain {
             ));
         }
 
-        let mut child = qemu_command.spawn()?;
+        let (peripherals_tx, mut peripherals_rx) = mpsc::channel::<KernelBoundPacket>(1024);
 
-        self.barrier.wait().await;
-        *self.connection.lock().await = Some(QemuConnection {
-            stdin: child.stdin.take().unwrap(),
-            stdout: child.stdout.take().unwrap(),
-            child,
-        });
+        // Each of these channels represents a serial line for device commands from the
+        // kernel to a smartport. Commands sent to devices by the kernel are
+        // forwarded by the brain's packet event loop task as described later.
+        let (port_1_tx, port_1_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_2_tx, port_2_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_3_tx, port_3_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_4_tx, port_4_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_5_tx, port_5_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_6_tx, port_6_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_7_tx, port_7_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_8_tx, port_8_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_9_tx, port_9_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_10_tx, port_10_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_11_tx, port_11_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_12_tx, port_12_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_13_tx, port_13_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_14_tx, port_14_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_15_tx, port_15_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_16_tx, port_16_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_17_tx, port_17_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_18_tx, port_18_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_19_tx, port_19_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_20_tx, port_20_rx) = mpsc::channel::<SmartPortCommand>(1);
+        let (port_21_tx, port_21_rx) = mpsc::channel::<SmartPortCommand>(1);
 
-        Ok(())
-    }
+        let (usb_tx, usb_rx) = mpsc::channel::<Vec<u8>>(1);
+        let (display_tx, display_rx) = mpsc::channel::<DisplayCommand>(1);
 
-    pub async fn kill_program(&mut self) -> io::Result<()> {
-        if let Some(mut connection) = self.connection.lock().await.take() {
-            connection.child.kill().await
-        } else {
-            Ok(())
-        }
+        let mut qemu = qemu_command.spawn()?;
+        let mut qemu_stdin = qemu.stdin.take().unwrap();
+        let mut qemu_stdout = qemu.stdout.take().unwrap();
+
+        let qemu = Arc::new(Mutex::new(qemu));
+
+        let tx_task = tokio::task::spawn(async move {
+            loop {
+                if let Some(packet) = peripherals_rx.recv().await {
+                    let encoded =
+                        bincode::encode_to_vec(packet, bincode::config::standard()).unwrap();
+                    let mut bytes = Vec::new();
+
+                    bytes.extend((encoded.len() as u32).to_le_bytes());
+                    bytes.extend(encoded);
+
+                    let Ok(_) = qemu_stdin.write_all(&bytes).await else {
+                        break; // QEMU process has exited
+                    };
+                }
+            }
+        })
+        .abort_handle();
+
+        Ok(Self {
+            qemu: qemu.clone(),
+            tx_task: tx_task.clone(),
+            rx_task: tokio::spawn(async move {
+                let smartport_senders = [
+                    port_1_tx, port_2_tx, port_3_tx, port_4_tx, port_5_tx, port_6_tx, port_7_tx,
+                    port_8_tx, port_9_tx, port_10_tx, port_11_tx, port_12_tx, port_13_tx,
+                    port_14_tx, port_15_tx, port_16_tx, port_17_tx, port_18_tx, port_19_tx,
+                    port_20_tx, port_21_tx,
+                ];
+
+                loop {
+                    let incoming_packet: HostBoundPacket = {
+                        let packet_size = qemu_stdout.read_u32_le().await.unwrap() as usize;
+                        let mut buf = vec![0u8; packet_size];
+
+                        qemu_stdout.read_exact(&mut buf).await.unwrap();
+
+                        bincode::decode_from_slice(&buf, bincode::config::standard())
+                            .unwrap()
+                            .0
+                    };
+
+                    match incoming_packet {
+                        // Forward sent data to usb peripheral.
+                        HostBoundPacket::UsbSerial(data) => {
+                            _ = usb_tx.send(data).await;
+                        }
+
+                        // Kernel debugging stuff (logs mainly) goes to stderr
+                        HostBoundPacket::KernelSerial(data) => {
+                            let mut stderr = tokio::io::stderr();
+                            stderr.write_all(&data).await.unwrap();
+                            stderr.flush().await.unwrap();
+                        }
+
+                        // Doesn't matter for now.
+                        HostBoundPacket::CodeSignature(_) => {}
+
+                        // Kill QEMU child process when kernel requests exit.
+                        HostBoundPacket::ExitRequest(code) => {
+                            qemu.lock().await.kill().await.unwrap();
+                            log::info!("Kernel exited with code {code}.");
+                            break;
+                        }
+
+                        // The kernel has sent a device command packet to a specific smartport,
+                        // so we must forward that packet to the respective smartport's
+                        // receiver.
+                        HostBoundPacket::SmartPortCommand { port, command } => {
+                            if let Some(port_tx) = smartport_senders.get(port as usize) {
+                                // We ignore errors if the packet send fails, since it means
+                                // the user has dropped the smartport and by extension the
+                                // receiver, meaning there's nothing to send to.
+                                _ = port_tx.send(command).await;
+                            }
+                        }
+
+                        HostBoundPacket::DisplayCommand { command } => {
+                            _ = display_tx.send(command).await;
+                        }
+                    }
+                }
+            })
+            .abort_handle(),
+            peripherals: Some(Peripherals {
+                battery: Battery::new(peripherals_tx.clone()),
+                usb: Usb::new(peripherals_tx.clone(), usb_rx),
+
+                port_1: SmartPort::new(0, peripherals_tx.clone(), port_1_rx),
+                port_2: SmartPort::new(1, peripherals_tx.clone(), port_2_rx),
+                port_3: SmartPort::new(2, peripherals_tx.clone(), port_3_rx),
+                port_4: SmartPort::new(3, peripherals_tx.clone(), port_4_rx),
+                port_5: SmartPort::new(4, peripherals_tx.clone(), port_5_rx),
+                port_6: SmartPort::new(5, peripherals_tx.clone(), port_6_rx),
+                port_7: SmartPort::new(6, peripherals_tx.clone(), port_7_rx),
+                port_8: SmartPort::new(7, peripherals_tx.clone(), port_8_rx),
+                port_9: SmartPort::new(8, peripherals_tx.clone(), port_9_rx),
+                port_10: SmartPort::new(9, peripherals_tx.clone(), port_10_rx),
+                port_11: SmartPort::new(10, peripherals_tx.clone(), port_11_rx),
+                port_12: SmartPort::new(11, peripherals_tx.clone(), port_12_rx),
+                port_13: SmartPort::new(12, peripherals_tx.clone(), port_13_rx),
+                port_14: SmartPort::new(13, peripherals_tx.clone(), port_14_rx),
+                port_15: SmartPort::new(14, peripherals_tx.clone(), port_15_rx),
+                port_16: SmartPort::new(15, peripherals_tx.clone(), port_16_rx),
+                port_17: SmartPort::new(16, peripherals_tx.clone(), port_17_rx),
+                port_18: SmartPort::new(17, peripherals_tx.clone(), port_18_rx),
+                port_19: SmartPort::new(18, peripherals_tx.clone(), port_19_rx),
+                port_20: SmartPort::new(19, peripherals_tx.clone(), port_20_rx),
+                port_21: SmartPort::new(20, peripherals_tx.clone(), port_21_rx),
+
+                display: Display::new(peripherals_tx.clone(), display_rx),
+                touch: Touchscreen::new(peripherals_tx.clone()),
+            }),
+        })
     }
 
     pub async fn wait_for_exit(&mut self) -> io::Result<Option<ExitStatus>> {
-        while let Some(connection) = self.connection.lock().await.as_mut() {
-            if let Some(status) = connection.child.try_wait()? {
+        loop {
+            if let Some(status) = self.qemu.lock().await.try_wait()? {
                 return Ok(Some(status));
             }
+            sleep(Duration::from_millis(10)).await;
         }
-        Ok(None)
+    }
+
+    pub async fn terminate(&mut self) -> io::Result<()> {
+        self.rx_task.abort();
+        self.tx_task.abort();
+
+        let mut qemu = self.qemu.lock().await;
+        qemu.kill().await?;
+        Ok(())
     }
 }
 
 impl Drop for Brain {
     fn drop(&mut self) {
-        self.task.abort();
+        self.tx_task.abort();
+        self.rx_task.abort();
     }
 }

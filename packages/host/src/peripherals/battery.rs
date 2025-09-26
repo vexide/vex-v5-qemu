@@ -8,9 +8,7 @@ pub struct Battery {
 }
 
 impl Battery {
-    pub(crate) fn new(
-        tx: Sender<KernelBoundPacket>,
-    ) -> Self {
+    pub(crate) fn new(tx: Sender<KernelBoundPacket>) -> Self {
         Self {
             data: BatteryData::default(),
             tx,
@@ -18,10 +16,13 @@ impl Battery {
     }
 
     async fn update(&mut self) {
-        self.tx.send(KernelBoundPacket::BatteryUpdate {
-            data: self.data,
-            timestamp: 0,
-        }).await.unwrap(); // OK to unwrap, since the channel can't be closed.
+        self.tx
+            .send(KernelBoundPacket::BatteryUpdate {
+                data: self.data,
+                timestamp: 0,
+            })
+            .await
+            .unwrap(); // OK to unwrap, since the channel can't be closed.
     }
 
     pub async fn set_data(&mut self, data: BatteryData) {
