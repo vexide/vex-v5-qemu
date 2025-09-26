@@ -1,9 +1,6 @@
-use std::{option::Option, path::PathBuf, time::Duration};
+use std::{option::Option, path::PathBuf};
 
-use anyhow::Context;
 #[cfg(any(
-    target_os = "macos",
-    target_os = "ios",
     target_os = "linux",
     target_os = "windows",
     target_os = "dragonfly",
@@ -21,12 +18,8 @@ use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::{
     io::{stdout, AsyncReadExt, AsyncWriteExt},
     process::Command,
-    time::sleep,
 };
-use vex_v5_qemu_host::{
-    brain::{Binary, Brain},
-    protocol::battery::BatteryData,
-};
+use vex_v5_qemu_host::brain::{Binary, Brain};
 use winit::event_loop::EventLoop;
 
 use crate::display_window::DisplayWindow;
@@ -120,12 +113,11 @@ async fn main() -> anyhow::Result<()> {
             path: link,
             load_addr: opt.link_addr.unwrap(),
         }),
-    ).unwrap();
+    )
+    .unwrap();
     let peripherals = brain.peripherals.take().unwrap();
 
     #[cfg(any(
-        target_os = "macos",
-        target_os = "ios",
         target_os = "linux",
         target_os = "windows",
         target_os = "dragonfly",
@@ -184,9 +176,9 @@ async fn main() -> anyhow::Result<()> {
         event_loop.run_app(&mut app)
     });
 
-    brain.wait_for_exit().await?;
+    brain.terminate().await?;
 
-    Ok(())
+    std::process::exit(0);
 }
 
 fn validate_address_range(s: &str) -> Result<u32, String> {

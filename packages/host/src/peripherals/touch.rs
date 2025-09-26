@@ -33,11 +33,12 @@ impl Touchscreen {
                     notify.notified().await;
 
                     let data = *data.lock().await;
-                    tx.send(KernelBoundPacket::Touch(data)).await.unwrap();
+                    _ = tx.send(KernelBoundPacket::Touch(data)).await;
 
                     sleep(Self::UPDATE_INTERVAL).await;
                 }
-            }).abort_handle(),
+            })
+            .abort_handle(),
         }
     }
 

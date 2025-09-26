@@ -6,8 +6,8 @@ use fontdue::{
 };
 pub use tiny_skia::Pixmap;
 use tiny_skia::{
-    Color, FillRule, Mask, Paint, PathBuilder, PixmapPaint, PixmapRef, Rect, Shader, Stroke,
-    Transform, BlendMode,
+    BlendMode, Color, FillRule, Mask, Paint, PathBuilder, PixmapPaint, PixmapRef, Rect, Shader,
+    Stroke, Transform,
 };
 use vex_v5_qemu_protocol::{
     display::{Color as ProtocolColor, Shape, TextSize},
@@ -308,10 +308,13 @@ impl DisplayRenderer {
 
         // Battery icon
         self.context.foreground_color = ProtocolColor(0);
-        self.draw(Shape::Rectangle {
-            top_left: Point2 { x: 453, y: 23 },
-            bottom_right: Point2 { x: 466, y: 32 },
-        }, false);
+        self.draw(
+            Shape::Rectangle {
+                top_left: Point2 { x: 453, y: 23 },
+                bottom_right: Point2 { x: 466, y: 32 },
+            },
+            false,
+        );
         self.draw(
             Shape::Rectangle {
                 top_left: Point2 { x: 466, y: 26 },
@@ -321,10 +324,13 @@ impl DisplayRenderer {
         );
 
         self.context.foreground_color = ProtocolColor(0x93c83f);
-        self.draw(Shape::Rectangle {
-            top_left: Point2 { x: 454, y: 24 },
-            bottom_right: Point2 { x: 465, y: 31 },
-        }, false);
+        self.draw(
+            Shape::Rectangle {
+                top_left: Point2 { x: 454, y: 24 },
+                bottom_right: Point2 { x: 465, y: 31 },
+            },
+            false,
+        );
 
         self.restore();
     }

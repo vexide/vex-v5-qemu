@@ -5,7 +5,7 @@ use std::{
 
 use tokio::{sync::Mutex, task::AbortHandle, time::sleep};
 use vex_v5_qemu_protocol::{
-    distance_sensor::{DistanceSensorData, DistanceObject},
+    distance_sensor::{DistanceObject, DistanceSensorData},
     SmartPortData,
 };
 

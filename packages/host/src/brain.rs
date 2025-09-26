@@ -1,23 +1,27 @@
 use std::{
-    io, option::Option, path::PathBuf, process::{ExitStatus, Stdio}, sync::Arc, time::Duration, vec::Vec
+    io,
+    option::Option,
+    path::PathBuf,
+    process::{ExitStatus, Stdio},
+    sync::Arc,
+    time::Duration,
+    vec::Vec,
 };
 
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    process::{Child, ChildStdin, ChildStdout, Command},
+    process::{Child, Command},
     sync::{
-        mpsc::{self, Receiver, Sender},
-        Barrier, Mutex, RwLock,
+        mpsc::{self}, Mutex,
     },
-    task::AbortHandle, time::sleep,
+    task::AbortHandle,
+    time::sleep,
 };
 use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
 
-use crate::{
-    peripherals::{
-        battery::Battery, display::Display, smartport::SmartPort, touch::Touchscreen, usb::Usb,
-        Peripherals,
-    },
+use crate::peripherals::{
+    battery::Battery, display::Display, smartport::SmartPort, touch::Touchscreen, usb::Usb,
+    Peripherals,
 };
 
 #[derive(Debug, Clone)]
@@ -121,23 +125,27 @@ impl Brain {
 
         let qemu = Arc::new(Mutex::new(qemu));
 
+        let tx_task = tokio::task::spawn(async move {
+            loop {
+                if let Some(packet) = peripherals_rx.recv().await {
+                    let encoded =
+                        bincode::encode_to_vec(packet, bincode::config::standard()).unwrap();
+                    let mut bytes = Vec::new();
+
+                    bytes.extend((encoded.len() as u32).to_le_bytes());
+                    bytes.extend(encoded);
+
+                    let Ok(_) = qemu_stdin.write_all(&bytes).await else {
+                        break; // QEMU process has exited
+                    };
+                }
+            }
+        })
+        .abort_handle();
+
         Ok(Self {
             qemu: qemu.clone(),
-            tx_task: tokio::task::spawn(async move {
-                loop {
-                    if let Some(packet) = peripherals_rx.recv().await {
-                        let encoded =
-                            bincode::encode_to_vec(packet, bincode::config::standard()).unwrap();
-                        let mut bytes = Vec::new();
-
-                        bytes.extend((encoded.len() as u32).to_le_bytes());
-                        bytes.extend(encoded);
-
-                        qemu_stdin.write_all(&bytes).await.unwrap();
-                    }
-                }
-            })
-            .abort_handle(),
+            tx_task: tx_task.clone(),
             rx_task: tokio::spawn(async move {
                 let smartport_senders = [
                     port_1_tx, port_2_tx, port_3_tx, port_4_tx, port_5_tx, port_6_tx, port_7_tx,
@@ -178,6 +186,7 @@ impl Brain {
                         HostBoundPacket::ExitRequest(code) => {
                             qemu.lock().await.kill().await.unwrap();
                             log::info!("Kernel exited with code {code}.");
+                            break;
                         }
 
                         // The kernel has sent a device command packet to a specific smartport,
@@ -238,6 +247,15 @@ impl Brain {
             }
             sleep(Duration::from_millis(10)).await;
         }
+    }
+
+    pub async fn terminate(&mut self) -> io::Result<()> {
+        self.rx_task.abort();
+        self.tx_task.abort();
+
+        let mut qemu = self.qemu.lock().await;
+        qemu.kill().await?;
+        Ok(())
     }
 }
 

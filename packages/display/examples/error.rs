@@ -12,10 +12,7 @@ pub fn main() {
 
     let container = Shape::Rectangle {
         top_left: Point2 { x: 50, y: 50 },
-        bottom_right: Point2 {
-            x: 340,
-            y: 120,
-        },
+        bottom_right: Point2 { x: 340, y: 120 },
     };
     display.draw(container, false);
 
@@ -24,20 +21,14 @@ pub fn main() {
 
     display.draw_text(
         "Memory Permission error !".to_string(),
-        Point2 {
-            x: 80,
-            y: 70,
-        },
+        Point2 { x: 80, y: 70 },
         true,
         TextOptions::default(),
     );
 
     display.draw_text(
         "03800128".to_string(),
-        Point2 {
-            x: 80,
-            y: 90,
-        },
+        Point2 { x: 80, y: 90 },
         true,
         TextOptions::default(),
     );

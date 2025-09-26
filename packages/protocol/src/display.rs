@@ -32,7 +32,6 @@ pub enum DrawCommand {
     },
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ScrollLocation {

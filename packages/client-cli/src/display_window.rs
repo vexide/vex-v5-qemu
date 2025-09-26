@@ -3,7 +3,13 @@ use std::{num::NonZeroU32, sync::Arc};
 use softbuffer::Surface;
 use tiny_skia::{PixmapMut, PixmapPaint, Transform};
 use tokio::{runtime::Handle, task::AbortHandle};
-use vex_v5_qemu_host::{peripherals::{display::Display, touch::Touchscreen}, protocol::{geometry::Point2, touch::{TouchData, TouchEvent}}};
+use vex_v5_qemu_host::{
+    peripherals::{display::Display, touch::Touchscreen},
+    protocol::{
+        geometry::Point2,
+        touch::{TouchData, TouchEvent},
+    },
+};
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
@@ -101,36 +107,56 @@ impl ApplicationHandler for DisplayWindow {
     ) {
         match event {
             WindowEvent::CloseRequested => {
+                println!("Exiting...");
+                self.window = None;
                 event_loop.exit();
             }
             WindowEvent::Touch(touch) => {
                 Handle::current().block_on(async move {
-                    self.touch.set_data(TouchData {
-                        point: Point2 {
-                            x: touch.location.x as _,
-                            y: (touch.location.y - 32.0) as _, // TODO: determine if we need to make this work with --fullscreen once we implement that
-                        },
-                        event: match touch.phase {
-                            TouchPhase::Started | TouchPhase::Moved => TouchEvent::Press,
-                            TouchPhase::Ended | TouchPhase::Cancelled => TouchEvent::Release,
-                        },
-                    }).await;
+                    self.touch
+                        .set_data(TouchData {
+                            point: Point2 {
+                                x: touch.location.x as _,
+                                y: (touch.location.y - 32.0) as _, /* TODO: determine if we need
+                                                                    * to make this work with
+                                                                    * --fullscreen once we
+                                                                    * implement that */
+                            },
+                            event: match touch.phase {
+                                TouchPhase::Started | TouchPhase::Moved => TouchEvent::Press,
+                                TouchPhase::Ended | TouchPhase::Cancelled => TouchEvent::Release,
+                            },
+                        })
+                        .await;
                 });
             }
-            WindowEvent::CursorMoved { device_id: _, position } => {
+            WindowEvent::CursorMoved {
+                device_id: _,
+                position,
+            } => {
                 Handle::current().block_on(async move {
-                    self.touch.set_point(Point2 {
-                        x: position.x as _,
-                        y: (position.y - 32.0) as _, // TODO: determine if we need to make this work with --fullscreen once we implement that
-                    }).await;
+                    self.touch
+                        .set_point(Point2 {
+                            x: position.x as _,
+                            y: (position.y - 32.0) as _, /* TODO: determine if we need to make
+                                                          * this work with --fullscreen once we
+                                                          * implement that */
+                        })
+                        .await;
                 });
             }
-            WindowEvent::MouseInput { device_id: _, state, button: MouseButton::Left } => {
+            WindowEvent::MouseInput {
+                device_id: _,
+                state,
+                button: MouseButton::Left,
+            } => {
                 Handle::current().block_on(async move {
-                    self.touch.set_event(match state {
-                        ElementState::Pressed => TouchEvent::Press,
-                        ElementState::Released => TouchEvent::Release
-                    }).await;
+                    self.touch
+                        .set_event(match state {
+                            ElementState::Pressed => TouchEvent::Press,
+                            ElementState::Released => TouchEvent::Release,
+                        })
+                        .await;
                 });
             }
             _ => (),

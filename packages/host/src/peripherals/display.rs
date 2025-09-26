@@ -1,17 +1,17 @@
-use std::{pin::Pin, sync::Mutex, time::{Duration, Instant}};
+use std::{
+    sync::Mutex,
+    time::{Duration, Instant},
+};
 
 use tokio::{
     sync::{
         mpsc::{Receiver, Sender},
         watch,
     },
-    task::AbortHandle, time::{sleep, Sleep},
+    task::AbortHandle,
 };
 use vex_v5_display_simulator::{ColorTheme, DisplayRenderer, Pixmap, TextOptions};
-use vex_v5_qemu_protocol::{
-    display::DrawCommand,
-    DisplayCommand, KernelBoundPacket,
-};
+use vex_v5_qemu_protocol::{display::DrawCommand, DisplayCommand, KernelBoundPacket};
 
 #[derive(Debug)]
 pub struct Display {

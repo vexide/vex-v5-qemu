@@ -1,6 +1,7 @@
 use bincode::{Decode, Encode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
 use crate::geometry::Point2;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Encode, Decode)]

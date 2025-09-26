@@ -1,8 +1,8 @@
 pub mod battery;
 pub mod display;
 pub mod smartport;
-pub mod usb;
 pub mod touch;
+pub mod usb;
 
 use battery::Battery;
 use display::Display;
