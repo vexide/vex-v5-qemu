@@ -78,6 +78,9 @@ struct Opt {
     #[clap(long, value_parser = validate_address_range)]
     link_addr: Option<u32>,
 
+    #[clap(long)]
+    save_imgs: bool,
+
     /// Extra arguments to pass to QEMU.
     qemu_args: Vec<String>,
 }
@@ -171,7 +174,7 @@ async fn main() -> anyhow::Result<()> {
 
     let _ = tokio::task::block_in_place(move || {
         let event_loop = EventLoop::new().unwrap();
-        let mut app = DisplayWindow::new(peripherals.display, peripherals.touch);
+        let mut app = DisplayWindow::new(peripherals.display, peripherals.touch, opt.save_imgs);
 
         event_loop.run_app(&mut app)
     });

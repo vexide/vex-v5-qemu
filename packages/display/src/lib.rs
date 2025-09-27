@@ -182,7 +182,7 @@ impl DisplayRenderer {
 
         let text_size = TextSize {
             num: 11,
-            denom: 30,
+            denom: 24,
         };
 
         // Background
@@ -459,7 +459,7 @@ impl DisplayRenderer {
             return;
         }
 
-        let px = options.size.num as f32 / options.size.denom as f32 * 60.0;
+        let px = options.size.num as f32 / options.size.denom as f32 * 48.0;
 
         let font = match options.font {
             TextFont::Monospace => &self.user_mono,

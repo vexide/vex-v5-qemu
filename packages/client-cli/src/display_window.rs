@@ -23,15 +23,17 @@ pub struct DisplayWindow {
     task: Option<AbortHandle>,
     display: Option<Display>,
     touch: Touchscreen,
+    should_save_imgs: bool,
 }
 
 impl DisplayWindow {
-    pub const fn new(display: Display, touch: Touchscreen) -> Self {
+    pub const fn new(display: Display, touch: Touchscreen, should_save_imgs: bool) -> Self {
         Self {
             window: None,
             task: None,
             display: Some(display),
             touch,
+            should_save_imgs,
         }
     }
 }
@@ -48,6 +50,9 @@ impl ApplicationHandler for DisplayWindow {
         let mut display = self.display.take().unwrap(); // TODO: may need to bail out if this fails instead of unwrap
         let mut surface =
             Surface::new(&softbuffer::Context::new(win.clone()).unwrap(), win.clone()).unwrap();
+
+        let should_save_imgs = self.should_save_imgs;
+
         self.task = Some(
             Handle::current()
                 .spawn(async move {
@@ -73,6 +78,10 @@ impl ApplicationHandler for DisplayWindow {
                             Display::HEIGHT,
                         )
                         .unwrap();
+
+                        if should_save_imgs {
+                            frame.save_png("frame.png").unwrap();
+                        }
 
                         pixmap.draw_pixmap(
                             0,
