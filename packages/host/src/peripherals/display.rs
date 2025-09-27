@@ -61,6 +61,7 @@ impl Display {
                                             DrawCommand::Text {
                                                 data,
                                                 size,
+                                                font,
                                                 position,
                                                 opaque,
                                                 background,
@@ -71,7 +72,7 @@ impl Display {
                                                     data,
                                                     position,
                                                     !opaque,
-                                                    TextOptions { size: size.into(), ..Default::default() },
+                                                    TextOptions { size, font },
                                                 );
                                             }
                                             DrawCommand::CopyBuffer {

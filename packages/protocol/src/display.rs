@@ -25,6 +25,7 @@ pub enum DrawCommand {
     },
     Text {
         data: String,
+        font: TextFont,
         size: TextSize,
         position: Point2<i32>,
         opaque: bool,
@@ -41,11 +42,17 @@ pub enum ScrollLocation {
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum TextSize {
-    Small,
+pub enum TextFont {
     #[default]
-    Normal,
-    Large,
+    Monospace,
+    Proportional,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct TextSize {
+    pub num: u32,
+    pub denom: u32,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Encode, Decode, PartialOrd, Ord)]

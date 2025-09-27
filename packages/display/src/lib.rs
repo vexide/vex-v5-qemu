@@ -10,7 +10,7 @@ use tiny_skia::{
     Stroke, Transform,
 };
 use vex_v5_qemu_protocol::{
-    display::{Color as ProtocolColor, Shape, TextSize},
+    display::{Color as ProtocolColor, Shape, TextFont, TextSize},
     geometry::Point2,
 };
 
@@ -26,87 +26,9 @@ pub const DEFAULT_BACKGROUND: ProtocolColor = ProtocolColor(0);
 pub const INVERTED_BACKGROUND: ProtocolColor = ProtocolColor(0xFFFFFF);
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum V5FontSize {
-    Small,
-    #[default]
-    Normal,
-    Big,
-    Header,
-}
-
-impl From<TextSize> for V5FontSize {
-    fn from(value: TextSize) -> Self {
-        match value {
-            TextSize::Small => V5FontSize::Small,
-            TextSize::Normal => V5FontSize::Normal,
-            TextSize::Large => V5FontSize::Big,
-        }
-    }
-}
-
-impl V5FontSize {
-    // /// Multiplier for the X axis scale of the font.
-    // pub const fn x_scale() -> f32 {
-    //     0.9
-    // }
-
-    // /// Extra spacing in pixels between characters (x-axis).
-    // pub const fn x_spacing() -> f32 {
-    //     1.1
-    // }
-
-    /// Font size in pixels.
-    pub const fn font_size(&self) -> i32 {
-        match self {
-            V5FontSize::Small => 15,
-            V5FontSize::Normal => 16,
-            V5FontSize::Big => 32,
-            V5FontSize::Header => 22,
-        }
-    }
-
-    // /// Y-axis offset applied before rendering.
-    // pub const fn y_offset(&self) -> i32 {
-    //     match self {
-    //         V5FontSize::Small => -2,
-    //         V5FontSize::Normal => -2,
-    //         V5FontSize::Big => -1,
-    //         V5FontSize::Header => -2,
-    //     }
-    // }
-
-    // /// Line height of the highlighted area behind text.
-    // pub const fn line_height(&self) -> i32 {
-    //     match self {
-    //         V5FontSize::Small => 13,
-    //         V5FontSize::Normal => 2,
-    //         V5FontSize::Big => 2,
-    //         V5FontSize::Header => 0, // N/A
-    //     }
-    // }
-
-    // /// Y-axis offset applied to the highlighted area behind text.
-    // pub const fn backdrop_y_offset(&self) -> i32 {
-    //     match self {
-    //         V5FontSize::Small => 2,
-    //         V5FontSize::Normal => 0,
-    //         V5FontSize::Big => 0,
-    //         V5FontSize::Header => 0, // N/A
-    //     }
-    // }
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum V5FontFamily {
-    #[default]
-    Monospace,
-    Proportional,
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct TextOptions {
-    pub size: V5FontSize,
-    pub family: V5FontFamily,
+    pub size: TextSize,
+    pub font: TextFont,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -258,6 +180,11 @@ impl DisplayRenderer {
     pub fn draw_header(&mut self, name: String, time: Duration) {
         self.save();
 
+        let text_size = TextSize {
+            num: 11,
+            denom: 30,
+        };
+
         // Background
         self.context.foreground_color = HEADER_BG;
         self.context.clip_region = None;
@@ -279,8 +206,8 @@ impl DisplayRenderer {
             Point2 { x: 8, y: 7 },
             true,
             TextOptions {
-                size: V5FontSize::Header,
-                family: V5FontFamily::Proportional,
+                size: text_size,
+                font: TextFont::Proportional,
             },
         );
 
@@ -291,8 +218,8 @@ impl DisplayRenderer {
             Point2 { x: 247, y: 7 },
             true,
             TextOptions {
-                size: V5FontSize::Header,
-                family: V5FontFamily::Monospace,
+                size: text_size,
+                font: TextFont::Monospace,
             },
         );
 
@@ -532,15 +459,15 @@ impl DisplayRenderer {
             return;
         }
 
-        let px = options.size.font_size();
+        let px = options.size.num as f32 / options.size.denom as f32 * 60.0;
 
-        let font = match options.family {
-            V5FontFamily::Monospace => &self.user_mono,
-            V5FontFamily::Proportional => &self.user_proportional,
+        let font = match options.font {
+            TextFont::Monospace => &self.user_mono,
+            TextFont::Proportional => &self.user_proportional,
         };
         // Fix gap above text
-        let fullheight_metrics = font.metrics('M', px as f32);
-        let font_metrics = font.horizontal_line_metrics(px as f32).unwrap();
+        let fullheight_metrics = font.metrics('M', px);
+        let font_metrics = font.horizontal_line_metrics(px).unwrap();
         let y_offset = fullheight_metrics.height as i32 - font_metrics.ascent as i32;
         coords.y += y_offset;
 
@@ -554,7 +481,7 @@ impl DisplayRenderer {
             ..LayoutSettings::default()
         });
 
-        layout.append(fonts, &TextStyle::new(&text, px as f32, 0));
+        layout.append(fonts, &TextStyle::new(&text, px, 0));
 
         self.text_scratch.fill(Color::TRANSPARENT);
         let pixels = self.text_scratch.pixels_mut();
@@ -580,6 +507,11 @@ impl DisplayRenderer {
 
                     let x = glyph.x as usize + rel_x;
                     let y = glyph.y as usize + rel_y;
+
+                    // Prevent wrap-around
+                    if x >= DISPLAY_WIDTH as usize {
+                        continue;
+                    }
 
                     if let Some(pixel) = pixels.get_mut(x + y * DISPLAY_WIDTH as usize) {
                         *pixel = color.to_color_u8().premultiply();
