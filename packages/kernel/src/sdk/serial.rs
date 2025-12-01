@@ -4,7 +4,7 @@ use alloc::string::String;
 use core::ffi::{c_char, VaList};
 
 use embedded_io::{ErrorKind, ErrorType, Write};
-use embedded_io_extras::Cursor;
+use embedded_io_cursor::Cursor;
 use ringbuffer::{ConstGenericRingBuffer, RingBuffer};
 use vex_v5_qemu_protocol::HostBoundPacket;
 
