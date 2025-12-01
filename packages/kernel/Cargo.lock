@@ -95,10 +95,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
 
 [[package]]
-name = "embedded-io-extras"
-version = "0.0.2"
+name = "embedded-io-cursor"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2f31813223d8ced7a76dcd83823400f0c40c0390439fa6467f6edcd67b2a036"
+checksum = "56af6cdb948cc818e25568dde8dc663d85aa4077cc6f5c338af246a6ab0f1483"
 dependencies = [
  "embedded-io",
 ]
@@ -145,7 +145,7 @@ dependencies = [
  "cortex-ar",
  "critical-section",
  "embedded-io",
- "embedded-io-extras",
+ "embedded-io-cursor",
  "heapless",
  "lock_api",
  "log",
