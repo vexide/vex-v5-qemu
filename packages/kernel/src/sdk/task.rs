@@ -71,6 +71,9 @@ pub extern "C" fn vexTasksRun() {
                 KernelBoundPacket::Touch(data) => {
                     TOUCH.lock().data = data;
                 }
+                KernelBoundPacket::UsbSerial(data) => {
+                    USB1.lock().rx.extend(data);
+                }
                 _ => panic!("Unexpected kernel-bound packet {:?}", packet),
             }
         }

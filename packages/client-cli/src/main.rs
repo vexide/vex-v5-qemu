@@ -1,4 +1,4 @@
-use std::{option::Option, path::PathBuf};
+use std::{cell::RefCell, option::Option, path::PathBuf};
 
 #[cfg(any(
     target_os = "linux",
@@ -16,8 +16,8 @@ use battery::{
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::{
-    io::{stdout, AsyncReadExt, AsyncWriteExt},
-    process::Command,
+    io::{AsyncReadExt, AsyncWriteExt, stdin, stdout},
+    process::Command, sync::Mutex,
 };
 use vex_v5_qemu_host::brain::{Binary, Brain};
 use winit::event_loop::EventLoop;
@@ -157,18 +157,36 @@ async fn main() -> anyhow::Result<()> {
     }
 
     tokio::task::spawn(async move {
-        let mut usb = peripherals.usb;
-        let mut out = stdout();
+        let usb = Mutex::new(peripherals.usb);
+        let mut stdin = stdin();
+        let mut stdout = stdout();
 
-        loop {
-            let mut buf = vec![0; 2048];
-            let n = usb.read(&mut buf).await.unwrap();
-            if n == 0 {
-                break;
-            }
+        tokio::select! {
+            _ = async {
+                loop {
+                    let mut buf = vec![0; 2048];
+                    let n = usb.lock().await.read(&mut buf).await.unwrap();
+                    if n == 0 {
+                        break;
+                    }
 
-            out.write_all(&buf[..n]).await.unwrap();
-            out.flush().await.unwrap();
+                    stdout.write_all(&buf[..n]).await.unwrap();
+                    stdout.flush().await.unwrap();
+                }
+            } => {}
+            _ = async {
+                loop {
+                    let mut buf = vec![0; 2048];
+                    let n = stdin.read(&mut buf).await.unwrap();
+                    if n == 0 {
+                        break;
+                    }
+
+                    let mut usb = usb.lock().await;
+                    usb.write_all(&buf[..n]).await.unwrap();
+                    usb.flush().await.unwrap();
+                }
+            } => {}
         }
     });
 
