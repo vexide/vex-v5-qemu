@@ -15,17 +15,15 @@ use vex_v5_qemu_protocol::KernelBoundPacket;
 
 /// Allows access to the simulated USB serial port.
 #[derive(Debug)]
-pub struct Usb {
-    tx: Sender<KernelBoundPacket>,
+pub struct UsbRead {
     rx: Receiver<Vec<u8>>,
     read_buf: Vec<u8>,
     eof: bool,
 }
 
-impl Usb {
-    pub(crate) const fn new(tx: Sender<KernelBoundPacket>, rx: Receiver<Vec<u8>>) -> Self {
+impl UsbRead {
+    pub(crate) const fn new(rx: Receiver<Vec<u8>>) -> Self {
         Self {
-            tx,
             rx,
             read_buf: Vec::new(),
             eof: false,
@@ -35,14 +33,9 @@ impl Usb {
     pub async fn recv(&mut self) -> Option<Vec<u8>> {
         self.rx.recv().await
     }
-
-    pub async fn send(&mut self, data: Vec<u8>) -> Result<(), SendError<KernelBoundPacket>> {
-        self.tx.send(KernelBoundPacket::UsbSerial(data)).await?;
-        Ok(())
-    }
 }
 
-impl AsyncRead for Usb {
+impl AsyncRead for UsbRead {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -75,7 +68,31 @@ impl AsyncRead for Usb {
     }
 }
 
-impl AsyncWrite for Usb {
+/// Allows access to the simulated USB serial port.
+#[derive(Debug)]
+pub struct UsbWrite {
+    tx: Sender<KernelBoundPacket>,
+    read_buf: Vec<u8>,
+    eof: bool,
+}
+
+impl UsbWrite {
+    pub(crate) const fn new(tx: Sender<KernelBoundPacket>) -> Self {
+        Self {
+            tx,
+            read_buf: Vec::new(),
+            eof: false,
+        }
+    }
+
+    pub async fn send(&mut self, data: Vec<u8>) -> Result<(), SendError<KernelBoundPacket>> {
+        self.tx.send(KernelBoundPacket::UsbSerial(data)).await?;
+        Ok(())
+    }
+}
+
+
+impl AsyncWrite for UsbWrite {
     fn poll_write(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,

@@ -20,8 +20,7 @@ use tokio::{
 use vex_v5_qemu_protocol::{DisplayCommand, HostBoundPacket, KernelBoundPacket, SmartPortCommand};
 
 use crate::peripherals::{
-    battery::Battery, display::Display, smartport::SmartPort, touch::Touchscreen, usb::Usb,
-    Peripherals,
+    Peripherals, battery::Battery, display::Display, smartport::SmartPort, touch::Touchscreen, usb::{UsbRead, UsbWrite}
 };
 
 #[derive(Debug, Clone)]
@@ -210,7 +209,8 @@ impl Brain {
             .abort_handle(),
             peripherals: Some(Peripherals {
                 battery: Battery::new(peripherals_tx.clone()),
-                usb: Usb::new(peripherals_tx.clone(), usb_rx),
+                usb_read: UsbRead::new(usb_rx),
+                usb_write: UsbWrite::new(peripherals_tx.clone()),
 
                 port_1: SmartPort::new(0, peripherals_tx.clone(), port_1_rx),
                 port_2: SmartPort::new(1, peripherals_tx.clone(), port_2_rx),

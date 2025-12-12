@@ -1,4 +1,4 @@
-use std::{cell::RefCell, option::Option, path::PathBuf};
+use std::{option::Option, path::PathBuf, pin::Pin};
 
 #[cfg(any(
     target_os = "linux",
@@ -16,10 +16,15 @@ use battery::{
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt, stdin, stdout},
-    process::Command, sync::Mutex,
+    io::{stdin, stdout, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
+    net::TcpListener,
+    process::Command,
+    sync::Mutex,
 };
-use vex_v5_qemu_host::brain::{Binary, Brain};
+use vex_v5_qemu_host::{
+    brain::{Binary, Brain},
+    peripherals::usb::{UsbRead, UsbWrite},
+};
 use winit::event_loop::EventLoop;
 
 use crate::display_window::DisplayWindow;
@@ -80,6 +85,9 @@ struct Opt {
 
     #[clap(long)]
     save_imgs: bool,
+
+    #[clap(long)]
+    tcp: Option<u16>,
 
     /// Extra arguments to pass to QEMU.
     qemu_args: Vec<String>,
@@ -156,37 +164,23 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
+    let tcp_port = opt.tcp;
     tokio::task::spawn(async move {
-        let usb = Mutex::new(peripherals.usb);
-        let mut stdin = stdin();
-        let mut stdout = stdout();
+        let usb_read = peripherals.usb_read;
+        let usb_write = peripherals.usb_write;
 
-        tokio::select! {
-            _ = async {
-                loop {
-                    let mut buf = vec![0; 2048];
-                    let n = usb.lock().await.read(&mut buf).await.unwrap();
-                    if n == 0 {
-                        break;
-                    }
+        if let Some(tcp_port) = tcp_port {
+            let listener = TcpListener::bind(("127.0.0.1", tcp_port)).await.unwrap();
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let (read, write) = stream.split();
 
-                    stdout.write_all(&buf[..n]).await.unwrap();
-                    stdout.flush().await.unwrap();
-                }
-            } => {}
-            _ = async {
-                loop {
-                    let mut buf = vec![0; 2048];
-                    let n = stdin.read(&mut buf).await.unwrap();
-                    if n == 0 {
-                        break;
-                    }
-
-                    let mut usb = usb.lock().await;
-                    usb.write_all(&buf[..n]).await.unwrap();
-                    usb.flush().await.unwrap();
-                }
-            } => {}
+            forward_stdio(usb_read, usb_write, write, read)
+                .await
+                .unwrap()
+        } else {
+            forward_stdio(usb_read, usb_write, stdout(), stdin())
+                .await
+                .unwrap();
         }
     });
 
@@ -204,4 +198,17 @@ async fn main() -> anyhow::Result<()> {
 
 fn validate_address_range(s: &str) -> Result<u32, String> {
     clap_num::maybe_hex_range(s, 0x03800000, 0x8000000)
+}
+
+async fn forward_stdio(
+    mut usb_read: UsbRead,
+    mut usb_write: UsbWrite,
+    mut stdout: impl AsyncWrite + Unpin,
+    mut stdin: impl AsyncRead + Unpin,
+) -> tokio::io::Result<()> {
+    tokio::try_join!(
+        tokio::io::copy(&mut usb_read, &mut stdout),
+        tokio::io::copy(&mut stdin, &mut usb_write),
+    )?;
+    Ok(())
 }

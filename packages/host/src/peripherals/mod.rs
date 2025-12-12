@@ -8,12 +8,13 @@ use battery::Battery;
 use display::Display;
 use smartport::SmartPort;
 use touch::Touchscreen;
-use usb::Usb;
+use usb::{UsbRead, UsbWrite};
 
 #[derive(Debug)]
 pub struct Peripherals {
     pub battery: Battery,
-    pub usb: Usb,
+    pub usb_read: UsbRead,
+    pub usb_write: UsbWrite,
 
     pub port_1: SmartPort,
     pub port_2: SmartPort,
