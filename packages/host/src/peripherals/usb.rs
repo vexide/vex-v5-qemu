@@ -72,17 +72,11 @@ impl AsyncRead for UsbRead {
 #[derive(Debug)]
 pub struct UsbWrite {
     tx: Sender<KernelBoundPacket>,
-    read_buf: Vec<u8>,
-    eof: bool,
 }
 
 impl UsbWrite {
     pub(crate) const fn new(tx: Sender<KernelBoundPacket>) -> Self {
-        Self {
-            tx,
-            read_buf: Vec::new(),
-            eof: false,
-        }
+        Self { tx }
     }
 
     pub async fn send(&mut self, data: Vec<u8>) -> Result<(), SendError<KernelBoundPacket>> {
@@ -90,7 +84,6 @@ impl UsbWrite {
         Ok(())
     }
 }
-
 
 impl AsyncWrite for UsbWrite {
     fn poll_write(
