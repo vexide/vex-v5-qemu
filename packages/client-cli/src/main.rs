@@ -83,6 +83,14 @@ struct Opt {
     #[clap(long, value_parser = validate_address_range)]
     link_addr: Option<u32>,
 
+    /// Interpret the supplied program as a PROS project directory.
+    ///
+    /// When this option is set, `--program` specifies a directory containing a PROS project.
+    /// In "hold-cold" mode, hot.package.bin and cold.package.bin will be simulated. In "monolith"
+    /// mode, monolith.bin will be simulated.
+    #[clap(long, conflicts_with_all(["link", "link_addr", "load_addr"]))]
+    pros: Option<ProsMode>,
+
     #[clap(long)]
     save_imgs: bool,
 
@@ -93,9 +101,15 @@ struct Opt {
     qemu_args: Vec<String>,
 }
 
+#[derive(clap::ValueEnum, Clone, Copy, PartialEq, Eq)]
+enum ProsMode {
+    HotCold,
+    Monolith,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let opt = <Opt as clap::Parser>::parse();
+    let mut opt = <Opt as clap::Parser>::parse();
 
     TermLogger::init(
         LevelFilter::Debug,
@@ -111,6 +125,21 @@ async fn main() -> anyhow::Result<()> {
     qemu.args(opt.qemu_args);
     if opt.gdb {
         qemu.args(["-S", "-s"]);
+    }
+
+    if let Some(pros) = opt.pros {
+        let bin_dir = opt.program.join("bin");
+        match pros {
+            ProsMode::HotCold => {
+                opt.program = bin_dir.join("hot.package.bin");
+                opt.load_addr = Some(0x07800000);
+                opt.link = Some(bin_dir.join("cold.package.bin"));
+                opt.link_addr = Some(0x03800000);
+            }
+            ProsMode::Monolith => {
+                opt.program = bin_dir.join("monolith.bin");
+            }
+        }
     }
 
     let mut brain = Brain::new(

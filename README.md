@@ -1,6 +1,6 @@
 # VEX V5 Simulator
 
-This project is a best-effort simulation of the V5 userspace enviornment using [QEMU](https://www.qemu.org/). The goal of this is to accurately simulate the enviornment that user programs run in for debugging purposes and maybe some physics simulation in the future. It is currently capable of running and debugging programs written with [vexide](https://vexide.dev/) and [PROS](https://pros.cs.purdue.edu/).
+This project is a best-effort simulation of the V5 userspace environment using [QEMU](https://www.qemu.org/). The goal of this is to accurately simulate the environment that user programs run in for debugging purposes and maybe some physics simulation in the future. It is currently capable of running and debugging programs written with [vexide](https://vexide.dev/) and [PROS](https://pros.cs.purdue.edu/).
 
 ## What?
 
@@ -12,7 +12,7 @@ In other words, this project implements the stuff boxed in red.
 
 ## The VEXos Userspace
 
-When a user program is loaded into memory, a block of function pointers is also loaded by VEXos at address `0x037FC000` (0x4000 before user memory). This jumptable contains function pointers to every implemented SDK function, and is the closest thing to the concept of a "syscall" on the V5. Our simulated envivornment does the same by stubbing most of these functions and loading its own jumptable into that memory region. In the future, we hope to replace some of these stubs with more accurate simulations of V5 hardware using the [Vexide Simulator Protocol](https://github.com/vexide/simulator-protocol). Rather than returning `0` for everything, we could maybe simulate the basic phytsical properties of a Smart Motor, for instance.
+When a user program is loaded into memory, a block of function pointers is also loaded by VEXos at address `0x037FC000` (0x4000 before user memory). This jumptable contains function pointers to every implemented SDK function, and is the closest thing to the concept of a "syscall" on the V5. Our simulated environment does the same by stubbing most of these functions and loading its own jumptable into that memory region. In the future, we hope to replace some of these stubs with more accurate simulations of V5 hardware using the [Vexide Simulator Protocol](https://github.com/vexide/simulator-protocol). Rather than returning `0` for everything, we could maybe simulate the basic phytsical properties of a Smart Motor, for instance.
 
 ![Anatomy of a User Program](https://github.com/vexide/vex-v5-sim/assets/42101043/4ab18389-11eb-416e-87e1-828345065aab)
 
@@ -32,22 +32,29 @@ We reimplement these RTOS hooks through the jumptable in [system.rs](https://git
 
 The VM needs some way to communicate with the host machine running it to view user program output. QEMU makes this a little difficult, since we use the `xilinx-zynq-a9` machine target rather than something like `virt` where can freely add/remove devices.
 
-We currently pipe serial from the user program (stdin/stdout) through ARM's [semihosting feature](https://developer.arm.com/documentation/dui0471/g/Bgbjjgij), and will likely use semihosting in the future for a full simulation protocol.
+We currently use the device's simulated UART port to communicate what actions the program is taking
+to a program running outside the virtual machine. This program then shows any output to the user.
 
-## Running the Thing
+## Running the Simulator
 
-To run the sim, you'll first need [`qemu-system-arm`](https://www.qemu.org/docs/master/system/target-arm.html) installed on your machine. From there, you can build the kernel for its appropriate ARM target.
+To run the sim, you'll first need [QEMU](https://www.qemu.org/download) and Rust installed on your machine.
+
+Then, run it with this command:
 
 ```bash
-cd packages/kernel
-cargo build
+cargo xtask run --program "<PATH_TO_USER_PROGRAM_BIN>"
 ```
 
-and then run the simulator as a CLI using
+(This is the same as building inside `packages/kernel` and then running `packages/client-cli`.)
 
-```bash
-cd packages/client-cli
-cargo run -- --monolith=<PATH_TO_USER_PROGRAM_BIN>
+### PROS Programs
+
+If you want to run a PROS program, you can specify the path to your PROS project folder as well as
+which upload strategy your project is using (hot-cold or monolith; the former is the default for new
+PROS projects). The simulator will find the right files in the folder and run them.
+
+```sh
+cargo xtask run --release --pros=hot-cold --program "~/MyProsProject"
 ```
 
 ### Debugging
@@ -57,8 +64,7 @@ The simulator supports attaching a GDB instance for debugging purposes.
 Start by passing `--gdb` as an argument to the simulator CLI, which will cause QEMU to listen for a gdbstub connection.
 
 ```bash
-cd simulator
-cargo run -- --monolith=<PATH_TO_USER_PROGRAM_BIN> --gdb
+cargo xtask run --program=<PATH_TO_USER_PROGRAM_BIN> --gdb
 ```
 
 In GDB, start by connecting to the simulator on port 1234:
@@ -82,6 +88,6 @@ layout src
 
 You can now step through the simulated Rust code line-by-line with the `step` (jump into) and `next` (jump over) commands.
 
-## What about VEXCode programs?
+## What about VEXcode programs?
 
-Support for VEXCode programs isn't planned. This isn't out of spite or anything, but rather because VEXCode heavily relies on undocumented parts of the proprietary SDK for its cooperative task scheduler that we neither have the knowledge to reimplement nor the desire to document to the public.
+VEXcode programs aren't supported since they're more complicated to emulate. For instance, VEXcode heavily relies on undocumented parts of the proprietary SDK for its cooperative task scheduler. Also, a portion of each VEXcode program is effectively missing since the C++ standard library it uses comes pre-loaded into the Brain's memory. Each person using the simulator would probably have to manually extract it from a real VEX V5 Brain.

@@ -5,6 +5,7 @@ members = [
     "./packages/client-cli",
     "./packages/client/src-tauri",
     "./packages/display",
+    "packages/xtask",
 ]
 exclude = [
     "./packages/kernel", # makes rust-analyzer really slow
