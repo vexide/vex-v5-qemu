@@ -24,6 +24,7 @@ use tokio::{
 use vex_v5_qemu_host::{
     brain::{Binary, Brain},
     peripherals::usb::{UsbRead, UsbWrite},
+    protocol::battery::BatteryData,
 };
 use winit::event_loop::EventLoop;
 
