@@ -1,4 +1,4 @@
-use std::{option::Option, path::PathBuf, pin::Pin};
+use std::{option::Option, path::PathBuf, pin::Pin, time::Duration};
 
 #[cfg(any(
     target_os = "linux",
@@ -20,6 +20,7 @@ use tokio::{
     net::TcpListener,
     process::Command,
     sync::Mutex,
+    time::sleep,
 };
 use vex_v5_qemu_host::{
     brain::{Binary, Brain},
