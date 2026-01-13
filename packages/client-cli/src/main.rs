@@ -1,18 +1,5 @@
 use std::{option::Option, path::PathBuf, pin::Pin, time::Duration};
 
-#[cfg(any(
-    target_os = "linux",
-    target_os = "windows",
-    target_os = "dragonfly",
-    target_os = "freebsd"
-))]
-use battery::{
-    units::{
-        electric_current::milliampere, electric_potential::millivolt, ratio::part_per_hundred,
-        thermodynamic_temperature::degree_celsius,
-    },
-    Manager,
-};
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use tokio::{
@@ -158,42 +145,6 @@ async fn main() -> anyhow::Result<()> {
     )
     .unwrap();
     let peripherals = brain.peripherals.take().unwrap();
-
-    #[cfg(any(
-        target_os = "linux",
-        target_os = "windows",
-        target_os = "dragonfly",
-        target_os = "freebsd"
-    ))]
-    if let Ok(Ok(mut batteries)) = Manager::new().map(|mgr| mgr.batteries()) {
-        if let Some(Ok(mut battery)) = batteries.next() {
-            tokio::task::spawn(async move {
-                let mut battery_peripheral = peripherals.battery;
-                loop {
-                    let current = battery.energy_rate() / battery.voltage();
-
-                    battery_peripheral
-                        .set_data(BatteryData {
-                            voltage: battery.voltage().get::<millivolt>() as _,
-                            current: current.get::<milliampere>() as _,
-                            temperature: battery
-                                .temperature()
-                                .unwrap_or_default()
-                                .get::<degree_celsius>()
-                                as _,
-                            capacity: battery.state_of_charge().get::<part_per_hundred>() as _,
-                        })
-                        .await;
-
-                    if battery.refresh().is_err() {
-                        return;
-                    }
-
-                    sleep(Duration::from_millis(20)).await;
-                }
-            });
-        }
-    }
 
     let tcp_port = opt.tcp;
     tokio::task::spawn(async move {
